@@ -1,0 +1,567 @@
+#+TITLE: DotEmacs
+#+AUTHOR: Krdzo
+
+
+* Bootstrap
+  
+** Use better defaults
+
+   Change Emacs default UI.
+
+   #+BEGIN_SRC emacs-lisp
+     (when window-system
+       (blink-cursor-mode 0)
+       (scroll-bar-mode 0)
+       (tool-bar-mode 0))
+   #+END_SRC
+   
+   These are emacs builtin options changed for what I think are better defaults.
+
+   #+BEGIN_SRC emacs-lisp
+     (setq-default
+      auto-window-vscroll nil                          ; Lighten vertical scroll
+      confirm-kill-emacs 'yes-or-no-p                  ; Confirm before exiting Emacs
+      delete-by-moving-to-trash t                      ; Delete files to trash
+      display-time-default-load-average nil            ; Don't display load average
+      fill-column 80                                   ; Set width for automatic line breaks
+      help-window-select t                             ; Focus new help windows when opened
+      indent-tabs-mode nil                             ; Stop using tabs to indent
+      inhibit-startup-screen t                         ; Disable start-up screen
+      initial-scratch-message ""                       ; Empty the initial *scratch* buffer
+      mouse-yank-at-point t                            ; Yank at point rather than pointer
+      mouse-wheel-scroll-amount '(1)                   ; Scroll for mouse wheel
+      save-interprogram-paste-before-kill t            ; Better interaction with clipboard
+      scroll-conservatively most-positive-fixnum       ; Always scroll by one line
+      scroll-margin 4                                  ; Add a margin when scrolling vertically
+      sentence-end-double-space nil                    ; End a sentence after a dot and a space
+      show-trailing-whitespace nil                     ; Display trailing whitespaces
+      tab-width 4                                      ; Set width for tabs
+      uniquify-buffer-name-style 'forward              ; Uniquify buffer names
+      x-stretch-cursor t)                              ; Stretch cursor to the glyph width
+     ;; (cd "~/")                                         ; Move to the user directory
+     (column-number-mode 1)                            ; Show coulum numbers in modeline
+     (defalias 'yes-or-no-p 'y-or-n-p)                 ; Replace yes/no prompts with y/n
+     (fringe-mode 2)                                   ; Disable fringes
+     (global-auto-revert-mode 1)                       ; Automatically update buffers if file content on the disk has changed.
+     (global-subword-mode 1)                           ; Iterate through CamelCase words
+     (set-default-coding-systems 'utf-8)               ; Default to utf-8 encoding
+     (setf ring-bell-function 'ignore)                 ; Disable Emacs bell
+     (show-paren-mode 1)                               ; Highlight matching parens
+   #+END_SRC
+
+   Enable fullscreen.
+
+   #+BEGIN_SRC emacs-lisp
+     (when window-system
+       (toggle-frame-maximized))
+   #+END_SRC
+
+   Hooks for default modes
+
+   #+BEGIN_SRC emacs-lisp
+     (add-hook 'prog-mode-hook 'display-line-numbers-mode)
+   #+END_SRC
+
+   Folder for backup files
+
+   #+BEGIN_SRC emacs-lisp
+     (let ((backup (expand-file-name ".backups.d" user-emacs-directory)))
+       (setq-default
+        backup-directory-alist `(("." . ,backup))))
+   #+END_SRC
+
+   Garbage-collect on focus-out, Emacs should feel snappier.
+
+   #+BEGIN_SRC emacs-lisp
+     (add-hook 'focus-out-hook #'garbage-collect)
+   #+END_SRC
+
+** Load .custom.el
+
+   One is able to use the customization interface that is bundled within Emacs. It is meant
+   to help people who are not familiar with Emacs Lisp in the configuration of Emacs
+   itself. By default, changes in the customization will be automatically detected and
+   appended at the end of the configuration file, init.el.
+
+   Since that in my case, the actual configuration file is a new one, crafted by org-mode,
+   adding code at the end of init.el might mess things up. The following tells Emacs to add
+   extra code in another file that would be then loaded, if existing.
+
+   #+BEGIN_SRC emacs-lisp
+     (setq-default custom-file (expand-file-name ".custom.el" user-emacs-directory))
+     (when (file-exists-p custom-file)
+       (load custom-file))
+   #+END_SRC
+
+* Themes and UI
+  
+** Font
+
+   #+BEGIN_SRC emacs-lisp
+     (set-face-attribute 'default nil :font  "Droid Sans Mono" :height 112)
+   #+END_SRC
+
+** Themes
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package doom-themes
+       :config
+       (load-theme 'doom-one t))
+   #+END_SRC
+
+** Modeline
+*** Diminish
+    This package alowes me to change what modes are listed in the modeline
+    #+BEGIN_SRC emacs-lisp
+      (use-package diminish
+        :defer 0.25
+        :config
+        (diminish 'eldoc-mode)
+        (diminish 'subword-mode)
+        (diminish 'evil-commentary-mode)
+        (diminish 'evil-org-mode)
+        (diminish 'which-key-mode)
+        (diminish 'undo-tree-mode))
+    #+END_SRC
+    
+* Modes
+  
+  Here I put modes that I can't come up with a category for or are to important
+  to put them in the features section.
+  
+** Evil and friends
+   
+   Evil and all asociated packages are configured in this section.
+   
+*** Evil
+
+    #+BEGIN_SRC emacs-lisp
+      (use-package evil
+        :init (setq evil-want-C-u-scroll t
+                    evil-want-keybinding nil
+                    evil-want-Y-yank-to-eol t)
+        :config
+        (evil-mode 1)
+        (setq evil-motion-state-cursor "#bb1111"
+              evil-normal-state-cursor "#26aaef"
+              evil-emacs-state-cursor "#ee6622"
+              evil-insert-state-cursor '(bar "#eeeeee")))
+    #+END_SRC
+
+*** evil-commentary
+
+    #+BEGIN_SRC emacs-lisp
+      (use-package evil-commentary
+        :after evil
+        :config (evil-commentary-mode))
+    #+END_SRC
+
+*** evil-collection
+   
+    #+BEGIN_SRC emacs-lisp
+      (use-package evil-collection
+        :after evil
+        :config
+        (setq evil-collection-company-use-tng nil)
+        (evil-collection-init '((package-menu package) helpful dired info)))
+    #+END_SRC
+
+*** evil-matchit
+
+    #+BEGIN_SRC emacs-lisp
+      (use-package evil-matchit
+        :after evil
+        :config
+        (global-evil-matchit-mode 1))
+    #+END_SRC
+
+*** evil-org
+    #+BEGIN_SRC emacs-lisp
+      (use-package evil-org
+        :after org
+        :hook (org-mode . evil-org-mode)
+        :config
+        (add-hook 'evil-org-mode-hook
+                  (lambda ()
+                    (evil-org-set-key-theme)))
+        (require 'evil-org-agenda)
+        (evil-org-agenda-set-keys))
+    #+END_SRC
+
+** General
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package general
+       :ensure t)
+     ;; we have to unbind SPC so that we dont encounter prefix key error when binding SPC as a prefix 
+     (general-unbind
+       :states '(motion normal)
+       "SPC")
+   #+END_SRC
+
+** Helm
+
+   Helm is a big package used everywhere. For documentation go here [[https://github.com/emacs-helm/helm][Helm github page]]
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package helm
+       :config
+       (helm-mode)
+       (setq helm-echo-input-in-header-line t
+             helm-move-to-line-cycle-in-source t))
+
+   #+END_SRC
+
+* Features
+  
+** Auto-Completion
+   
+   Company mode for autocompletion
+
+   #+BEGIN_SRC emacs-lisp
+      (use-package company
+       :init
+       :hook (after-init . global-company-mode)
+       :config
+       (setq company-idle-delay 0.0
+             company-minimum-prefix-length 3
+             company-show-numbers t
+             company-selection-wrap-around t
+             company-global-modes '(not help-mode
+                                        helpful-mode)))
+       ;; (evil-make-overriding-map company-active-map 'insert t)
+
+
+     ;; sorting company completions by usage
+     (use-package company-prescient
+       :after company
+       :config (company-prescient-mode 1))
+
+   #+END_SRC
+
+** Git
+   
+   #+BEGIN_SRC emacs-lisp
+     (use-package magit)
+     (use-package evil-magit)
+   #+END_SRC
+   
+** Help 
+
+   #+BEGIN_QUOTE
+   Helpful is an alternative to the built-in Emacs help that provides much more contextual information.
+   [[https://github.com/Wilfred/helpful][Helpful github page]]
+   #+END_QUOTE
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package helpful)
+
+      ;; ('motion
+      ;;  "SPC h p" 'helpful-at-point)
+      ;; ;; enable helpful-at-point to work in org-mode buffers like general-describe-bindings
+      ;; (:keymaps 'org-mode-map
+      ;;  :states 'normal
+      ;;  "SPC h p" (lambda () (interactive)
+      ;;            (-if-let (symbol (string-trim (symbol-name (symbol-at-point)) "~" "~"))
+      ;;                (helpful-symbol (read symbol)))))
+   #+END_SRC
+
+** Reload/open .emacs
+   
+   Function for reloading configuration
+
+   #+BEGIN_SRC emacs-lisp
+     (defun my/config-reload ()
+       (interactive)
+       (org-babel-load-file (expand-file-name "pravila.org" user-emacs-directory)))
+   #+END_SRC
+
+   Function for opening pravila.org
+
+   #+BEGIN_SRC emacs-lisp
+     (defun my/edit-config-org ()
+       (interactive)
+       (find-file (expand-file-name "pravila.org" user-emacs-directory )))
+   #+END_SRC
+
+   Functon for opening init.el
+
+   #+BEGIN_SRC emacs-lisp
+     (defun my/edit-config-init ()
+       (interactive)
+       (find-file (expand-file-name "init.el" user-emacs-directory)))
+   #+END_SRC
+
+   Keybindings for these functions
+
+   #+BEGIN_SRC emacs-lisp
+     (general-def '(motion normal)
+       :prefix "SPC f e"
+       "r" 'my/config-reload
+       "d" 'my/edit-config-org
+       "i" 'my/edit-config-init)
+   #+END_SRC
+
+** Try
+
+   Package for trying out different packages
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package try)
+   #+END_SRC
+
+** Org
+   #+BEGIN_SRC emacs-lisp
+     (setq org-src-window-setup 'current-window)
+   #+END_SRC
+   
+*** Custom Org snipets
+    
+    For emacs-lisp
+    #+BEGIN_SRC emacs-lisp
+      (add-to-list 'org-structure-template-alist
+                   '("el" "#+BEGIN_SRC emacs-lisp\n?\n#+END_SRC"))
+    #+END_SRC
+    
+** Parentheses
+   
+   Highlight parenthese-like delimiters in a rainbow fashion. It ease the reading when dealing with mismatched parentheses.
+   
+   #+BEGIN_SRC emacs-lisp
+     (use-package rainbow-delimiters
+       :ensure t
+       :hook (prog-mode . rainbow-delimiters-mode))
+   #+END_SRC
+  
+   Smartparens for better paren handling, and everything that goes in pairs.
+   
+   #+BEGIN_SRC emacs-lisp
+     (use-package smartparens
+       :ensure t
+       :diminish
+       :hook (prog-mode . smartparens-mode)
+       :config
+       (sp-local-pair '(emacs-lisp-mode lisp-interaction-mode inferior-emacs-lisp-mode) "'" "")
+       (sp-local-pair '(emacs-lisp-mode lisp-interaction-mode inferior-emacs-lisp-mode) "`" ""))
+   #+END_SRC
+   
+** Save/sort usage
+
+   When you exit emacs it forgets all the things that it was doing and this section
+   is there to save all the usage from previous session.
+*** Prescient
+
+    Save usage statistics to be saved between Emacs sessions.
+
+    #+BEGIN_SRC emacs-lisp
+      (use-package prescient
+        :config (prescient-persist-mode 1))
+    #+END_SRC
+
+** Which-key
+   
+   Which-key is used for easier keybindings discovery
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package which-key
+       :config
+       (setq which-key-idle-delay 0.5)
+       (which-key-mode))
+   #+END_SRC
+
+* Programming
+** LSP
+   #+BEGIN_SRC emacs-lisp
+     (use-package lsp-mode
+       :ensure t
+       :init (setq lsp-keymap-prefix "C-l")
+       :commands (lsp lsp-defered)
+       :hook
+       (python-mode . lsp)
+       (lsp-mode . lsp-enable-which-key-integration)
+       :config (setq lsp-diagnostic-package ':none)
+       :general
+       ('normal 'lsp-mode
+         :definer 'minor-mode
+         "SPC l" (general-simulate-key "C-c l" :which-key "lsp")))
+
+     (use-package lsp-python-ms
+       :ensure t
+       :commands python-mode)
+
+     (use-package yasnippet) ;; privremeno ovde dok neukapiram sta da radim sa ovim
+   #+END_SRC
+
+** Languages
+
+* Keybindings
+** Unbind space in all modes
+   #+BEGIN_SRC emacs-lisp
+     (general-unbind normal Info-mode-map "SPC")
+     (general-unbind normal dired-mode-map "SPC")
+   #+END_SRC
+  
+** Buffers
+   Custom funcions used in this section for bindings
+   #+BEGIN_SRC emacs-lisp
+     (defun kr/edit-scratch ()
+       (interactive)
+       (switch-to-buffer "*scratch*"))
+   #+END_SRC
+   
+   #+BEGIN_SRC emacs-lisp
+     (general-def  '(motion normal) 'global
+       :prefix "SPC b"
+       "" '(:ignore t :which-key "buffer")
+       "s" '(lambda () (interactive) (switch-to-buffer "*scratch*"))
+       "d" 'kill-current-buffer
+       "b" 'helm-mini)
+   #+END_SRC
+   
+** Company   
+#+BEGIN_SRC emacs-lisp
+  (general-def 'company-active-map
+            "TAB" 'company-complete-common-or-cycle
+            "C-d" 'company-next-page
+            "C-u" 'company-previous-page
+            "C-j" 'company-select-next-or-abort
+            "C-k" 'company-select-previous-or-abort
+            "<f1>" 'helpful-key)
+#+END_SRC
+
+** Files
+   #+BEGIN_SRC emacs-lisp
+     (general-def '(motion normal) 'global
+       :prefix "SPC f"
+       "" '(:ignore t :which-key "file")
+       "f" 'helm-find-files
+       "s" 'save-buffer)
+   #+END_SRC
+   
+** Helm
+   #+BEGIN_SRC emacs-lisp
+     (general-def helm-map 
+       "C-l" 'helm-execute-persistent-action
+       "<escape>" 'helm-keyboard-quit
+       "C-j" 'helm-next-line
+       "C-k" 'helm-previous-line
+       "C-n" 'helm-next-source
+       "C-p" 'helm-previous-source)
+
+     (general-def helm-find-files-map
+       "C-l" 'helm-execute-persistent-action
+       "C-u" 'helm-unmark-all
+       "C-d" 'helm-ff-persistent-delete
+       "C-D" 'helm-ff-run-delete-file
+       "C-o" 'helm-find-files-up-one-level)
+
+     ;; only bind this if runing GUI Emacs
+     (when window-system
+       (general-def input-decode-map [?\C-m] [C-m])
+       (general-def helm-find-files-map 
+         "<C-m>" 'helm-toggle-visible-mark-forward))
+
+     (general-def helm-M-x-map
+       "C-l" 'helm-execute-persistent-action)
+   #+END_SRC
+
+** Help
+   #+BEGIN_SRC emacs-lisp
+     (general-def '(motion insert)
+       "C-h k" 'helpful-key
+       "C-h C" 'helpful-command
+       "C-h f" 'helpful-callable
+       "C-h v" 'helpful-variable)
+   #+END_SRC
+   
+** Other
+   #+BEGIN_SRC emacs-lisp
+    (general-def (insert normal)
+      "M-x" 'helm-M-x
+      "C-x C-f" 'helm-find-files)
+   #+END_SRC
+
+  
+
+** Windows
+   #+BEGIN_SRC emacs-lisp
+     (general-def '(motion normal) 'global
+       "C-<tab>" 'evil-window-next
+       "]w" 'evil-window-next
+       "[w" 'evil-window-prev)
+
+     (general-def '(motion normal) 
+       :prefix "SPC w"
+       "" '(:ignore t :which-key "window")
+       "d" 'evil-window-delete
+       "c" 'evil-window-delete
+       "v" 'evil-window-vsplit
+       "s" 'evil-window-split
+       "o" 'delete-other-windows)
+   #+END_SRC
+   
+   
+* Hydra
+  #+BEGIN_SRC emacs-lisp
+    (use-package hydra)
+
+    (defhydra helm-like-unite (:hint nil
+                               :color pink)
+      "
+    Nav ^^^^^^^^^        Mark ^^          Other ^^       Quit
+    ^^^^^^^^^^------------^^----------------^^----------------------
+    _K_ ^ ^ _k_ ^ ^     _m_ark           _v_iew         _i_: cancel
+    ^↕^ _h_ ^✜^ _l_     _t_oggle mark    _H_elp         _o_: quit
+    _J_ ^ ^ _j_ ^ ^     _U_nmark all     _d_elete
+    ^^^^^^^^^^                           _f_ollow: %(helm-attr 'follow)
+    "
+      ;; arrows
+      ("h" helm-beginning-of-buffer)
+      ("j" helm-next-line)
+      ("k" helm-previous-line)
+      ("l" helm-end-of-buffer)
+      ;; beginning/end
+      ("g" helm-beginning-of-buffer)
+      ("G" helm-end-of-buffer)
+      ;; scroll
+      ("K" helm-scroll-other-window-down)
+      ("J" helm-scroll-other-window)
+      ;; mark
+      ("m" helm-toggle-visible-mark)
+      ("t" helm-toggle-all-marks)
+      ("U" helm-unmark-all)
+      ;; exit
+      ("<escape>" keyboard-escape-quit "" :exit t)
+      ("o" keyboard-escape-quit :exit t)
+      ("i" nil)
+      ;; sources
+      ("}" helm-next-source)
+      ("{" helm-previous-source)
+      ;; rest
+      ("H" helm-help)
+      ("v" helm-execute-persistent-action)
+      ("d" helm-persistent-delete-marked)
+      ("f" helm-follow-mode))
+
+    ;; (add-hook 'helm-mode-hook 'helm-like-unite/body)
+    ;; (define-key helm-map (kbd "<escape>") 'helm-like-unite/body)
+
+      ;; ;; arrows
+      ;; ("h" helm-beginning-of-buffer)
+      ;; ("l" helm-end-of-buffer)
+      ;; ;; beginning/end
+      ;; ("g" helm-beginning-of-buffer)
+      ;; ("G" helm-end-of-buffer)
+      ;; ;; scroll
+      ;; ("K" helm-scroll-other-window-down)
+      ;; ("J" helm-scroll-other-window)
+      ;; ;; exit
+      ;; ("<escape>" keyboard-escape-quit "" :exit t)
+      ;; ("o" keyboard-escape-quit :exit t)
+      ;; ("i" nil)
+      ;; ;; rest
+      ;; ("H" helm-help)
+      ;; ("f" helm-follow-mode)
+  #+END_SRC
+  
+
