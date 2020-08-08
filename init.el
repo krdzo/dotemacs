@@ -29,8 +29,7 @@
   (require 'use-package))
 (setq-default use-package-always-ensure t)
 
-(use-package org
-  :ensure t)
+(use-package org)
 
 
 
