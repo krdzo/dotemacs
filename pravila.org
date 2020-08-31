@@ -43,7 +43,6 @@ These are emacs builtin options changed for what I think are better defaults.
   ;; (cd "~/")                                         ; Move to the user directory
   (column-number-mode 1)                            ; Show coulum numbers in modeline
   (defalias 'yes-or-no-p 'y-or-n-p)                 ; Replace yes/no prompts with y/n
-  ;; (fringe-mode '(0 . 10))                           ; Disable fringes
   (global-auto-revert-mode 1)                       ; Automatically update buffers if file content on the disk has changed.
   (global-subword-mode 1)                           ; Iterate through CamelCase words
   (set-default-coding-systems 'utf-8)               ; Default to utf-8 encoding
@@ -98,11 +97,11 @@ Here are all the hooks that can't go in a specific use-package statment
 #+END_SRC
 
 * Themes and UI
-  
+
 ** Font
 
 #+BEGIN_SRC emacs-lisp
-  (set-face-attribute 'default nil :font  "Source Code Pro" :height 117)
+  (set-face-attribute 'default nil :font  "Source Code Pro 12")
 #+END_SRC
 
 ** Themes
@@ -113,16 +112,6 @@ Here are all the hooks that can't go in a specific use-package statment
 #+END_SRC
 
 ** Modeline
-*** Hamburger-menu
-
-Hamburger menu in the modeline
-
-#+BEGIN_SRC emacs-lisp
-  (use-package hamburger-menu
-    :config
-    (setq mode-line-front-space 'hamburger-menu-mode-line))
-#+END_SRC
-
 *** Diminish
 
 This package alowes me to change what modes are listed in the modeline
@@ -179,7 +168,7 @@ Evil and all asociated packages are configured in this section.
     :after evil
     :config
     (setq evil-collection-company-use-tng nil)
-    (evil-collection-init '((package-menu package) helpful dired info)))
+    (evil-collection-init '(help (package-menu package) helpful dired info)))
 #+END_SRC
 
 *** evil-matchit
@@ -227,6 +216,14 @@ Helm is a big package used everywhere. For documentation go here [[https://githu
     (setq helm-candidate-number-limit 500
           helm-move-to-line-cycle-in-source t))
 
+#+END_SRC
+
+** Lispy
+#+BEGIN_SRC emacs-lisp
+  (use-package lispy)
+    ;; :hook (scheme-mode . (lambda () (lispy-mode 1))))
+  (use-package lispyville
+    :hook (scheme-mode . (lambda () (lispyville-mode 1))))
 #+END_SRC
 
 * Features
@@ -359,19 +356,19 @@ Highlight parenthese-like delimiters in a rainbow fashion. It ease the reading w
 #+BEGIN_SRC emacs-lisp
   (use-package rainbow-delimiters
     :ensure t
-    :hook (prog-mode . rainbow-delimiters-mode))
+    :hook ((prog-mode comint-mode) . rainbow-delimiters-mode))
 #+END_SRC
   
 Smartparens for better paren handling, and everything that goes in pairs.
    
 #+BEGIN_SRC emacs-lisp
-  (use-package smartparens
-    :ensure t
-    :diminish
-    :hook (prog-mode . smartparens-mode)
-    :config
-    (sp-local-pair '(emacs-lisp-mode lisp-interaction-mode inferior-emacs-lisp-mode) "'" "")
-    (sp-local-pair '(emacs-lisp-mode lisp-interaction-mode inferior-emacs-lisp-mode) "`" ""))
+  ;; (use-package smartparens
+  ;;   :ensure t
+  ;;   :diminish
+  ;;   :hook (prog-mode . smartparens-mode)
+  ;;   :config
+  ;;   (sp-local-pair '(emacs-lisp-mode lisp-interaction-mode inferior-emacs-lisp-mode) "'" "")
+  ;;   (sp-local-pair '(emacs-lisp-mode lisp-interaction-mode inferior-emacs-lisp-mode) "`" ""))
 #+END_SRC
    
 ** Save/sort usage
@@ -429,13 +426,29 @@ Which-key is used for easier keybindings discovery
     :config)
 #+END_SRC
     
+*** Scheme
+#+BEGIN_SRC emacs-lisp
+  (use-package geiser
+    :defer t
+    :init (setq geiser-active-implementations '(mit)))
+#+END_SRC
+
 * Keybindings
 ** Buffers
 Custom funcions used in this section for bindings
 #+BEGIN_SRC emacs-lisp
-  (defun kr/edit-scratch ()
+    (defun kr/edit-scratch ()
+      (interactive)
+      (switch-to-buffer "*scratch*"))
+
+  (defun my/bury-other-buffer ()
     (interactive)
-    (switch-to-buffer "*scratch*"))
+    (save-excursion
+      (other-window 1)
+      (bury-buffer)
+      (other-window 1)))
+
+
 #+END_SRC
    
 #+BEGIN_SRC emacs-lisp
@@ -444,7 +457,10 @@ Custom funcions used in this section for bindings
     "" '(:ignore t :which-key "buffer")
     "s" '(lambda () (interactive) (switch-to-buffer "*scratch*"))
     "d" 'kill-current-buffer
+    "o" 'my/bury-other-buffer
     "b" 'helm-mini)
+  (general-def '(motion normal) 'global
+    "SPC /" 'helm-occur)
 #+END_SRC
    
 ** Company   
@@ -461,6 +477,14 @@ Custom funcions used in this section for bindings
 ** Dired mode
 #+BEGIN_SRC emacs-lisp
   (general-unbind normal dired-mode-map "SPC")
+#+END_SRC
+
+** evil
+
+#+BEGIN_SRC emacs-lisp
+  (general-def normal org-mode-map
+    "j" 'evil-next-visual-line
+    "k" 'evil-previous-visual-line)
 #+END_SRC
 
 ** Files
@@ -507,14 +531,21 @@ Keybindings
   ;; only bind this if runing GUI Emacs
   (when window-system
     (general-def input-decode-map [?\C-m] [C-m])
-    (general-def helm-find-files-map
+    (general-def (helm-find-files-map helm-map)
       "<C-m>" 'helm-toggle-visible-mark-forward))
 
   (general-def helm-M-x-map
     "C-l" 'helm-execute-persistent-action)
 #+END_SRC
 
-** Help
+** Help and Helpful
+
+Help
+#+BEGIN_SRC emacs-lisp
+  (general-unbind normal help-mode-map "SPC")
+#+END_SRC
+
+Helpful
 #+BEGIN_SRC emacs-lisp
   (general-def
     "C-h k" 'helpful-key
@@ -531,10 +562,22 @@ Keybindings
     "S-<backspace>" 'Info-scroll-up)
 #+END_SRC
 
+** Scheme(geiser) mode
+#+BEGIN_SRC emacs-lisp
+  (general-def normal geiser-mode-map
+    "SPC '" 'switch-to-geiser)
+
+  (general-def normal geiser-repl-mode-map
+    "SPC '" 'switch-to-geiser)
+  (general-def normal geiser-doc-mode-map
+    "TAB" 'forward-button
+    "S-<tab>" 'backward-button
+    "q" 'View-quit)
+#+END_SRC
+
 ** Windows
 #+BEGIN_SRC emacs-lisp
   (general-def '(motion normal) 'global
-    "C-<tab>" 'evil-window-next
     "]w" 'evil-window-next
     "[w" 'evil-window-prev)
 
@@ -634,9 +677,19 @@ haha
 BUR_REPORT: Postoji bug u evil-matchit-mode -u koji neda da se macuju zagrade u org tekstu
 
 ** Preskoceno u Info manual-u
-11. 12. 13. 15. 17. sekcije Emacs info manual-a su preskocene
+11. 12. 13. 17. 22. sekcije Emacs info manual-a su preskocene
 
 ** Korisne Info strane da se opet procitaju
 16.4 O spellcheck-u 
+26.2.3 imunu
+26.2.4 which-funciton-mode
 
-** Stao na 18. sekciji u Emacs Info
+** Kako lakse raditi sa camelCase i snake_case 
+Postavi global sub word
+(global-subword-mode 1)
+Sad se =w= komanda kao i sve ostale ponasaju drugacije tj prepoznaju reci u camelcase i razlikuju ih.
+
+vidiSadKakoSePonasaNaOvomPrimeru
+vidi_sad_kako_se_ponasa_na_ovom_primeru
+
+onda sa =vaw= ili =viw= opkolis rec unutar camelcase-a a sa =vao= ili =vio= opkolis ceo simbol, celu promenjivu
