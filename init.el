@@ -19,8 +19,6 @@
 			 ("melpa"     . "https://melpa.org/packages/")
 			 ("melpa-stable" . "https://stable.melpa.org/packages/")))
 (require 'package)
-(setq package-enable-at-startup nil)
-(package-initialize)
 
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
@@ -29,9 +27,8 @@
   (require 'use-package))
 (setq-default use-package-always-ensure t)
 
-(use-package org)
 
-
-
+(require 'org)
+(add-to-list 'org-modules 'org-tempo t)
 (org-babel-load-file (expand-file-name "pravila.org" user-emacs-directory))
 

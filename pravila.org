@@ -7,17 +7,17 @@
 
 Change Emacs default UI.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (when window-system
     (blink-cursor-mode 0)
     (menu-bar-mode 0)
     (scroll-bar-mode 0)
     (tool-bar-mode 0))
-#+END_SRC
+#+end_src
    
 These are emacs builtin options changed for what I think are better defaults.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (setq-default
    auto-window-vscroll nil                          ; Lighten vertical scroll
    confirm-kill-emacs 'yes-or-no-p                  ; Confirm before exiting Emacs
@@ -45,31 +45,31 @@ These are emacs builtin options changed for what I think are better defaults.
   (defalias 'yes-or-no-p 'y-or-n-p)                 ; Replace yes/no prompts with y/n
   (global-auto-revert-mode 1)                       ; Automatically update buffers if file content on the disk has changed.
   (global-subword-mode 1)                           ; Iterate through CamelCase words
-  (set-default-coding-systems 'utf-8)               ; Default to utf-8 encoding
+  (prefer-coding-system 'utf-8)                     ; Default to utf-8 encoding
   (setf ring-bell-function 'ignore)                 ; Disable Emacs bell
   (show-paren-mode 1)                               ; Highlight matching parens
-#+END_SRC
+#+end_src
 
 Enable fullscreen.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (when window-system
     (toggle-frame-maximized))
-#+END_SRC
+#+end_src
 
 Folder for backup files
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (let ((backup (expand-file-name ".backups.d" user-emacs-directory)))
     (setq-default
      backup-directory-alist `(("." . ,backup))))
-#+END_SRC
+#+end_src
 
 Garbage-collect on focus-out, Emacs should feel snappier.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (add-hook 'focus-out-hook #'garbage-collect)
-#+END_SRC
+#+end_src
 
 ** Load .custom.el
 
@@ -82,41 +82,41 @@ Since that in my case, the actual configuration file is a new one, crafted by or
 adding code at the end of init.el might mess things up. The following tells Emacs to add
 extra code in another file that would be then loaded, if existing.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (setq-default custom-file (expand-file-name ".custom.el" user-emacs-directory))
   (when (file-exists-p custom-file)
     (load custom-file))
-#+END_SRC
+#+end_src
 
 ** Hooks
 Here are all the hooks that can't go in a specific use-package statment
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (add-hook 'prog-mode-hook 'toggle-truncate-lines)
   (add-hook 'prog-mode-hook 'display-line-numbers-mode)
   (add-hook 'after-init-hook 'global-hl-line-mode)
-#+END_SRC
+#+end_src
 
 * Themes and UI
 
 ** Font
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (set-face-attribute 'default nil :font  "Source Code Pro 12")
-#+END_SRC
+#+end_src
 
 ** Themes
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package doom-themes
     :hook (after-init . (lambda () (load-theme 'doom-one t))))
-#+END_SRC
+#+end_src
 
 ** Modeline
 *** Diminish
 
 This package alowes me to change what modes are listed in the modeline
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package diminish
     :hook (after-init . my/diminish)
     :config
@@ -127,20 +127,31 @@ This package alowes me to change what modes are listed in the modeline
       (diminish 'evil-org-mode)
       (diminish 'which-key-mode)
       (diminish 'undo-tree-mode)))
-#+END_SRC
+#+end_src
     
 * Modes
   
 Here I put modes that I can't come up with a category for or are to important
 to put them in the features section.
   
+** General
+
+#+begin_src emacs-lisp
+  (use-package general
+    :defer t)
+  ;; we have to unbind SPC so that we dont encounter prefix key error when binding SPC as a prefix
+  (general-unbind
+    :states '(motion normal)
+    "SPC")
+#+end_src
+
 ** Evil and friends
    
 Evil and all asociated packages are configured in this section.
    
 *** Evil
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package evil
     :init (setq evil-want-C-u-scroll t
                 evil-want-keybinding nil
@@ -151,80 +162,54 @@ Evil and all asociated packages are configured in this section.
           evil-normal-state-cursor "#26aaef"
           evil-emacs-state-cursor "#ee6622"
           evil-insert-state-cursor '(bar "#eeeeee")))
-#+END_SRC
+#+end_src
 
 *** evil-commentary
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package evil-commentary
     :after evil
     :config (evil-commentary-mode))
-#+END_SRC
+#+end_src
 
 *** evil-collection
    
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package evil-collection
     :after evil
     :config
     (setq evil-collection-company-use-tng nil)
     (evil-collection-init '(help (package-menu package) helpful dired info)))
-#+END_SRC
+#+end_src
 
 *** evil-matchit
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package evil-matchit
     :after evil
     :config
     (global-evil-matchit-mode 1))
-#+END_SRC
+#+end_src
 
 *** evil-textobj-line
 
 Select a line with =vil= and =val= keys.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package evil-textobj-line)
 
-#+END_SRC
+#+end_src
 
-** General
-
-#+BEGIN_SRC emacs-lisp
-  (use-package general
-    :defer t)
-  ;; we have to unbind SPC so that we dont encounter prefix key error when binding SPC as a prefix
-  (general-unbind
-    :states '(motion normal)
-    "SPC")
-#+END_SRC
-
-** Helm
-
-Helm is a big package used everywhere. For documentation go here [[https://github.com/emacs-helm/helm][Helm github page]]
-
-#+BEGIN_SRC emacs-lisp
-  (use-package helm
-    :hook (after-init . helm-mode)
+*** evil-suround
+#+begin_src emacs-lisp
+  (use-package evil-surround
+    :after evil
     :config
-    ;; open helm always on the bottom of the frame
-    (setq helm-always-two-windows nil
-          helm-display-buffer-default-height 18
-          helm-default-display-buffer-functions '(display-buffer-in-side-window))
-    ;; random config
-    (setq helm-candidate-number-limit 500
-          helm-move-to-line-cycle-in-source t))
-
-#+END_SRC
-
-** Lispy
-#+BEGIN_SRC emacs-lisp
-  (use-package lispy)
-    ;; :hook (scheme-mode . (lambda () (lispy-mode 1))))
-  (use-package lispyville
-    :hook (scheme-mode . (lambda () (lispyville-mode 1))))
-#+END_SRC
+    (global-evil-surround-mode)
+    :general
+    (visual
+     "s" 'evil-surround-region))
+#+end_src
 
 * Features
   
@@ -232,12 +217,12 @@ Helm is a big package used everywhere. For documentation go here [[https://githu
    
 Company mode for autocompletion
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package company
     :hook (after-init . global-company-mode)
     :config
     (setq company-idle-delay 0.0
-          company-minimum-prefix-length 3
+          company-minimum-prefix-length 1
           company-show-numbers t
           company-selection-wrap-around t
           company-global-modes '(not help-mode
@@ -250,86 +235,89 @@ Company mode for autocompletion
     :after company
     :config (company-prescient-mode 1))
 
-#+END_SRC
+#+end_src
 
 ** Git
    
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package magit
     :general
     ("C-x g" 'magit-status))
   (use-package evil-magit
     :hook (magit-mode . evil-magit-init))
-#+END_SRC
+#+end_src
    
 ** Help 
 
-#+BEGIN_QUOTE
+#+begin_quote
 Helpful is an alternative to the built-in Emacs help that provides much more contextual information.
 [[https://github.com/Wilfred/helpful][Helpful github page]]
-#+END_QUOTE
+#+end_quote
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package helpful
     :defer t)
-#+END_SRC
+#+end_src
 
 ** Reload/open .emacs
    
 Function for reloading configuration
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun my/config-reload ()
     (interactive)
     (org-babel-load-file (expand-file-name "pravila.org" user-emacs-directory)))
-#+END_SRC
+#+end_src
 
 Function for opening pravila.org
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun my/edit-config-org ()
     (interactive)
     (find-file (expand-file-name "pravila.org" user-emacs-directory )))
-#+END_SRC
+#+end_src
 
 Functon for opening init.el
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun my/edit-config-init ()
     (interactive)
     (find-file (expand-file-name "init.el" user-emacs-directory)))
-#+END_SRC
+#+end_src
 
 Keybindings for these functions
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (general-def '(motion normal)
     :prefix "SPC f e"
     "r" 'my/config-reload
     "d" 'my/edit-config-org
     "i" 'my/edit-config-init)
-#+END_SRC
+#+end_src
 
 ** Try
 
 Package for trying out different packages
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package try
     :defer t)
-#+END_SRC
+#+end_src
 
 ** Org
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package org
     :config
     (setq org-startup-indented t
           org-src-window-setup 'current-window))
-#+END_SRC
+
+  (use-package toc-org
+    :hook (org-mode . toc-org-mode))
+#+end_src
    
 *** evil-org
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package evil-org
     :after org
     :hook (org-mode . evil-org-mode)
@@ -339,29 +327,29 @@ Package for trying out different packages
                 (evil-org-set-key-theme)))
     (require 'evil-org-agenda)
     (evil-org-agenda-set-keys))
-#+END_SRC
+#+end_src
 
 *** Custom Org snipets
     
 For emacs-lisp
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (add-to-list 'org-structure-template-alist
-               '("el" "#+BEGIN_SRC emacs-lisp\n?\n#+END_SRC"))
-#+END_SRC
+               '("el" . "src emacs-lisp"))
+#+end_src
     
 ** Parentheses
    
 Highlight parenthese-like delimiters in a rainbow fashion. It ease the reading when dealing with mismatched parentheses.
    
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package rainbow-delimiters
     :ensure t
     :hook ((prog-mode comint-mode) . rainbow-delimiters-mode))
-#+END_SRC
+#+end_src
   
 Smartparens for better paren handling, and everything that goes in pairs.
    
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   ;; (use-package smartparens
   ;;   :ensure t
   ;;   :diminish
@@ -369,7 +357,7 @@ Smartparens for better paren handling, and everything that goes in pairs.
   ;;   :config
   ;;   (sp-local-pair '(emacs-lisp-mode lisp-interaction-mode inferior-emacs-lisp-mode) "'" "")
   ;;   (sp-local-pair '(emacs-lisp-mode lisp-interaction-mode inferior-emacs-lisp-mode) "`" ""))
-#+END_SRC
+#+end_src
    
 ** Save/sort usage
 
@@ -379,25 +367,25 @@ is there to save all the usage from previous session.
 
 Save usage statistics to be saved between Emacs sessions.
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package prescient
     :hook (after-init . prescient-persist-mode))
-#+END_SRC
+#+end_src
 
 ** Which-key
    
 Which-key is used for easier keybindings discovery
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package which-key
     :hook (after-init . which-key-mode)
     :config
     (setq which-key-idle-delay 0.5))
-#+END_SRC
+#+end_src
 
 * Programming
 ** LSP
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package lsp-mode
     :ensure t
     :init (setq lsp-keymap-prefix "C-l")
@@ -405,7 +393,6 @@ Which-key is used for easier keybindings discovery
     :hook
     (python-mode . lsp)
     (lsp-mode . lsp-enable-which-key-integration)
-    :config (setq lsp-diagnostic-package ':none)
     :general
     ('normal 'lsp-mode
              :definer 'minor-mode
@@ -416,27 +403,27 @@ Which-key is used for easier keybindings discovery
     :commands python-mode)
 
   (use-package yasnippet) ;; privremeno ovde dok neukapiram sta da radim sa ovim
-#+END_SRC
+#+end_src
 
 ** Languages
 *** Python
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package python
     :defer t
     :config)
-#+END_SRC
+#+end_src
     
 *** Scheme
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (use-package geiser
     :defer t
     :init (setq geiser-active-implementations '(mit)))
-#+END_SRC
+#+end_src
 
 * Keybindings
 ** Buffers
 Custom funcions used in this section for bindings
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
     (defun kr/edit-scratch ()
       (interactive)
       (switch-to-buffer "*scratch*"))
@@ -449,9 +436,9 @@ Custom funcions used in this section for bindings
       (other-window 1)))
 
 
-#+END_SRC
+#+end_src
    
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (general-def  '(motion normal) 'global
     :prefix "SPC b"
     "" '(:ignore t :which-key "buffer")
@@ -461,10 +448,10 @@ Custom funcions used in this section for bindings
     "b" 'helm-mini)
   (general-def '(motion normal) 'global
     "SPC /" 'helm-occur)
-#+END_SRC
+#+end_src
    
 ** Company   
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (general-def 'company-active-map
     "TAB" 'company-complete-common-or-cycle
     "C-d" 'company-next-page
@@ -472,43 +459,43 @@ Custom funcions used in this section for bindings
     "C-j" 'company-select-next-or-abort
     "C-k" 'company-select-previous-or-abort
     "<f1>" 'helpful-key)
-#+END_SRC
+#+end_src
 
 ** Dired mode
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (general-unbind normal dired-mode-map "SPC")
-#+END_SRC
+#+end_src
 
 ** evil
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (general-def normal org-mode-map
     "j" 'evil-next-visual-line
     "k" 'evil-previous-visual-line)
-#+END_SRC
+#+end_src
 
 ** Files
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (general-def '(motion normal) 'global
     :prefix "SPC f"
     "" '(:ignore t :which-key "file")
     "f" 'helm-find-files
     "s" 'save-buffer)
-#+END_SRC
+#+end_src
    
 ** Helm
 Function for Helm keybindings
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   ;; (defun my/helm-ff-expand ()
   ;;   (interactive)
   ;;   ()
   ;;   )
-#+END_SRC
+#+end_src
 
 Keybindings
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (general-def
     "M-x" 'helm-M-x
     "C-x C-f" 'helm-find-files)
@@ -536,34 +523,36 @@ Keybindings
 
   (general-def helm-M-x-map
     "C-l" 'helm-execute-persistent-action)
-#+END_SRC
+#+end_src
 
 ** Help and Helpful
 
 Help
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (general-unbind normal help-mode-map "SPC")
-#+END_SRC
+#+end_src
 
 Helpful
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (general-def
     "C-h k" 'helpful-key
     "C-h C" 'helpful-command
     "C-h f" 'helpful-callable
     "C-h v" 'helpful-variable)
-#+END_SRC
-   
+#+end_src
+
 ** Info mode
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (general-unbind normal Info-mode-map "SPC")
   (general-def normal Info-mode-map
+    "<up>" 'evil-scroll-line-up
+    "<down>" 'evil-scroll-line-down
     "SPC SPC" 'Info-scroll-up
     "S-<backspace>" 'Info-scroll-up)
-#+END_SRC
+#+end_src
 
 ** Scheme(geiser) mode
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (general-def normal geiser-mode-map
     "SPC '" 'switch-to-geiser)
 
@@ -573,10 +562,10 @@ Helpful
     "TAB" 'forward-button
     "S-<tab>" 'backward-button
     "q" 'View-quit)
-#+END_SRC
+#+end_src
 
 ** Windows
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (general-def '(motion normal) 'global
     "]w" 'evil-window-next
     "[w" 'evil-window-prev)
@@ -589,14 +578,21 @@ Helpful
     "v" 'evil-window-vsplit
     "s" 'evil-window-split
     "o" 'delete-other-windows)
-#+END_SRC
+#+end_src
    
-   
-* Hydra
-ovde mogu da napisem sta hocu 
+** org
+#+begin_src emacs-lisp
+  (general-def 'normal
+    :prefix "SPC o"
+    "l" 'org-store-link
+    "a" 'org-agenda
+    "c" 'org-capture)
+  
+#+end_src
 
-haha 
-#+BEGIN_SRC emacs-lisp
+* Hydra
+
+#+begin_src emacs-lisp
 (use-package hydra
   :defer t)
 
@@ -638,26 +634,7 @@ haha
   ("d" helm-persistent-delete-marked)
   ("f" helm-follow-mode))
 
-;; (add-hook 'helm-mode-hook 'helm-like-unite/body)
-;; (define-key helm-map (kbd "<escape>") 'helm-like-unite/body)
-
-;; ;; arrows
-;; ("h" helm-beginning-of-buffer)
-;; ("l" helm-end-of-buffer)
-;; ;; beginning/end
-;; ("g" helm-beginning-of-buffer)
-;; ("G" helm-end-of-buffer)
-;; ;; scroll
-;; ("K" helm-scroll-other-window-down)
-;; ("J" helm-scroll-other-window)
-;; ;; exit
-;; ("<escape>" keyboard-escape-quit "" :exit t)
-;; ("o" keyboard-escape-quit :exit t)
-;; ("i" nil)
-;; ;; rest
-;; ("H" helm-help)
-;; ("f" helm-follow-mode)
-#+END_SRC
+#+end_src
 
 
 
@@ -665,31 +642,49 @@ haha
 ** Korisne komande i promenive koje treba znati
 + ~(list-command-history)~ - izlistava istoriju komandi. Komande su izlistane
   detaljno tj. sa svim argumentima itd.
-+ =C-x <ESC> <ESC>= ~(repeat-complex-command)~ - daje mogucnost da ponovis poslednju
++ =C-x <ESC> <ESC>= ~(repeat-complex-command)~ - daje mogućnost da ponoviš poslednju
   komandu sa promenjenim ili istim argumentima.
 + ~(apropos-user-option)~ - Search for user-customizable variables.  With a prefix 
   argument, search for non-customizable variables too.
 + ~(apropos-variable)~ - Search for variables.  With a prefix argument, search for
   customizable variables only.
-+ ~show-trailing-whitespace~ - promenjiva, ono sto ime kaze
++ ~show-trailing-whitespace~ - promenjiva, ono sto ime kaže
   
 
 BUR_REPORT: Postoji bug u evil-matchit-mode -u koji neda da se macuju zagrade u org tekstu
 
-** Preskoceno u Info manual-u
-11. 12. 13. 17. 22. sekcije Emacs info manual-a su preskocene
+** Preskoceno u Emacs Info manual-u
+- 11. 12. 13. 17. 22. sekcije Emacs info manual-a su preskočene
+- 28.1 tj. VC je letimično pročitan zato sto
+  koristim magit ali možda ima nesto pametno da se pročita.
+- 28.4.2 i 28.4.3 TAGS preskočen
+- 28.6 Emerge preskočen
+- 30. Dired preskočen
+- 31. 32. 33. 34. preskočeni
+- 37. Document viewing preskočen
+- 38. do 47. preskočeno
+- 49.3.10. i 49.3.11. preskočeno
+  
 
 ** Korisne Info strane da se opet procitaju
 16.4 O spellcheck-u 
 26.2.3 imunu
 26.2.4 which-funciton-mode
+49.3.4 minibuffer keymap kad se bude customizovao minibufer
 
-** Kako lakse raditi sa camelCase i snake_case 
+** Kako lakše raditi sa camelCase i snake_case 
 Postavi global sub word
 (global-subword-mode 1)
-Sad se =w= komanda kao i sve ostale ponasaju drugacije tj prepoznaju reci u camelcase i razlikuju ih.
+Sad se =w= komanda kao i sve ostale ponašaju drugačije tj prepoznaju reči u camelcase i razlikuju ih.
 
 vidiSadKakoSePonasaNaOvomPrimeru
 vidi_sad_kako_se_ponasa_na_ovom_primeru
 
-onda sa =vaw= ili =viw= opkolis rec unutar camelcase-a a sa =vao= ili =vio= opkolis ceo simbol, celu promenjivu
+onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= opkolis ceo simbol, celu promenjivu
+
+- vidi /superword-mode/ Info emacs 26.11
+
+  
+** Org mode info
+Strane koje vrede ponovo pročitati
+- 2.2.3 strana
