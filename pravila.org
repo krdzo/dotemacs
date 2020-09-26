@@ -143,8 +143,64 @@ to put them in the features section.
   (general-unbind
     :states '(motion normal)
     "SPC")
+  (general-def '(motion normal visual)
+    "gu" 'universal-argument)
 #+end_src
 
+** Helm
+
+Helm is a big package used everywhere. For documentation go here [[https://github.com/emacs-helm/helm][Helm github page]]
+
+#+BEGIN_SRC emacs-lisp
+  (defun spacemacs//helm-hide-minibuffer-maybe ()
+    "Hide minibuffer in Helm session if we use the header line as input field."
+    (when (with-helm-buffer helm-echo-input-in-header-line)
+      (let ((ov (make-overlay (point-min) (point-max) nil nil t)))
+        (overlay-put ov 'window (selected-window))
+        (overlay-put ov 'face
+                     (let ((bg-color (face-background 'default nil)))
+                       `(:background ,bg-color :foreground ,bg-color)))
+        (setq-local cursor-type nil))))
+
+
+  ;; (defun kr/helm-keybinding ()
+  ;;   (interactive)
+  ;;   (when window-system
+  ;;     (general-def input-decode-map [?\C-i] [C-i])
+  ;;     (general-def input-decode-map [?\C-m] [C-m])
+  ;;     (general-def (helm-find-files-map helm-map)
+  ;;       "<C-m>" 'helm-toggle-visible-mark-forward)))
+
+
+  (use-package helm
+    :hook (after-init . helm-mode)
+    :config
+    (add-hook 'helm-minibuffer-set-up-hook 'spacemacs//helm-hide-minibuffer-maybe)
+    (remove-hook 'helm-minibuffer-set-up-hook 'spacemacs//helm-hide-minibuffer-maybe)
+    (setq helm-split-window-inside-p t
+          helm-move-to-line-cycle-in-source t
+          helm-ff-search-library-in-sexp t
+          helm-scroll-amount 8
+          helm-ff-file-name-history-use-recentf t
+          ;; helm-echo-input-in-header-line t
+          helm-candidate-number-limit 500)
+    (setq helm-buffers-fuzzy-matching t
+          helm-recentf-fuzzy-match t)
+    (setq helm-autoresize-max-height 35
+          helm-autoresize-min-height 35)
+    ;; (add-hook 'helm-mode-hook 'kr/helm-keybinding)
+
+
+    :general ('helm-map
+              "<tab>" 'helm-execute-persistent-action
+              "C-z" 'helm-select-action
+              "C-M-e" 'helm-scroll-other-window
+              "C-M-y" 'helm-scroll-other-window-down))
+    ;; ('helm-find-files-map
+    ;;  "<C-i>" 'helm-find-files-down-last-level))
+
+#+END_SRC 
+   
 ** Evil and friends
    
 Evil and all asociated packages are configured in this section.
@@ -516,10 +572,11 @@ Keybindings
     "C-o" 'helm-find-files-up-one-level)
 
   ;; only bind this if runing GUI Emacs
-  (when window-system
-    (general-def input-decode-map [?\C-m] [C-m])
-    (general-def (helm-find-files-map helm-map)
-      "<C-m>" 'helm-toggle-visible-mark-forward))
+  ;; (when window-system
+  ;;   (general-def input-decode-map [?\C-i] [C-i])
+  ;;   (general-def input-decode-map [?\C-m] [C-m])
+  ;;   (general-def (helm-find-files-map helm-map)
+  ;;     "<C-m>" 'helm-toggle-visible-mark-forward))
 
   (general-def helm-M-x-map
     "C-l" 'helm-execute-persistent-action)
