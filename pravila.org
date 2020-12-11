@@ -10,7 +10,7 @@ Change Emacs default UI.
 #+begin_src emacs-lisp
   (when window-system
     (blink-cursor-mode 0)
-    (menu-bar-mode 0)
+    ;; (menu-bar-mode 0)
     (scroll-bar-mode 0)
     (tool-bar-mode 0))
 #+end_src
@@ -20,6 +20,7 @@ These are emacs builtin options changed for what I think are better defaults.
 #+begin_src emacs-lisp
   (setq-default
    auto-window-vscroll nil                          ; Lighten vertical scroll
+   bidi-paragraph-direction 'left-to-right          ; For handling long lines see:https://www.youtube.com/watch?v=JJJlQejxn1k
    confirm-kill-emacs 'yes-or-no-p                  ; Confirm before exiting Emacs
    delete-by-moving-to-trash t                      ; Delete files to trash
    display-time-default-load-average nil            ; Don't display load average
@@ -108,7 +109,7 @@ Here are all the hooks that can't go in a specific use-package statment
 
 #+begin_src emacs-lisp
   (use-package doom-themes
-    :hook (after-init . (lambda () (load-theme 'doom-one t))))
+    :hook (after-init . (lambda () (load-theme 'idea-darkula t))))
 #+end_src
 
 ** Modeline
@@ -133,74 +134,73 @@ This package alowes me to change what modes are listed in the modeline
   
 Here I put modes that I can't come up with a category for or are to important
 to put them in the features section.
-  
+
 ** General
 
 #+begin_src emacs-lisp
   (use-package general
-    :defer t)
+    :init
+    (setq general-override-states '(insert
+                                    emacs
+                                    hybrid
+                                    normal
+                                    visual
+                                    motion
+                                    operator
+                                    replace)))
   ;; we have to unbind SPC so that we dont encounter prefix key error when binding SPC as a prefix
   (general-unbind
     :states '(motion normal)
     "SPC")
-  (general-def '(motion normal visual)
+  (general-def '(motion normal visual) 'global
     "gu" 'universal-argument)
 #+end_src
 
-** Helm
 
-Helm is a big package used everywhere. For documentation go here [[https://github.com/emacs-helm/helm][Helm github page]]
+** Selectrum and friends
 
-#+BEGIN_SRC emacs-lisp
-  (defun spacemacs//helm-hide-minibuffer-maybe ()
-    "Hide minibuffer in Helm session if we use the header line as input field."
-    (when (with-helm-buffer helm-echo-input-in-header-line)
-      (let ((ov (make-overlay (point-min) (point-max) nil nil t)))
-        (overlay-put ov 'window (selected-window))
-        (overlay-put ov 'face
-                     (let ((bg-color (face-background 'default nil)))
-                       `(:background ,bg-color :foreground ,bg-color)))
-        (setq-local cursor-type nil))))
+*** Selectrum
 
-
-  ;; (defun kr/helm-keybinding ()
-  ;;   (interactive)
-  ;;   (when window-system
-  ;;     (general-def input-decode-map [?\C-i] [C-i])
-  ;;     (general-def input-decode-map [?\C-m] [C-m])
-  ;;     (general-def (helm-find-files-map helm-map)
-  ;;       "<C-m>" 'helm-toggle-visible-mark-forward)))
-
-
-  (use-package helm
-    :hook (after-init . helm-mode)
+#+begin_src emacs-lisp
+  (use-package selectrum
     :config
-    (add-hook 'helm-minibuffer-set-up-hook 'spacemacs//helm-hide-minibuffer-maybe)
-    (remove-hook 'helm-minibuffer-set-up-hook 'spacemacs//helm-hide-minibuffer-maybe)
-    (setq helm-split-window-inside-p t
-          helm-move-to-line-cycle-in-source t
-          helm-ff-search-library-in-sexp t
-          helm-scroll-amount 8
-          helm-ff-file-name-history-use-recentf t
-          ;; helm-echo-input-in-header-line t
-          helm-candidate-number-limit 500)
-    (setq helm-buffers-fuzzy-matching t
-          helm-recentf-fuzzy-match t)
-    (setq helm-autoresize-max-height 35
-          helm-autoresize-min-height 35)
-    ;; (add-hook 'helm-mode-hook 'kr/helm-keybinding)
+    (setq selectrum-count-style 'current/matches)
+    (selectrum-mode 1)
+    :general
+    ('global
+     "C-x C-z" 'selectrum-repeat)
+    ('selectrum-minibuffer-map
+     "<escape>" 'minibuffer-keyboard-quit
+     "C-j" 'selectrum-next-candidate
+     "C-k" 'selectrum-previous-candidate))
+#+end_src
 
+*** Prescient
 
-    :general ('helm-map
-              "<tab>" 'helm-execute-persistent-action
-              "C-z" 'helm-select-action
-              "C-M-e" 'helm-scroll-other-window
-              "C-M-y" 'helm-scroll-other-window-down))
-    ;; ('helm-find-files-map
-    ;;  "<C-i>" 'helm-find-files-down-last-level))
+Better sorting and filtering in selectrum and save usage statistics of modes
+between Emacs sessions.
 
-#+END_SRC 
-   
+#+begin_src emacs-lisp
+  (use-package prescient
+    :config
+    (prescient-persist-mode 1))
+  (use-package selectrum-prescient
+    :config
+    (selectrum-prescient-mode 1))
+#+end_src
+
+** Ivy, Counsel
+
+#+begin_src emacs-lisp
+  (use-package ivy
+    :general
+    ('ivy-minibuffer-map
+     "C-j" 'ivy-next-line
+     "C-k" 'ivy-previous-line))
+  (use-package ivy-hydra)
+  (use-package counsel)
+#+end_src
+
 ** Evil and friends
    
 Evil and all asociated packages are configured in this section.
@@ -210,6 +210,7 @@ Evil and all asociated packages are configured in this section.
 #+begin_src emacs-lisp
   (use-package evil
     :init (setq evil-want-C-u-scroll t
+                evil-undo-system 'undo-fu
                 evil-want-keybinding nil
                 evil-want-Y-yank-to-eol t)
     :config
@@ -218,6 +219,11 @@ Evil and all asociated packages are configured in this section.
           evil-normal-state-cursor "#26aaef"
           evil-emacs-state-cursor "#ee6622"
           evil-insert-state-cursor '(bar "#eeeeee")))
+#+end_src
+
+*** undo-fu
+#+begin_src emacs-lisp
+  (use-package undo-fu)
 #+end_src
 
 *** evil-commentary
@@ -235,9 +241,10 @@ Evil and all asociated packages are configured in this section.
     :after evil
     :config
     (setq evil-collection-company-use-tng nil)
-    (evil-collection-init '(help company
+    (evil-collection-init '(help 
                             (package-menu package)
                             helpful dired info
+                            compile
                             comint geiser)))
 #+end_src
 
@@ -266,7 +273,7 @@ Select a line with =vil= and =val= keys.
     :config
     (global-evil-surround-mode)
     :general
-    (visual
+    ('visual 'global
      "s" 'evil-surround-region))
 #+end_src
 
@@ -277,6 +284,11 @@ Select a line with =vil= and =val= keys.
 Company mode for autocompletion
 
 #+begin_src emacs-lisp
+  ;; hack for mit-scheme because comapny lags typing
+  (defun kr/company-for-comint ()
+    (interactive)
+    (set (make-local-variable 'company-idle-delay) 0.35))
+
   (defun kr/company-for-text ()
     (interactive)
     (set (make-local-variable 'company-idle-delay) 0.3)
@@ -292,6 +304,9 @@ Company mode for autocompletion
     :config
 
     (add-hook 'text-mode-hook 'kr/company-for-text)
+    ;; (add-hook 'scheme-mode-hook 'kr/company-for-mit)
+    (add-hook 'comint-mode-hook 'kr/company-for-comint)
+
     (setq company-idle-delay 0.0
           company-minimum-prefix-length 1)
     (setq company-show-numbers t
@@ -313,7 +328,8 @@ Company mode for autocompletion
 #+begin_src emacs-lisp
   (use-package magit
     :general
-    ("C-x g" 'magit-status))
+    ('global
+     "C-x g" 'magit-status))
   (use-package evil-magit
     :hook (magit-mode . evil-magit-init))
 #+end_src
@@ -328,6 +344,12 @@ Helpful is an alternative to the built-in Emacs help that provides much more con
 #+begin_src emacs-lisp
   (use-package helpful
     :defer t)
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package elisp-demos
+    :config
+    (advice-add 'helpful-update :after #'elisp-demos-advice-helpful-update))
 #+end_src
 
 ** Reload/open .emacs
@@ -430,19 +452,6 @@ Smartparens for better paren handling, and everything that goes in pairs.
   ;;   (sp-local-pair '(emacs-lisp-mode lisp-interaction-mode inferior-emacs-lisp-mode) "`" ""))
 #+end_src
    
-** Save/sort usage
-
-When you exit emacs it forgets all the things that it was doing and this section
-is there to save all the usage from previous session.
-*** Prescient
-
-Save usage statistics to be saved between Emacs sessions.
-
-#+begin_src emacs-lisp
-  (use-package prescient
-    :hook (after-init . prescient-persist-mode))
-#+end_src
-
 ** Which-key
    
 Which-key is used for easier keybindings discovery
@@ -520,17 +529,19 @@ Custom funcions used in this section for bindings
   (general-def '(motion normal) 'global
     "SPC /" 'helm-occur)
 #+end_src
-   
+
 ** Company   
 #+begin_src emacs-lisp
-  ;; there is a bug when you run company-show-doc-buffer if the next comand is C-k
-  ;; then insert-state takes that comand isted of company-active-map
-  ;; so we have to unbind C-k in insert state
-  (general-unbind 'insert
-    "C-k")
   (general-def 'company-active-map
-    "<tab>" 'company-complete-common-or-cycle
-    "<f1>" 'helpful-key)
+     "<tab>" 'company-complete-common-or-cycle
+
+     "C-n" 'company-select-next-or-abort
+     "C-p" 'company-select-previous-or-abort
+     "C-j" 'company-select-next-or-abort
+     "C-k" 'company-select-previous-or-abort
+     "M-j" 'company-select-next
+     "M-k" 'company-select-previous
+     "<f1>" 'helpful-key)
 
 #+end_src
 
@@ -539,39 +550,20 @@ Custom funcions used in this section for bindings
   (general-unbind normal dired-mode-map "SPC")
 #+end_src
 
-** evil
-
-#+begin_src emacs-lisp
-  (general-def normal org-mode-map
-    "j" 'evil-next-visual-line
-    "k" 'evil-previous-visual-line)
-#+end_src
-
 ** Files
 #+begin_src emacs-lisp
   (general-def '(motion normal) 'global
     :prefix "SPC f"
     "" '(:ignore t :which-key "file")
-    "f" 'helm-find-files
+    "f" 'find-file
     "s" 'save-buffer)
 #+end_src
    
 ** Helm
-Function for Helm keybindings
-
-#+begin_src emacs-lisp
-  ;; (defun my/helm-ff-expand ()
-  ;;   (interactive)
-  ;;   ()
-  ;;   )
-#+end_src
 
 Keybindings
 
 #+begin_src emacs-lisp
-  (general-def
-    "M-x" 'helm-M-x
-    "C-x C-f" 'helm-find-files)
 
   (general-def helm-map
     "C-l" 'helm-execute-persistent-action
@@ -608,7 +600,7 @@ Help
 
 Helpful
 #+begin_src emacs-lisp
-  (general-def
+  (general-def 'global
     "C-h k" 'helpful-key
     "C-h C" 'helpful-command
     "C-h f" 'helpful-callable
@@ -627,15 +619,15 @@ Helpful
 
 ** Scheme(geiser) mode
 #+begin_src emacs-lisp
-  (general-def normal geiser-mode-map
-    "SPC '" 'switch-to-geiser)
+  ;; (general-def normal geiser-mode-map
+  ;;   "SPC '" 'switch-to-geiser)
 
-  (general-def normal geiser-repl-mode-map
-    "gz" 'switch-to-geiser
-    "SPC '" 'switch-to-geiser)
+  ;; (general-def normal geiser-repl-mode-map
+  ;;   "gz" 'switch-to-geiser
+  ;;   "SPC '" 'switch-to-geiser)
 
-  (general-def normal geiser-doc-mode-map
-    "q" 'View-quit)
+  ;; (general-def normal geiser-doc-mode-map
+  ;;   "q" 'View-quit)
 
 #+end_src
 
@@ -665,12 +657,20 @@ Helpful
 
   (general-def 'normal org-mode-map
     "RET" 'org-return)
+
+  (general-def normal org-mode-map
+    "j" 'evil-next-visual-line
+    "k" 'evil-previous-visual-line)
 #+end_src
 
 ** comint
 #+begin_src emacs-lisp
-  (general-def 'normal 'comint-mode-map
-    "O" 'comint-goto-process-mark) 
+  ;; (general-def 'normal 'comint-mode-map
+  ;;   "O" 'comint-goto-process-mark) 
+
+  ;; (general-def 'insert 'comint-mode-map
+  ;;   "C-n" 'comint-next-input
+  ;;   "C-p" 'comint-previous-input)
 #+end_src
 
 * Hydra
@@ -772,3 +772,4 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
 Strane koje vrede ponovo pročitati
 - 2.2.3 strana
 - 3.6 intresting org plot
+  
