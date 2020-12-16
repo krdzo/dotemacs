@@ -1,9 +1,16 @@
-#+TITLE: DotEmacs
-#+AUTHOR: Krdzo
+#+title: DotEmacs
+#+author: Krdzo
+#+startup: fold
 
 * Bootstrap
   
 ** Use better defaults
+Source block for experiments
+#+begin_src emacs-lisp
+  (setq max-specpdl-size 10000
+        max-lisp-eval-depth 5000)
+  (setq comint-input-ignoredups t)
+#+end_src
 
 Change Emacs default UI.
 
@@ -49,6 +56,7 @@ These are emacs builtin options changed for what I think are better defaults.
   (prefer-coding-system 'utf-8)                     ; Default to utf-8 encoding
   (setf ring-bell-function 'ignore)                 ; Disable Emacs bell
   (show-paren-mode 1)                               ; Highlight matching parens
+  (recentf-mode 1)                                  ; Save recently opened files
 #+end_src
 
 Enable fullscreen.
@@ -97,6 +105,11 @@ Here are all the hooks that can't go in a specific use-package statment
   (add-hook 'after-init-hook 'global-hl-line-mode)
 #+end_src
 
+** Changing some defaults
+#+begin_src emacs-lisp
+   (global-set-key (kbd "RET") 'newline-and-indent)
+#+end_src
+
 * Themes and UI
 
 ** Font
@@ -108,8 +121,12 @@ Here are all the hooks that can't go in a specific use-package statment
 ** Themes
 
 #+begin_src emacs-lisp
-  (use-package doom-themes
-    :hook (after-init . (lambda () (load-theme 'idea-darkula t))))
+  (use-package idea-darkula-theme
+    :defer t)
+  (use-package zerodark-theme
+    :defer t)
+  (load-theme 'zerodark t)
+  (add-hook 'after-init-hook 'zerodark-setup-modeline-format)
 #+end_src
 
 ** Modeline
@@ -156,21 +173,46 @@ to put them in the features section.
     "gu" 'universal-argument)
 #+end_src
 
-
 ** Selectrum and friends
+
+*** Consult
+#+begin_src emacs-lisp
+  (use-package consult
+    :general
+    ('global
+     "C-h a" 'consult-apropos)
+   ('(normal motion) 'global
+     :prefix "SPC"
+     "b b" 'consult-buffer))
+
+  (use-package consult-selectrum
+    :after (consult))
+#+end_src
+
+*** Marginalia
+#+begin_src emacs-lisp
+  (use-package marginalia
+    :after (:any consult selectrum)
+    :config
+    (marginalia-mode 1)
+    (setq marginalia-annotators '(marginalia-annotators-heavy
+                                  marginalia-annotators-light)))
+#+end_src
 
 *** Selectrum
 
 #+begin_src emacs-lisp
   (use-package selectrum
+    :hook (after-init . selectrum-mode)
     :config
     (setq selectrum-count-style 'current/matches)
-    (selectrum-mode 1)
+    (setq selectrum-fix-minibuffer-height 10)
     :general
     ('global
      "C-x C-z" 'selectrum-repeat)
     ('selectrum-minibuffer-map
      "<escape>" 'minibuffer-keyboard-quit
+     "C-r" 'evil-paste-from-register
      "C-j" 'selectrum-next-candidate
      "C-k" 'selectrum-previous-candidate))
 #+end_src
@@ -182,23 +224,13 @@ between Emacs sessions.
 
 #+begin_src emacs-lisp
   (use-package prescient
+    :after (:any selectrum company)
     :config
     (prescient-persist-mode 1))
   (use-package selectrum-prescient
+    :after (prescient selectrum)
     :config
     (selectrum-prescient-mode 1))
-#+end_src
-
-** Ivy, Counsel
-
-#+begin_src emacs-lisp
-  (use-package ivy
-    :general
-    ('ivy-minibuffer-map
-     "C-j" 'ivy-next-line
-     "C-k" 'ivy-previous-line))
-  (use-package ivy-hydra)
-  (use-package counsel)
 #+end_src
 
 ** Evil and friends
@@ -215,22 +247,32 @@ Evil and all asociated packages are configured in this section.
                 evil-want-Y-yank-to-eol t)
     :config
     (evil-mode)
+    ;; https://github.com/noctuid/evil-guide#whats-the-equivalent-of-nnoremap-n-nzz
+    (advice-add 'evil-search-next :after #'evil-scroll-line-to-center)
+    (advice-add 'evil-search-previous :after #'evil-scroll-line-to-center)
     (setq evil-motion-state-cursor "#bb1111"
           evil-normal-state-cursor "#26aaef"
           evil-emacs-state-cursor "#ee6622"
           evil-insert-state-cursor '(bar "#eeeeee")))
+  ;; https://github.com/noctuid/evil-guide#binding-keys-to-keys-keyboard-macros
+  (general-def 'normal 'global
+    ;; select the previously pasted text
+    "gp" "`[v`]")
+  (general-def 'emacs 'global
+    "<escape>" 'evil-normal-state)
 #+end_src
 
 *** undo-fu
 #+begin_src emacs-lisp
-  (use-package undo-fu)
+  (use-package undo-fu
+    :after (evil))
 #+end_src
 
 *** evil-commentary
 
 #+begin_src emacs-lisp
   (use-package evil-commentary
-    :after evil
+    :after (evil)
     :config (evil-commentary-mode))
 #+end_src
 
@@ -238,13 +280,15 @@ Evil and all asociated packages are configured in this section.
    
 #+begin_src emacs-lisp
   (use-package evil-collection
-    :after evil
+    ;; :after (evil)
     :config
     (setq evil-collection-company-use-tng nil)
     (evil-collection-init '(help 
                             (package-menu package)
-                            helpful dired info
+                            helpful info
+                            dired
                             compile
+                            magit
                             comint geiser)))
 #+end_src
 
@@ -252,7 +296,7 @@ Evil and all asociated packages are configured in this section.
 
 #+begin_src emacs-lisp
   (use-package evil-matchit
-    :after evil
+    :after (evil)
     :config
     (global-evil-matchit-mode 1))
 #+end_src
@@ -262,14 +306,14 @@ Evil and all asociated packages are configured in this section.
 Select a line with =vil= and =val= keys.
 
 #+begin_src emacs-lisp
-  (use-package evil-textobj-line)
+  (use-package evil-textobj-line
+    :after evil)
 
 #+end_src
 
 *** evil-suround
 #+begin_src emacs-lisp
   (use-package evil-surround
-    :after evil
     :config
     (global-evil-surround-mode)
     :general
@@ -278,7 +322,7 @@ Select a line with =vil= and =val= keys.
 #+end_src
 
 * Features
-  
+
 ** Auto-Completion
 
 Company mode for autocompletion
@@ -314,13 +358,19 @@ Company mode for autocompletion
           company-global-modes '(not help-mode
                                      helpful-mode)))
   ;; (evil-make-overriding-map company-active-map 'insert t)
+#+end_src
 
-
-  ;; sorting company completions by usage
+*** Company prescient
+#+begin_src emacs-lisp
   (use-package company-prescient
-    :after company
-    :config (company-prescient-mode 1))
+      :after (prescient company)
+      :config (company-prescient-mode 1))
+#+end_src
 
+** Flycheck
+#+begin_src emacs-lisp
+  (use-package flycheck
+    :defer t)
 #+end_src
 
 ** Git
@@ -330,8 +380,6 @@ Company mode for autocompletion
     :general
     ('global
      "C-x g" 'magit-status))
-  (use-package evil-magit
-    :hook (magit-mode . evil-magit-init))
 #+end_src
    
 ** Help 
@@ -343,17 +391,30 @@ Helpful is an alternative to the built-in Emacs help that provides much more con
 
 #+begin_src emacs-lisp
   (use-package helpful
-    :defer t)
+    :general
+    ('global
+      "C-h k" 'helpful-key
+      "C-h C" 'helpful-command
+      "C-h f" 'helpful-callable
+      "C-h v" 'helpful-variable))
 #+end_src
 
 #+begin_src emacs-lisp
   (use-package elisp-demos
+    :after (helpful)
     :config
     (advice-add 'helpful-update :after #'elisp-demos-advice-helpful-update))
 #+end_src
 
+** Language
+
+#+begin_src emacs-lisp
+  (use-package define-word
+    :commands (define-word define-word-at-point))
+#+end_src
+
 ** Reload/open .emacs
-   
+
 Function for reloading configuration
 
 #+begin_src emacs-lisp
@@ -381,7 +442,7 @@ Functon for opening init.el
 Keybindings for these functions
 
 #+begin_src emacs-lisp
-  (general-def '(motion normal)
+  (general-def '(motion normal) 'global
     :prefix "SPC f e"
     "r" 'my/config-reload
     "d" 'my/edit-config-org
@@ -394,7 +455,7 @@ Package for trying out different packages
 
 #+begin_src emacs-lisp
   (use-package try
-    :defer t)
+    :commands (try))
 #+end_src
 
 ** Org
@@ -412,12 +473,18 @@ Package for trying out different packages
 *** evil-org
 #+begin_src emacs-lisp
   (use-package evil-org
-    :after org
     :hook (org-mode . evil-org-mode)
+    :after (evil org)
     :config
+    (setq evil-org-retain-visual-state-on-shift t)
     (add-hook 'evil-org-mode-hook
               (lambda ()
-                (evil-org-set-key-theme)))
+                (evil-org-set-key-theme '(navigation
+                                          return
+                                          insert
+                                          textobjects
+                                          additional
+                                          calendar))))
     (require 'evil-org-agenda)
     (evil-org-agenda-set-keys))
 #+end_src
@@ -429,14 +496,13 @@ For emacs-lisp
   (add-to-list 'org-structure-template-alist
                '("el" . "src emacs-lisp"))
 #+end_src
-    
+
 ** Parentheses
    
 Highlight parenthese-like delimiters in a rainbow fashion. It ease the reading when dealing with mismatched parentheses.
    
 #+begin_src emacs-lisp
   (use-package rainbow-delimiters
-    :ensure t
     :hook ((prog-mode comint-mode) . rainbow-delimiters-mode))
 #+end_src
   
@@ -450,6 +516,11 @@ Smartparens for better paren handling, and everything that goes in pairs.
   ;;   :config
   ;;   (sp-local-pair '(emacs-lisp-mode lisp-interaction-mode inferior-emacs-lisp-mode) "'" "")
   ;;   (sp-local-pair '(emacs-lisp-mode lisp-interaction-mode inferior-emacs-lisp-mode) "`" ""))
+#+end_src
+#+begin_src emacs-lisp
+  ;; just here for the time being
+  ;; needs to be faktored
+  (add-hook 'prog-mode-hook 'electric-pair-local-mode)
 #+end_src
    
 ** Which-key
@@ -482,7 +553,8 @@ Which-key is used for easier keybindings discovery
     :ensure t
     :commands python-mode)
 
-  (use-package yasnippet) ;; privremeno ovde dok neukapiram sta da radim sa ovim
+  (use-package yasnippet
+    :defer t) ;; privremeno ovde dok neukapiram sta da radim sa ovim
 #+end_src
 
 ** Languages
@@ -522,19 +594,22 @@ Custom funcions used in this section for bindings
   (general-def  '(motion normal) 'global
     :prefix "SPC b"
     "" '(:ignore t :which-key "buffer")
-    "s" '(lambda () (interactive) (switch-to-buffer "*scratch*"))
+    "s" 'kr/edit-scratch
     "d" 'kill-current-buffer
-    "o" 'my/bury-other-buffer
-    "b" 'helm-mini)
-  (general-def '(motion normal) 'global
-    "SPC /" 'helm-occur)
+    "o" 'my/bury-other-buffer)
 #+end_src
 
 ** Company   
+
 #+begin_src emacs-lisp
+  ;; there is a bug when you have company completion and hit C-h
+  ;; (company-show-doc-buffer). If the next comand is C-k then insert-state takes
+  ;; that comand and runs evil-inser-digraph function insted of company-active-map
+  ;; so we have to unbind C-k in insert state
+  (general-unbind 'insert 'global
+    "C-k")
   (general-def 'company-active-map
      "<tab>" 'company-complete-common-or-cycle
-
      "C-n" 'company-select-next-or-abort
      "C-p" 'company-select-previous-or-abort
      "C-j" 'company-select-next-or-abort
@@ -542,7 +617,6 @@ Custom funcions used in this section for bindings
      "M-j" 'company-select-next
      "M-k" 'company-select-previous
      "<f1>" 'helpful-key)
-
 #+end_src
 
 ** Dired mode
@@ -559,38 +633,6 @@ Custom funcions used in this section for bindings
     "s" 'save-buffer)
 #+end_src
    
-** Helm
-
-Keybindings
-
-#+begin_src emacs-lisp
-
-  (general-def helm-map
-    "C-l" 'helm-execute-persistent-action
-    "<escape>" 'helm-keyboard-quit
-    "C-j" 'helm-next-line
-    "C-k" 'helm-previous-line
-    "C-n" 'helm-next-source
-    "C-p" 'helm-previous-source)
-
-  (general-def helm-find-files-map
-    "C-l" 'helm-execute-persistent-action
-    "C-u" 'helm-unmark-all
-    "C-d" 'helm-ff-persistent-delete
-    "C-D" 'helm-ff-run-delete-file
-    "C-o" 'helm-find-files-up-one-level)
-
-  ;; only bind this if runing GUI Emacs
-  ;; (when window-system
-  ;;   (general-def input-decode-map [?\C-i] [C-i])
-  ;;   (general-def input-decode-map [?\C-m] [C-m])
-  ;;   (general-def (helm-find-files-map helm-map)
-  ;;     "<C-m>" 'helm-toggle-visible-mark-forward))
-
-  (general-def helm-M-x-map
-    "C-l" 'helm-execute-persistent-action)
-#+end_src
-
 ** Help and Helpful
 
 Help
@@ -637,7 +679,7 @@ Helpful
     "]w" 'evil-window-next
     "[w" 'evil-window-prev)
 
-  (general-def '(motion normal)
+  (general-def '(motion normal) 'global
     :prefix "SPC w"
     "" '(:ignore t :which-key "window")
     "d" 'evil-window-delete
@@ -646,21 +688,28 @@ Helpful
     "s" 'evil-window-split
     "o" 'delete-other-windows)
 #+end_src
-   
+
 ** org
 #+begin_src emacs-lisp
-  (general-def 'normal
-    :prefix "SPC o"
-    "l" 'org-store-link
-    "a" 'org-agenda
-    "c" 'org-capture)
+  ;; glupost za koju sam napisao kad sam hteo da ucim org mode ali sam zaboravio
+  ;; sta radi
+  ;; (general-def 'normal
+  ;;   :prefix "SPC o"
+  ;;   "l" 'org-store-link
+  ;;   "a" 'org-agenda
+  ;;   "c" 'org-capture)
 
   (general-def 'normal org-mode-map
-    "RET" 'org-return)
-
-  (general-def normal org-mode-map
+    "RET" 'org-return
+    "gz" 'org-edit-special
     "j" 'evil-next-visual-line
     "k" 'evil-previous-visual-line)
+  ;; https://github.com/noctuid/general.el#wrapping-evil-define-minor-mode-key
+  (general-def
+    :definer 'minor-mode
+    :states 'normal
+    :keymaps 'org-src-mode
+    "gz" 'org-edit-src-exit)
 #+end_src
 
 ** comint
@@ -678,45 +727,6 @@ Helpful
 #+begin_src emacs-lisp
   (use-package hydra
     :defer t)
-
-  ;; (defhydra helm-like-unite (:hint nil
-  ;;                                  :color pink)
-  ;;   "
-  ;;     Nav ^^^^^^^^^        Mark ^^          Other ^^       Quit
-  ;;     ^^^^^^^^^^------------^^----------------^^----------------------
-  ;;     _K_ ^ ^ _k_ ^ ^     _m_ark           _v_iew         _i_: cancel
-  ;;     ^↕^ _h_ ^✜^ _l_     _t_oggle mark    _H_elp         _o_: quit
-  ;;     _J_ ^ ^ _j_ ^ ^     _U_nmark all     _d_elete
-  ;;     ^^^^^^^^^^                           _f_ollow: %(helm-attr 'follow)
-  ;;     "
-  ;;   ;; arrows
-  ;;   ("h" helm-beginning-of-buffer)
-  ;;   ("j" helm-next-line)
-  ;;   ("k" helm-previous-line)
-  ;;   ("l" helm-end-of-buffer)
-  ;;   ;; beginning/end
-  ;;   ("g" helm-beginning-of-buffer)
-  ;;   ("G" helm-end-of-buffer)
-  ;;   ;; scroll
-  ;;   ("K" helm-scroll-other-window-down)
-  ;;   ("J" helm-scroll-other-window)
-  ;;   ;; mark
-  ;;   ("m" helm-toggle-visible-mark)
-  ;;   ("t" helm-toggle-all-marks)
-  ;;   ("U" helm-unmark-all)
-  ;;   ;; exit
-  ;;   ("<escape>" keyboard-escape-quit "" :exit t)
-  ;;   ("o" keyboard-escape-quit :exit t)
-  ;;   ("i" nil)
-  ;;   ;; sources
-  ;;   ("}" helm-next-source)
-  ;;   ("{" helm-previous-source)
-  ;;   ;; rest
-  ;;   ("H" helm-help)
-  ;;   ("v" helm-execute-persistent-action)
-  ;;   ("d" helm-persistent-delete-marked)
-  ;;   ("f" helm-follow-mode))
-
 #+end_src
 
 
@@ -773,3 +783,10 @@ Strane koje vrede ponovo pročitati
 - 2.2.3 strana
 - 3.6 intresting org plot
   
+* Note
+Dobre stvari koje sam nasao kad sam se igrao sa emacsom ali nisam uspeo tada da ih konfigurisem.
+** Consult
+[[https://github.com/minad/consult][Link za Consult]] gde moze da se vidi dokumentacija.
+=consult-command-history= - korisna komanda
+
+
