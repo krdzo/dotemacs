@@ -18,3 +18,5 @@ ido.last
 \#*\#
 recentf*
 async-bytecomp.log
+/backup/
+/emacs-init.org
