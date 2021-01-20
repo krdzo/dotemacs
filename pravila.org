@@ -28,6 +28,7 @@ These are emacs builtin options changed for what I think are better defaults.
   (setq-default
    auto-window-vscroll nil                          ; Lighten vertical scroll
    bidi-paragraph-direction 'left-to-right          ; For handling long lines see:https://www.youtube.com/watch?v=JJJlQejxn1k
+   bidi-inhibit-bpa t
    confirm-kill-emacs 'yes-or-no-p                  ; Confirm before exiting Emacs
    delete-by-moving-to-trash t                      ; Delete files to trash
    display-time-default-load-average nil            ; Don't display load average
@@ -63,7 +64,7 @@ Enable fullscreen.
 
 #+begin_src emacs-lisp
   (when window-system
-    (toggle-frame-maximized))
+    (add-to-list 'initial-frame-alist '(fullscreen . maximized)))
 #+end_src
 
 Folder for backup files
@@ -72,6 +73,7 @@ Folder for backup files
   (let ((backup (expand-file-name ".backups.d" user-emacs-directory)))
     (setq-default
      backup-directory-alist `(("." . ,backup))))
+  (setq vc-make-backup-files t)
 #+end_src
 
 Garbage-collect on focus-out, Emacs should feel snappier.
@@ -152,6 +154,17 @@ This package alowes me to change what modes are listed in the modeline
 Here I put modes that I can't come up with a category for or are to important
 to put them in the features section.
 
+** Ediff
+
+#+begin_src emacs-lisp
+  (use-package ediff
+    :defer t
+    :ensure nil
+    :config
+    (setq ediff-split-window-function 'split-window-horizontally)
+    (setq ediff-window-setup-function 'ediff-setup-windows-plain))
+#+end_src
+
 ** General
 
 #+begin_src emacs-lisp
@@ -173,31 +186,7 @@ to put them in the features section.
     "gu" 'universal-argument)
 #+end_src
 
-** Selectrum and friends
-
-*** Consult
-#+begin_src emacs-lisp
-  (use-package consult
-    :general
-    ('global
-     "C-h a" 'consult-apropos)
-   ('(normal motion) 'global
-     :prefix "SPC"
-     "b b" 'consult-buffer))
-
-  (use-package consult-selectrum
-    :after (consult))
-#+end_src
-
-*** Marginalia
-#+begin_src emacs-lisp
-  (use-package marginalia
-    :after (:any consult selectrum)
-    :config
-    (marginalia-mode 1)
-    (setq marginalia-annotators '(marginalia-annotators-heavy
-                                  marginalia-annotators-light)))
-#+end_src
+** Selectrum and prescient
 
 *** Selectrum
 
@@ -233,16 +222,61 @@ between Emacs sessions.
     (selectrum-prescient-mode 1))
 #+end_src
 
+** Consult and Embark
+*** Consult
+#+begin_src emacs-lisp
+  (use-package consult
+    :general
+    ('global
+     "C-h a" 'consult-apropos)
+   ('(normal motion) 'global
+     :prefix "SPC"
+     "b b" 'consult-buffer))
+
+  (use-package consult-selectrum
+    :after (consult))
+#+end_src
+
+*** Embark
+#+begin_src emacs-lisp
+  (use-package embark
+    :config
+    ;; which-key integration
+    ;; https://github.com/oantolin/embark/wiki/Additional-Configuration#use-which-key-like-a-key-menu-prompt
+    (setq embark-action-indicator
+          (lambda (map)
+            (which-key--show-keymap "Embark" map nil nil 'no-paging)
+            #'which-key--hide-popup-ignore-command)
+          embark-become-indicator embark-action-indicator)
+    :general
+    ('minibuffer-local-map
+     "M-m" 'embark-act)
+    ('(emacs normal) 'embark-occur-mode-map
+     "a" 'embark-act
+     "h" 'helpful-at-point))
+#+end_src
+
+*** Marginalia
+#+begin_src emacs-lisp
+  (use-package marginalia
+    :after (:any consult selectrum)
+    :config
+    (marginalia-mode 1)
+    (setq marginalia-annotators '(marginalia-annotators-heavy
+                                  marginalia-annotators-light)))
+#+end_src
+
 ** Evil and friends
    
 Evil and all asociated packages are configured in this section.
-   
+
 *** Evil
 
 #+begin_src emacs-lisp
   (use-package evil
     :init (setq evil-want-C-u-scroll t
                 evil-undo-system 'undo-fu
+                evil-symbol-word-search t
                 evil-want-keybinding nil
                 evil-want-Y-yank-to-eol t)
     :config
@@ -253,19 +287,29 @@ Evil and all asociated packages are configured in this section.
     (setq evil-motion-state-cursor "#bb1111"
           evil-normal-state-cursor "#26aaef"
           evil-emacs-state-cursor "#ee6622"
-          evil-insert-state-cursor '(bar "#eeeeee")))
+          evil-insert-state-cursor '(bar "#eeeeee"))
+    (setq evil-search-module 'evil-search)
+    :general
+    ('normal 'global
+    "gp" "`[v`]"
+    "go" 'browse-url-at-point)
+    ('emacs 'global
+    "<excape>" 'evil-normal-state))
   ;; https://github.com/noctuid/evil-guide#binding-keys-to-keys-keyboard-macros
-  (general-def 'normal 'global
-    ;; select the previously pasted text
-    "gp" "`[v`]")
-  (general-def 'emacs 'global
-    "<escape>" 'evil-normal-state)
+  ;; (general-def 'normal 'global
+  ;;   ;; select the previously pasted text
+  ;; (general-def 'emacs 'global
+  ;;   "<escape>" 'evil-normal-state)
 #+end_src
 
-*** undo-fu
+*** evil-anzu
+Shows how many matches is in a search.
+
 #+begin_src emacs-lisp
-  (use-package undo-fu
-    :after (evil))
+  (use-package evil-anzu
+    :after evil
+    :config
+    (global-anzu-mode 1))
 #+end_src
 
 *** evil-commentary
@@ -277,19 +321,23 @@ Evil and all asociated packages are configured in this section.
 #+end_src
 
 *** evil-collection
-   
+
 #+begin_src emacs-lisp
   (use-package evil-collection
     ;; :after (evil)
     :config
     (setq evil-collection-company-use-tng nil)
-    (evil-collection-init '(help 
-                            (package-menu package)
-                            helpful info
-                            dired
+    (evil-collection-init '(comint
                             compile
+                            dired
+                            geiser
+                            helpful
+                            eshell
+                            help 
+                            info
                             magit
-                            comint geiser)))
+                            (term term ansi-term multi-term)
+                            (package-menu package))))
 #+end_src
 
 *** evil-matchit
@@ -299,6 +347,14 @@ Evil and all asociated packages are configured in this section.
     :after (evil)
     :config
     (global-evil-matchit-mode 1))
+#+end_src
+
+*** evil-lion 
+#+begin_src emacs-lisp
+  (use-package evil-lion
+    :after (evil)
+    :config
+    (evil-lion-mode))
 #+end_src
 
 *** evil-textobj-line
@@ -311,14 +367,82 @@ Select a line with =vil= and =val= keys.
 
 #+end_src
 
+*** evil-goggles
+#+begin_src emacs-lisp
+  (use-package evil-goggles
+    :after evil
+    :config
+    (setq evil-goggles-blocking-duration 0.100)
+    (evil-goggles-mode))
+#+end_src
+
 *** evil-suround
 #+begin_src emacs-lisp
   (use-package evil-surround
+    :after evil
     :config
-    (global-evil-surround-mode)
+    (global-evil-surround-mode 1))
+#+end_src
+
+*** evil-snipe
+
+#+begin_src emacs-lisp
+  (use-package evil-snipe
+    :after evil
+    :config
+    (setq evil-snipe-repeat-scope 'visible)
+    (evil-snipe-mode 1)
+    (evil-snipe-override-mode 1))
+#+end_src
+
+*** evil-exchange
+#+begin_src emacs-lisp
+  (use-package evil-exchange
+    :after evil
+    :config (evil-exchange-install))
+#+end_src
+
+*** evil-numbers
+#+begin_src emacs-lisp
+  (use-package evil-numbers
     :general
     ('visual 'global
-     "s" 'evil-surround-region))
+             "g +" 'evil-numbers/inc-at-pt
+             "g =" 'evil-numbers/inc-at-pt
+             "g -" 'evil-numbers/dec-at-pt)
+    ('normal 'global
+             "g +" 'evil-numbers/inc-at-pt
+             "g =" 'evil-numbers/inc-at-pt
+             "g -" 'evil-numbers/dec-at-pt))
+
+#+end_src
+
+*** undo-fu
+#+begin_src emacs-lisp
+  (use-package undo-fu
+    :after (evil))
+#+end_src
+
+
+
+*** /Disabled packages/
+**** evil-quickscope
+[[https://github.com/blorbx/evil-quickscope/][Link to evil-quickscope]] it's disabled because it's in conflict with evil-snipe.
+Only one can work at a time if I figure out how to enable both then I will enable this mode.
+#+begin_src emacs-lisp
+  ;; (use-package evil-quickscope
+  ;;   :disabled t
+  ;;   :after evil
+  ;;   :config
+  ;;   (global-evil-quickscope-mode 1))
+#+end_src
+
+**** evil-visualstar
+The * and # operators don't work as they should with this package.
+#+begin_src emacs-lisp
+  ;; (use-package evil-visualstar
+  ;;   :disabled t
+  ;;   :after (evil))
 #+end_src
 
 * Features
@@ -350,12 +474,11 @@ Company mode for autocompletion
     (add-hook 'text-mode-hook 'kr/company-for-text)
     ;; (add-hook 'scheme-mode-hook 'kr/company-for-mit)
     (add-hook 'comint-mode-hook 'kr/company-for-comint)
-
     (setq company-idle-delay 0.0
-          company-minimum-prefix-length 1)
-    (setq company-show-numbers t
+          company-minimum-prefix-length 1
           company-selection-wrap-around t
           company-global-modes '(not help-mode
+                                     gud-mode
                                      helpful-mode)))
   ;; (evil-make-overriding-map company-active-map 'insert t)
 #+end_src
@@ -394,6 +517,7 @@ Helpful is an alternative to the built-in Emacs help that provides much more con
     :general
     ('global
       "C-h k" 'helpful-key
+      "C-h o" 'helpful-symbol
       "C-h C" 'helpful-command
       "C-h f" 'helpful-callable
       "C-h v" 'helpful-variable))
@@ -464,10 +588,11 @@ Package for trying out different packages
   (use-package org
     :config
     (setq org-startup-indented t
+          org-return-follows-link t
           org-src-window-setup 'current-window))
 
   (use-package toc-org
-    :hook (org-mode . toc-org-mode))
+    :after org)
 #+end_src
    
 *** evil-org
@@ -569,10 +694,36 @@ Which-key is used for easier keybindings discovery
 #+begin_src emacs-lisp
   (use-package geiser
     :defer t
-    :init (setq geiser-active-implementations '(mit)))
+    :init
+    (setq geiser-active-implementations '(mit))
+    :config
+    (advice-add 'geiser-repl--maybe-send :after #'evil-normal-state)
+    (setq geiser-mit--prompt-regexp "[0-9]+ \\(([^)]+)\\|[A-z]+\\) \\(=>\\|>\\)"))
+#+end_src
+
+** Lisp
+
+#+begin_src emacs-lisp
+  (use-package inf-lisp
+    :ensure nil
+    :defer t
+    :config
+    (setq inferior-lisp-program "sbcl"))
+#+end_src
+**** SLIME
+#+begin_src emacs-lisp
+  (use-package slime)
 #+end_src
 
 * Keybindings
+** Junk that needs to be sorted
+#+begin_src emacs-lisp
+  (general-def 'global
+    "C-h p" 'describe-package
+    "C-h P" 'finder-by-keyword
+    "C-h l" 'find-library)
+#+end_src
+
 ** Buffers
 Custom funcions used in this section for bindings
 #+begin_src emacs-lisp
@@ -663,13 +814,15 @@ Helpful
 #+begin_src emacs-lisp
   ;; (general-def normal geiser-mode-map
   ;;   "SPC '" 'switch-to-geiser)
+  (general-def 'normal 'geiser-mode-map
+    "gr" 'geiser-eval-definition)
 
-  ;; (general-def normal geiser-repl-mode-map
-  ;;   "gz" 'switch-to-geiser
+  (general-def 'normal 'geiser-repl-mode-map
+    "gz" 'switch-to-geiser)
   ;;   "SPC '" 'switch-to-geiser)
 
-  ;; (general-def normal geiser-doc-mode-map
-  ;;   "q" 'View-quit)
+  (general-def 'normal 'geiser-doc-mode-map
+    "q" 'View-quit)
 
 #+end_src
 
@@ -709,6 +862,7 @@ Helpful
     :definer 'minor-mode
     :states 'normal
     :keymaps 'org-src-mode
+    "gZ" 'org-edit-src-abort
     "gz" 'org-edit-src-exit)
 #+end_src
 
