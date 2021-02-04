@@ -154,18 +154,8 @@ This package alowes me to change what modes are listed in the modeline
 Here I put modes that I can't come up with a category for or are to important
 to put them in the features section.
 
-** Ediff
-
-#+begin_src emacs-lisp
-  (use-package ediff
-    :defer t
-    :ensure nil
-    :config
-    (setq ediff-split-window-function 'split-window-horizontally)
-    (setq ediff-window-setup-function 'ediff-setup-windows-plain))
-#+end_src
-
 ** General
+This is set before everything because it needs to define =:general= keyword for use-package.
 
 #+begin_src emacs-lisp
   (use-package general
@@ -186,84 +176,24 @@ to put them in the features section.
     "gu" 'universal-argument)
 #+end_src
 
-** Selectrum and prescient
-
-*** Selectrum
+** Ediff
 
 #+begin_src emacs-lisp
-  (use-package selectrum
-    :hook (after-init . selectrum-mode)
+  (use-package ediff
+    :defer t
+    :ensure nil
     :config
-    (setq selectrum-count-style 'current/matches)
-    (setq selectrum-fix-minibuffer-height 10)
-    :general
-    ('global
-     "C-x C-z" 'selectrum-repeat)
-    ('selectrum-minibuffer-map
-     "<escape>" 'minibuffer-keyboard-quit
-     "C-r" 'evil-paste-from-register
-     "C-j" 'selectrum-next-candidate
-     "C-k" 'selectrum-previous-candidate))
+    (setq ediff-split-window-function 'split-window-horizontally)
+    (setq ediff-window-setup-function 'ediff-setup-windows-plain))
 #+end_src
 
-*** Prescient
-
-Better sorting and filtering in selectrum and save usage statistics of modes
-between Emacs sessions.
+** Eshell
 
 #+begin_src emacs-lisp
-  (use-package prescient
-    :after (:any selectrum company)
-    :config
-    (prescient-persist-mode 1))
-  (use-package selectrum-prescient
-    :after (prescient selectrum)
-    :config
-    (selectrum-prescient-mode 1))
-#+end_src
-
-** Consult and Embark
-*** Consult
-#+begin_src emacs-lisp
-  (use-package consult
-    :general
-    ('global
-     "C-h a" 'consult-apropos)
-   ('(normal motion) 'global
-     :prefix "SPC"
-     "b b" 'consult-buffer))
-
-  (use-package consult-selectrum
-    :after (consult))
-#+end_src
-
-*** Embark
-#+begin_src emacs-lisp
-  (use-package embark
-    :config
-    ;; which-key integration
-    ;; https://github.com/oantolin/embark/wiki/Additional-Configuration#use-which-key-like-a-key-menu-prompt
-    (setq embark-action-indicator
-          (lambda (map)
-            (which-key--show-keymap "Embark" map nil nil 'no-paging)
-            #'which-key--hide-popup-ignore-command)
-          embark-become-indicator embark-action-indicator)
-    :general
-    ('minibuffer-local-map
-     "M-m" 'embark-act)
-    ('(emacs normal) 'embark-occur-mode-map
-     "a" 'embark-act
-     "h" 'helpful-at-point))
-#+end_src
-
-*** Marginalia
-#+begin_src emacs-lisp
-  (use-package marginalia
-    :after (:any consult selectrum)
-    :config
-    (marginalia-mode 1)
-    (setq marginalia-annotators '(marginalia-annotators-heavy
-                                  marginalia-annotators-light)))
+  (use-package eshell
+    :ensure nil
+    :defer t
+    :hook (eshell-mode . (lambda () (company-mode -1))))
 #+end_src
 
 ** Evil and friends
@@ -445,6 +375,87 @@ The * and # operators don't work as they should with this package.
   ;;   :after (evil))
 #+end_src
 
+** Consult and Embark
+*** Consult
+#+begin_src emacs-lisp
+  (use-package consult
+    :general
+    ('global
+     "C-h a" 'consult-apropos)
+    ('(normal motion) 'global
+     "gG" 'consult-goto-line)
+    ('(normal motion) 'global
+     :prefix "SPC"
+     "b b" 'consult-buffer))
+
+  (use-package consult-selectrum
+    :after (consult))
+#+end_src
+
+*** Embark
+#+begin_src emacs-lisp
+  (use-package embark
+    :config
+    ;; which-key integration
+    ;; https://github.com/oantolin/embark/wiki/Additional-Configuration#use-which-key-like-a-key-menu-prompt
+    (setq embark-action-indicator
+          (lambda (map)
+            (which-key--show-keymap "Embark" map nil nil 'no-paging)
+            #'which-key--hide-popup-ignore-command)
+          embark-become-indicator embark-action-indicator)
+    :general
+    ('minibuffer-local-map
+     "M-m" 'embark-act)
+    ('(emacs normal) 'embark-occur-mode-map
+     "a" 'embark-act
+     "h" 'helpful-at-point))
+#+end_src
+
+*** Marginalia
+#+begin_src emacs-lisp
+  (use-package marginalia
+    :after (:any consult selectrum)
+    :config
+    (marginalia-mode 1)
+    (setq marginalia-annotators '(marginalia-annotators-heavy
+                                  marginalia-annotators-light)))
+#+end_src
+
+** Selectrum and prescient
+
+*** Selectrum
+
+#+begin_src emacs-lisp
+  (use-package selectrum
+    :hook (after-init . selectrum-mode)
+    :config
+    (setq selectrum-count-style 'current/matches)
+    (setq selectrum-fix-minibuffer-height 10)
+    :general
+    ('global
+     "C-x C-z" 'selectrum-repeat)
+    ('selectrum-minibuffer-map
+     "C-r" 'evil-paste-from-register
+     "C-j" 'selectrum-next-candidate
+     "C-k" 'selectrum-previous-candidate))
+#+end_src
+
+*** Prescient
+
+Better sorting and filtering in selectrum and save usage statistics of modes
+between Emacs sessions.
+
+#+begin_src emacs-lisp
+  (use-package prescient
+    :after (:any selectrum company)
+    :config
+    (prescient-persist-mode 1))
+  (use-package selectrum-prescient
+    :after (prescient selectrum)
+    :config
+    (selectrum-prescient-mode 1))
+#+end_src
+
 * Features
 
 ** Auto-Completion
@@ -469,6 +480,8 @@ Company mode for autocompletion
 
   (use-package company
     :hook (after-init . global-company-mode)
+    ;; :hook ((prog-mode . company-mode)
+    ;;        (text-mode . company-mode))
     :config
 
     (add-hook 'text-mode-hook 'kr/company-for-text)
@@ -542,6 +555,14 @@ Helpful is an alternative to the built-in Emacs help that provides much more con
 Function for reloading configuration
 
 #+begin_src emacs-lisp
+  (general-def '(motion normal) 'global
+    :prefix "SPC f e"
+    "r" 'my/config-reload
+    "d" 'my/edit-config-org
+    "i" 'my/edit-config-init)
+#+end_src
+
+#+begin_src emacs-lisp
   (defun my/config-reload ()
     (interactive)
     (org-babel-load-file (expand-file-name "pravila.org" user-emacs-directory)))
@@ -565,13 +586,6 @@ Functon for opening init.el
 
 Keybindings for these functions
 
-#+begin_src emacs-lisp
-  (general-def '(motion normal) 'global
-    :prefix "SPC f e"
-    "r" 'my/config-reload
-    "d" 'my/edit-config-org
-    "i" 'my/edit-config-init)
-#+end_src
 
 ** Try
 
@@ -715,6 +729,12 @@ Which-key is used for easier keybindings discovery
   (use-package slime)
 #+end_src
 
+** PHP
+#+begin_src emacs-lisp
+  (use-package php-mode
+    :defer t)
+#+end_src
+
 * Keybindings
 ** Junk that needs to be sorted
 #+begin_src emacs-lisp
@@ -781,9 +801,17 @@ Custom funcions used in this section for bindings
     :prefix "SPC f"
     "" '(:ignore t :which-key "file")
     "f" 'find-file
+    "e e" 'consult-file-externally
     "s" 'save-buffer)
 #+end_src
    
+** Minibuffer
+#+begin_src emacs-lisp
+(general-def 'minibuffer-local-map
+  "<escape>" 'abort-recursive-edit
+  "C-w" 'evil-window-map)
+#+end_src
+
 ** Help and Helpful
 
 Help
@@ -835,6 +863,7 @@ Helpful
   (general-def '(motion normal) 'global
     :prefix "SPC w"
     "" '(:ignore t :which-key "window")
+    "b" 'consult-buffer-other-window
     "d" 'evil-window-delete
     "c" 'evil-window-delete
     "v" 'evil-window-vsplit
