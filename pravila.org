@@ -217,12 +217,21 @@ Evil and all asociated packages are configured in this section.
           evil-emacs-state-cursor "#ee6622"
           evil-insert-state-cursor '(bar "#eeeeee"))
     (setq evil-search-module 'evil-search)
+    ;; :q should kill the current buffer rather than quitting emacs entirely
+    (evil-ex-define-cmd "q" 'kill-this-buffer)
+    (evil-ex-define-cmd "wq" 'save-and-kill-this-buffer)
+    ;; Need to type out :quit to close emacs
+    (evil-ex-define-cmd "quit" 'kill-buffer-and-window)
+
     :general
+    ('normal 'messages-buffer-mode-map
+             "q" 'quit-window)
     ('normal 'global
-    "gp" "`[v`]"
-    "go" 'browse-url-at-point)
+             "gb" 'pop-tag-mark
+             "gp" "`[v`]"
+             "go" 'browse-url-at-point)
     ('emacs 'global
-    "<excape>" 'evil-normal-state))
+            "<escape>" 'evil-normal-state))
   ;; https://github.com/noctuid/evil-guide#binding-keys-to-keys-keyboard-macros
   ;; (general-def 'normal 'global
   ;;   ;; select the previously pasted text
@@ -320,7 +329,8 @@ Select a line with =vil= and =val= keys.
     :config
     (setq evil-snipe-repeat-scope 'visible)
     (evil-snipe-mode 1)
-    (evil-snipe-override-mode 1))
+    (evil-snipe-override-mode 1)
+    (push 'dired-mode evil-snipe-disabled-modes))
 #+end_src
 
 *** evil-exchange
