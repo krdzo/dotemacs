@@ -491,8 +491,10 @@ Company mode for autocompletion
     ;; :hook ((prog-mode . company-mode)
     ;;        (text-mode . company-mode))
     :config
+    (setq company-backends
+          (delete 'company-oddmuse company-backends))
 
-    (add-hook 'text-mode-hook 'kr/company-for-text)
+    (add-hook 'org-mode-hook 'kr/company-for-text)
     ;; (add-hook 'scheme-mode-hook 'kr/company-for-mit)
     (add-hook 'comint-mode-hook 'kr/company-for-comint)
     (setq company-idle-delay 0.0
@@ -689,18 +691,24 @@ Which-key is used for easier keybindings discovery
     :commands (lsp lsp-defered)
     :hook
     (python-mode . lsp)
-    (lsp-mode . lsp-enable-which-key-integration)
+    (web-mode . lsp)
+    (lsp-mode . (lambda () (lsp-enable-which-key-integration t)))
+    :config
+    ;; treba lokalno da se postave za sve buffere pod lsp-om company
+    ;; ima ove backend-ove ali ja to ne znam kako da uradim sad
+    ;; (setq company-backends
+    ;;       '(company-files company-capf))
     :general
     ('normal 'lsp-mode
              :definer 'minor-mode
-             "SPC l" (general-simulate-key "C-c l" :which-key "lsp")))
+             "SPC l" (general-simulate-key "C-l" :which-key "lsp")))
 
   (use-package lsp-python-ms
     :ensure t
     :commands python-mode)
-
+  ;; privremeno ovde dok ne ukapiram sta da radim sa ovim
   (use-package yasnippet
-    :defer t) ;; privremeno ovde dok neukapiram sta da radim sa ovim
+    :defer t) 
 #+end_src
 
 ** Languages
@@ -806,7 +814,10 @@ Custom funcions used in this section for bindings
     :prefix "SPC f"
     "" '(:ignore t :which-key "file")
     "f" 'find-file
-    "e e" 'consult-file-externally
+    "ee" 'consult-file-externally
+    "d" 'dired-jump
+    "D" 'dired
+    "S" 'write-file
     "s" 'save-buffer)
 #+end_src
    
