@@ -5,6 +5,7 @@
 * Bootstrap
   
 ** Use better defaults
+
 Source block for experiments
 #+begin_src emacs-lisp
   (setq max-specpdl-size 10000
@@ -13,7 +14,6 @@ Source block for experiments
 #+end_src
 
 Change Emacs default UI.
-
 #+begin_src emacs-lisp
   (when window-system
     (blink-cursor-mode 0)
@@ -23,7 +23,6 @@ Change Emacs default UI.
 #+end_src
    
 These are emacs builtin options changed for what I think are better defaults.
-
 #+begin_src emacs-lisp
   (setq-default
    auto-window-vscroll nil                          ; Lighten vertical scroll
@@ -61,14 +60,12 @@ These are emacs builtin options changed for what I think are better defaults.
 #+end_src
 
 Enable fullscreen.
-
 #+begin_src emacs-lisp
   (when window-system
     (add-to-list 'initial-frame-alist '(fullscreen . maximized)))
 #+end_src
 
 Folder for backup files
-
 #+begin_src emacs-lisp
   (let ((backup (expand-file-name ".backups.d" user-emacs-directory)))
     (setq-default
@@ -77,7 +74,6 @@ Folder for backup files
 #+end_src
 
 Garbage-collect on focus-out, Emacs should feel snappier.
-
 #+begin_src emacs-lisp
   (add-hook 'focus-out-hook #'garbage-collect)
 #+end_src
@@ -128,7 +124,6 @@ Here are all the hooks that can't go in a specific use-package statment
   (use-package zerodark-theme
     :defer t)
   (load-theme 'zerodark t)
-  (add-hook 'after-init-hook 'zerodark-setup-modeline-format)
 #+end_src
 
 ** Modeline
@@ -141,7 +136,10 @@ This package alowes me to change what modes are listed in the modeline
     :hook (after-init . my/diminish)
     :config
     (defun my/diminish ()
+      (diminish 'anzu-mode)
+      (diminish 'evil-goggles-mode)
       (diminish 'eldoc-mode)
+      (diminish 'evil-snipe-local-mode)
       (diminish 'subword-mode)
       (diminish 'evil-commentary-mode)
       (diminish 'evil-org-mode)
@@ -388,8 +386,8 @@ The * and # operators don't work as they should with this package.
      :prefix "SPC"
      "b b" 'consult-buffer))
 
-  (use-package consult-selectrum
-    :after (consult))
+  ;; (use-package consult-selectrum
+  ;;   :after (consult))
 #+end_src
 
 *** Embark
@@ -555,14 +553,6 @@ Helpful is an alternative to the built-in Emacs help that provides much more con
 Function for reloading configuration
 
 #+begin_src emacs-lisp
-  (general-def '(motion normal) 'global
-    :prefix "SPC f e"
-    "r" 'my/config-reload
-    "d" 'my/edit-config-org
-    "i" 'my/edit-config-init)
-#+end_src
-
-#+begin_src emacs-lisp
   (defun my/config-reload ()
     (interactive)
     (org-babel-load-file (expand-file-name "pravila.org" user-emacs-directory)))
@@ -586,6 +576,13 @@ Functon for opening init.el
 
 Keybindings for these functions
 
+#+begin_src emacs-lisp
+  (general-def '(motion normal) 'global
+    :prefix "SPC f e"
+    "r" 'my/config-reload
+    "d" 'my/edit-config-org
+    "i" 'my/edit-config-init)
+#+end_src
 
 ** Try
 
@@ -716,6 +713,7 @@ Which-key is used for easier keybindings discovery
 #+end_src
 
 ** Lisp
+- Builtin lisp
 
 #+begin_src emacs-lisp
   (use-package inf-lisp
@@ -724,14 +722,11 @@ Which-key is used for easier keybindings discovery
     :config
     (setq inferior-lisp-program "sbcl"))
 #+end_src
-**** SLIME
-#+begin_src emacs-lisp
-  (use-package slime)
-#+end_src
 
-** PHP
+- SLIME
 #+begin_src emacs-lisp
-  (use-package php-mode
+
+  (use-package slime
     :defer t)
 #+end_src
 
@@ -834,6 +829,8 @@ Helpful
   (general-def normal Info-mode-map
     "<up>" '(lambda () (interactive) (evil-scroll-line-up 1) (evil-previous-line))
     "<down>" '(lambda () (interactive) (evil-scroll-line-down 1) (evil-next-line))
+    "C-f" 'Info-scroll-up
+    "C-b" 'Info-scroll-down
     "SPC SPC" 'Info-scroll-up
     "S-<backspace>" 'Info-scroll-up)
 #+end_src
@@ -904,14 +901,6 @@ Helpful
   ;;   "C-n" 'comint-next-input
   ;;   "C-p" 'comint-previous-input)
 #+end_src
-
-* Hydra
-
-#+begin_src emacs-lisp
-  (use-package hydra
-    :defer t)
-#+end_src
-
 
 
 * Podsetnik za Info
