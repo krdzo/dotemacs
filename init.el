@@ -3,13 +3,12 @@
 (setq gc-cons-threshold (* 64 1024 1024)) ;; 100MB
 (setq read-process-output-max (* 1024 1024))
 
+
 ;; Mesuring startup
 (add-hook 'emacs-startup-hook
           (lambda ()
             (message "Emacs ready in %s with %d garbage collections."
-                     (format "%.2f seconds"
-                             (float-time
-                              (time-subtract after-init-time before-init-time)))
+                     (emacs-init-time)
                      gcs-done)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

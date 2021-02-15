@@ -6,7 +6,7 @@
   
 ** Use better defaults
 
-Source block for experiments
+For experiments
 #+begin_src emacs-lisp
   (setq max-specpdl-size 10000
         max-lisp-eval-depth 5000)
@@ -123,7 +123,7 @@ Here are all the hooks that can't go in a specific use-package statment
     :defer t)
   (use-package zerodark-theme
     :defer t)
-  (load-theme 'zerodark t)
+  (load-theme 'idea-darkula t)
 #+end_src
 
 ** Modeline
@@ -133,7 +133,7 @@ This package alowes me to change what modes are listed in the modeline
 
 #+begin_src emacs-lisp
   (use-package diminish
-    :hook (after-init . my/diminish)
+    :hook (emacs-startup . my/diminish)
     :config
     (defun my/diminish ()
       (diminish 'anzu-mode)
@@ -156,22 +156,15 @@ to put them in the features section.
 This is set before everything because it needs to define =:general= keyword for use-package.
 
 #+begin_src emacs-lisp
-  (use-package general
-    :init
-    (setq general-override-states '(insert
-                                    emacs
-                                    hybrid
-                                    normal
-                                    visual
-                                    motion
-                                    operator
-                                    replace)))
+  (use-package general)
   ;; we have to unbind SPC so that we dont encounter prefix key error when binding SPC as a prefix
-  (general-unbind
-    :states '(motion normal)
+  (general-unbind '(motion normal) 'global
     "SPC")
   (general-def '(motion normal visual) 'global
     "gu" 'universal-argument)
+  (general-def 'normal 'evil-collection-unimpaired-mode-map
+    "]e" 'next-error
+    "[e" 'previous-error)
 #+end_src
 
 ** Ediff
@@ -203,7 +196,7 @@ Evil and all asociated packages are configured in this section.
 #+begin_src emacs-lisp
   (use-package evil
     :init (setq evil-want-C-u-scroll t
-                evil-undo-system 'undo-fu
+                evil-undo-system 'undo-tree
                 evil-symbol-word-search t
                 evil-want-keybinding nil
                 evil-want-Y-yank-to-eol t)
@@ -261,7 +254,8 @@ Shows how many matches is in a search.
 
 #+begin_src emacs-lisp
   (use-package evil-collection
-    ;; :after (evil)
+    :after (evil)
+    ;; :disabled
     :config
     (setq evil-collection-company-use-tng nil)
     (evil-collection-init '(comint
@@ -269,6 +263,7 @@ Shows how many matches is in a search.
                             dired
                             geiser
                             helpful
+                            (occur replace)
                             eshell
                             help 
                             info
@@ -281,9 +276,7 @@ Shows how many matches is in a search.
 
 #+begin_src emacs-lisp
   (use-package evil-matchit
-    :after (evil)
-    :config
-    (global-evil-matchit-mode 1))
+    :hook (prog-mode . evil-matchit-mode))
 #+end_src
 
 *** evil-lion 
@@ -321,16 +314,35 @@ Select a line with =vil= and =val= keys.
     (global-evil-surround-mode 1))
 #+end_src
 
-*** evil-snipe
+*** evil-snipe and evil-quickscope
 
+- evil-snipe
 #+begin_src emacs-lisp
   (use-package evil-snipe
     :after evil
     :config
     (setq evil-snipe-repeat-scope 'visible)
     (evil-snipe-mode 1)
-    (evil-snipe-override-mode 1)
-    (push 'dired-mode evil-snipe-disabled-modes))
+    ;; (evil-snipe-override-mode 1)
+    (push 'dired-mode evil-snipe-disabled-modes)
+    :general
+    ('normal 'global
+    ";" 'evil-snipe-repeat
+    "," 'evil-snipe-repeat-reverse))
+#+end_src
+
+- evil-quickscope
+#+begin_src emacs-lisp
+  (use-package evil-quickscope
+    :after evil
+    :config
+    ;; to make evil-snipe work with evil-quickscope
+    (defalias 'evil-find-char 'evil-snipe-f)
+    (defalias 'evil-find-char-backward 'evil-snipe-F)
+    (defalias 'evil-find-char-to 'evil-snipe-t)
+    (defalias 'evil-find-char-to-backward 'evil-snipe-T)
+    (global-evil-quickscope-mode 1))
+
 #+end_src
 
 *** evil-exchange
@@ -357,24 +369,14 @@ Select a line with =vil= and =val= keys.
 
 *** undo-fu
 #+begin_src emacs-lisp
-  (use-package undo-fu
-    :after (evil))
+    (use-package undo-tree
+      :after (evil)
+      :config (global-undo-tree-mode 1))
 #+end_src
 
 
 
 *** /Disabled packages/
-**** evil-quickscope
-[[https://github.com/blorbx/evil-quickscope/][Link to evil-quickscope]] it's disabled because it's in conflict with evil-snipe.
-Only one can work at a time if I figure out how to enable both then I will enable this mode.
-#+begin_src emacs-lisp
-  ;; (use-package evil-quickscope
-  ;;   :disabled t
-  ;;   :after evil
-  ;;   :config
-  ;;   (global-evil-quickscope-mode 1))
-#+end_src
-
 **** evil-visualstar
 The * and # operators don't work as they should with this package.
 #+begin_src emacs-lisp
@@ -394,6 +396,7 @@ The * and # operators don't work as they should with this package.
      "gG" 'consult-goto-line)
     ('(normal motion) 'global
      :prefix "SPC"
+     "/" 'consult-line
      "b b" 'consult-buffer))
 
   ;; (use-package consult-selectrum
@@ -438,7 +441,6 @@ The * and # operators don't work as they should with this package.
     :hook (after-init . selectrum-mode)
     :config
     (setq selectrum-count-style 'current/matches)
-    (setq selectrum-fix-minibuffer-height 10)
     :general
     ('global
      "C-x C-z" 'selectrum-repeat)
@@ -920,21 +922,15 @@ Helpful
     "o" 'delete-other-windows)
 #+end_src
 
-** org
+** Org
 #+begin_src emacs-lisp
-  ;; glupost za koju sam napisao kad sam hteo da ucim org mode ali sam zaboravio
-  ;; sta radi
-  ;; (general-def 'normal
-  ;;   :prefix "SPC o"
-  ;;   "l" 'org-store-link
-  ;;   "a" 'org-agenda
-  ;;   "c" 'org-capture)
-
   (general-def 'normal org-mode-map
     "RET" 'org-return
-    "gz" 'org-edit-special
-    "j" 'evil-next-visual-line
-    "k" 'evil-previous-visual-line)
+    "gz" 'org-edit-special)
+  ;; smeta sa tabon iza elipsa kod headinga
+  ;; "j" 'evil-next-visual-line
+  ;; "k" 'evil-previous-visual-line)
+
   ;; https://github.com/noctuid/general.el#wrapping-evil-define-minor-mode-key
   (general-def
     :definer 'minor-mode
