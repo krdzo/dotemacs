@@ -668,6 +668,19 @@ Helpful is an alternative to the built-in Emacs help that provides much more con
     (advice-add 'helpful-update :after #'elisp-demos-advice-helpful-update))
 #+end_src
 
+** Occur
+- occur-contex-resize
+#+begin_src emacs-lisp
+  (use-package occur-context-resize
+    :hook (occur-mode . occur-context-resize-mode)
+    :general
+    ('normal 'occur-mode-map
+             "-" 'occur-context-resize-smaller
+             "=" 'occur-context-resize-larger
+             "+" 'occur-context-resize-larger
+             "0" 'occur-context-resize-default))
+#+end_src
+
 ** Natural language
 *** Serbian
 I making a custom input method for Serbian language because all the other methods that exist are stupid. 
@@ -1066,6 +1079,19 @@ Helpful
   ;;   "C-p" 'comint-previous-input)
 #+end_src
 
+** occur
+#+begin_src emacs-lisp
+  (general-def 'normal 'occur-mode-map
+    "i" 'occur-edit-mode
+    "o" 'occur-mode-display-occurrence
+    "O" 'occur-mode-goto-occurrence-other-window
+    "F" 'next-error-follow-minor-mode
+    "gr" 'revert-buffer)
+  (general-def 'normal 'occur-edit-mode-map
+    "F" 'next-error-follow-minor-mode
+    "go" 'occur-mode-display-occurrence
+    "C-x C-k" 'occur-cease-edit)
+#+end_src
 
 * Podsetnik za Info
 ** Korisne komande i promenive koje treba znati
