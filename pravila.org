@@ -1152,3 +1152,22 @@ Dobre stvari koje sam nasao kad sam se igrao sa emacsom ali nisam uspeo tada da 
 =consult-command-history= - korisna komanda
 
 
+
+* Building pravila.el
+Every time that pravila.org is saved generate pravila.el.
+I moved generating the ~kr-el-conf-file~ file from when I load emacs to when I save
+~kr-org-conf-file~. So that emacs can just load ~kr-el-conf-file~ insted also
+loading it.
+
+#+begin_src emacs-lisp
+  (defun kr-generate-config-file ()
+    (interactive)
+    "Generate pravila.el file on every save of pravile.org"
+    (org-babel-tangle-file kr-org-conf-file))
+
+  (with-current-buffer (get-file-buffer kr-org-conf-file)
+    (general-define-key
+     :states 'normal
+     :keymaps 'local
+     "SPC f s" #'kr-generate-config-file))
+#+end_src
