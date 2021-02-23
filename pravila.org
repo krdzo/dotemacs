@@ -16,18 +16,13 @@ For experiments
 Change Emacs default UI.
 #+begin_src emacs-lisp
   (when window-system
-    (blink-cursor-mode 0)
-    ;; (menu-bar-mode 0)
-    (scroll-bar-mode 0)
-    (tool-bar-mode 0))
+    (blink-cursor-mode 0))
 #+end_src
    
 These are emacs builtin options changed for what I think are better defaults.
 #+begin_src emacs-lisp
   (setq-default
    auto-window-vscroll nil                          ; Lighten vertical scroll
-   bidi-paragraph-direction 'left-to-right          ; For handling long lines see:https://www.youtube.com/watch?v=JJJlQejxn1k
-   bidi-inhibit-bpa t
    confirm-kill-emacs 'yes-or-no-p                  ; Confirm before exiting Emacs
    delete-by-moving-to-trash t                      ; Delete files to trash
    display-time-default-load-average nil            ; Don't display load average
@@ -108,6 +103,18 @@ Here are all the hooks that can't go in a specific use-package statment
    (global-set-key (kbd "RET") 'newline-and-indent)
 #+end_src
 
+** Configurating so-long.el 
+When emacs load files with long lines it can block or crash so this minor mode
+is there to prevent it from doing that.
+
+#+begin_src emacs-lisp
+  (setq-default bidi-paragraph-direction 'left-to-right)
+  (setq bidi-inhibit-bpa t)
+
+  (use-package so-long
+    :ensure nil
+    :hook (emacs-startup . global-so-long-mode))
+#+end_src
 * Themes and UI
 
 ** Font
@@ -123,7 +130,7 @@ Here are all the hooks that can't go in a specific use-package statment
     :defer t)
   (use-package zerodark-theme
     :defer t)
-  (load-theme 'idea-darkula t)
+  (load-theme 'spacegray t)
 #+end_src
 
 ** Modeline
@@ -191,7 +198,7 @@ This is set before everything because it needs to define =:general= keyword for 
    
 Evil and all asociated packages are configured in this section.
 
-*** Evil
+*** evil-mode
 
 #+begin_src emacs-lisp
   (use-package evil
@@ -206,9 +213,9 @@ Evil and all asociated packages are configured in this section.
     (advice-add 'evil-search-next :after #'evil-scroll-line-to-center)
     (advice-add 'evil-search-previous :after #'evil-scroll-line-to-center)
     (setq evil-motion-state-cursor "#bb1111"
-          evil-normal-state-cursor "#26aaef"
+          evil-normal-state-cursor "#eeeeee"
           evil-emacs-state-cursor "#ee6622"
-          evil-insert-state-cursor '(bar "#eeeeee"))
+          evil-insert-state-cursor '(bar "#ff1547"))
     (setq evil-search-module 'evil-search)
     ;; :q should kill the current buffer rather than quitting emacs entirely
     (evil-ex-define-cmd "q" 'kill-this-buffer)
@@ -470,8 +477,8 @@ between Emacs sessions.
 
 ** Auto-Completion
 
-Company mode for autocompletion
 
+*** Company 
 #+begin_src emacs-lisp
   ;; hack for mit-scheme because comapny lags typing
   (defun kr/company-for-comint ()
@@ -517,8 +524,7 @@ Company mode for autocompletion
 
 ** Dired
 #+NOTE: notes for dired enhancement packages: dired-rmjunk, dired-postframe, maybe dired-git, dired-sidebar, dired-filter, dired-narow, all-the-icons-dired, treemacs-icons-dired there maybe but I didn't look further 
- 
-- Dired
+*** Dired 
 #+begin_src emacs-lisp
   (use-package dired
     :ensure nil
@@ -535,9 +541,9 @@ Company mode for autocompletion
     ;; evil-collection setups its hooks after dired is first loaded
     ;; and overrides :general map so for now I must do this so that
     ;; I unbind SPC in dired-mode
-    (with-eval-after-load 'dired
-      (general-unbind 'normal 'dired-mode-map
-        "SPC"))
+    ;; (with-eval-after-load 'dired
+    ;;   (general-unbind 'normal 'dired-mode-map
+    ;;     "SPC"))
     (defun kr-go-home ()
       "Function for opening home directory in dired"
       (interactive)
@@ -545,6 +551,7 @@ Company mode for autocompletion
 
     :general
     ('normal 'dired-mode-map
+             "SPC" nil
              "gh" 'kr-go-home
              "C-M-j" 'dired-next-subdir
              "C-M-k" 'dired-prev-subdir
@@ -552,12 +559,11 @@ Company mode for autocompletion
              "C-k" 'dired-prev-marked-file
              "DEL" 'dired-unmark-backward))
 #+end_src
-
-- Dired-x
+*** Dired-x
 #+begin_src emacs-lisp
   (use-package dired-x
     :ensure nil
-    :after dired
+    :commands dired-jump
     :config
     ;; (setq dired-clean-confirm-killing-deleted-buffers nil)
 
@@ -574,7 +580,7 @@ Company mode for autocompletion
 
 *** Dired-hacks
 
-- dired-k
+**** dired-k
 #+begin_src emacs-lisp
   (use-package dired-k
     :disabled
@@ -588,13 +594,13 @@ Company mode for autocompletion
     (advice-add 'dired-subtree-insert :after 'dired-k-no-revert))
 #+end_src 
  
-- Dired-subtree
+**** dired-subtree
 #+begin_src emacs-lisp
   (use-package dired-subtree
     :after dired)
 #+end_src
- 
-- Dired-rainbow
+
+**** dired-reinbow 
 #+begin_src emacs-lisp
   (use-package dired-rainbow
     :after dired
@@ -621,12 +627,6 @@ Company mode for autocompletion
     (dired-rainbow-define-chmod executable-unix "#38c172" "-.*x.*"))
 #+end_src
 
-** Flycheck
-#+begin_src emacs-lisp
-  ;; (use-package flycheck
-  ;;   :defer t)
-#+end_src
-
 ** Calendar
 
 #+begin_src emacs-lisp
@@ -634,7 +634,7 @@ Company mode for autocompletion
   (setq calendar-week-start-day 1)
 #+end_src
 
-** Git
+** Git; magit
    
 #+begin_src emacs-lisp
   (use-package magit
@@ -768,7 +768,10 @@ Package for trying out different packages
 
 #+begin_src emacs-lisp
   (use-package org
+    :ensure nil
+    :defer
     :config
+    (add-to-list 'org-modules 'org-tempo t)
     (setq org-startup-indented t
           org-M-RET-may-split-line nil
           ;; org-ellipsis "⤵"
@@ -776,8 +779,9 @@ Package for trying out different packages
           org-return-follows-link t
           org-src-window-setup 'current-window))
 
-  (use-package toc-org
-    :after org)
+  ;; (use-package toc-org
+  ;;   :hook (org )
+  ;;   :after org)
 #+end_src
    
 *** evil-org
@@ -808,7 +812,7 @@ For emacs-lisp
 #+end_src
 
 ** Parentheses
-   
+
 Highlight parenthese-like delimiters in a rainbow fashion. It ease the reading when dealing with mismatched parentheses.
    
 #+begin_src emacs-lisp
@@ -886,8 +890,10 @@ Which-key is used for easier keybindings discovery
   (use-package geiser
     :defer t
     :init
-    (setq geiser-active-implementations '(mit))
+    (setq geiser-active-implementations '(guile))
     :config
+    (setq geiser-guile-binary "guile2.2")
+    ;; after <return> in REPL go to normal-state
     (advice-add 'geiser-repl--maybe-send :after #'evil-normal-state)
     (setq geiser-mit--prompt-regexp "[0-9]+ \\(([^)]+)\\|[A-z]+\\) \\(=>\\|>\\)"))
 #+end_src
