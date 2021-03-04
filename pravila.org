@@ -515,7 +515,48 @@ between Emacs sessions.
   ;; (evil-make-overriding-map company-active-map 'insert t)
 #+end_src
 
-*** Company prescient
+**** COMMENT My company hack for space
+#+begin_src emacs-lisp
+  ;; https://emacs.stackexchange.com/questions/14269/how-to-detect-if-the-point-is-within-a-comment-area
+  (defun evilnc--in-comment-p (&optional pos)
+    "Test if character at POS is comment or string.
+  If POS is nil, character at `(point)' is tested"
+    (unless pos (setq pos (point)))
+    (let* ((fontfaces (get-text-property pos 'face)))
+      (when (not (listp fontfaces))
+        (setf fontfaces (list fontfaces)))
+      (or (member 'font-lock-string-face fontfaces)
+          (member 'font-lock-comment-face fontfaces)
+          (member 'font-lock-doc-face fontfaces)
+          (member 'font-lock-comment-delimiter-face fontfaces))))
+
+  (defun crta-ili-space (arg)
+    "<space> will write eather space or - depending on context.
+  Space writes - if its preceded with any char other than - and
+  it will self-insert if it preceded with a -(dash) and will
+  delete the dash.
+  This behavior is disabled in comment or string lines."
+    (interactive "d")
+    (defun dash-p ()
+      (char-equal (char-before arg) ?-))
+    (cond ((dash-p)
+           (backward-delete-char-untabify 1)
+           (self-insert-command 1 ?\s) 
+           (company-abort)) 
+          (t (self-insert-command 1 ?-))))
+
+  (defun not-evil-in-comment-p ()
+    (not (or (evil-in-comment-p) (evilnc--in-comment-p))))
+
+  (defun kr-make-space ()
+    (interactive)
+    (general-def 'company-active-map
+      :predicate '(not-evil-in-comment-p)
+      "SPC" 'crta-ili-space))
+
+  (add-hook 'prog-mode-hook #'kr-make-space)
+#+end_src
+*** company prescient
 #+begin_src emacs-lisp
   (use-package company-prescient
       :after (prescient company)
