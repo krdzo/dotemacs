@@ -165,9 +165,9 @@ This is set before everything because it needs to define =:general= keyword for 
 #+begin_src emacs-lisp
   (use-package general)
   ;; we have to unbind SPC so that we dont encounter prefix key error when binding SPC as a prefix
-  (general-unbind '(motion normal) 'global
+  (general-unbind '(motion normal) 
     "SPC")
-  (general-def '(motion normal visual) 'global
+  (general-def '(motion normal visual) 
     "gu" 'universal-argument)
   (general-def 'normal 'evil-collection-unimpaired-mode-map
     "]e" 'next-error
@@ -226,16 +226,16 @@ Evil and all asociated packages are configured in this section.
     :general
     ('normal 'messages-buffer-mode-map
              "q" 'quit-window)
-    ('normal 'global
+    ('normal 
              "gb" 'pop-tag-mark
              "gp" "`[v`]"
              "go" 'browse-url-at-point)
-    ('emacs 'global
+    ('emacs 
             "<escape>" 'evil-normal-state))
   ;; https://github.com/noctuid/evil-guide#binding-keys-to-keys-keyboard-macros
-  ;; (general-def 'normal 'global
+  ;; (general-def 'normal 
   ;;   ;; select the previously pasted text
-  ;; (general-def 'emacs 'global
+  ;; (general-def 'emacs 
   ;;   "<escape>" 'evil-normal-state)
 #+end_src
 
@@ -333,12 +333,13 @@ Select a line with =vil= and =val= keys.
     ;; (evil-snipe-override-mode 1)
     (push 'dired-mode evil-snipe-disabled-modes)
     :general
-    ('normal 'global
+    ('normal 
     ";" 'evil-snipe-repeat
     "," 'evil-snipe-repeat-reverse))
 #+end_src
 
-- evil-quickscope
+**** evil-quickscope 
+
 #+begin_src emacs-lisp
   (use-package evil-quickscope
     :after evil
@@ -363,11 +364,11 @@ Select a line with =vil= and =val= keys.
 #+begin_src emacs-lisp
   (use-package evil-numbers
     :general
-    ('visual 'global
+    ('visual 
              "g +" 'evil-numbers/inc-at-pt
              "g =" 'evil-numbers/inc-at-pt
              "g -" 'evil-numbers/dec-at-pt)
-    ('normal 'global
+    ('normal 
              "g +" 'evil-numbers/inc-at-pt
              "g =" 'evil-numbers/inc-at-pt
              "g -" 'evil-numbers/dec-at-pt))
@@ -397,11 +398,10 @@ The * and # operators don't work as they should with this package.
 #+begin_src emacs-lisp
   (use-package consult
     :general
-    ('global
-     "C-h a" 'consult-apropos)
-    ('(normal motion) 'global
+    ("C-h a" 'consult-apropos)
+    ('(normal motion) 
      "gG" 'consult-goto-line)
-    ('(normal motion) 'global
+    ('(normal motion) 
      :prefix "SPC"
      "/" 'consult-line
      "b b" 'consult-buffer))
@@ -449,8 +449,7 @@ The * and # operators don't work as they should with this package.
     :config
     (setq selectrum-count-style 'current/matches)
     :general
-    ('global
-     "C-x C-z" 'selectrum-repeat)
+    ("C-x C-z" 'selectrum-repeat)
     ('selectrum-minibuffer-map
      "C-r" 'evil-paste-from-register
      "C-j" 'selectrum-next-candidate
@@ -789,7 +788,7 @@ Functon for opening init.el
 Keybindings for these functions
 
 #+begin_src emacs-lisp
-  (general-def '(motion normal) 'global
+  (general-def '(motion normal) 
     :prefix "SPC f e"
     "r" 'my/config-reload
     "d" 'my/edit-config-org
@@ -958,9 +957,9 @@ Which-key is used for easier keybindings discovery
 #+end_src
 
 * Keybindings
-** Junk that needs to be sorted
+** Shufle emacs global keys
 #+begin_src emacs-lisp
-  (general-def 'global
+  (general-def 
     "C-h p" 'describe-package
     "C-h P" 'finder-by-keyword
     "C-h l" 'find-library)
@@ -984,7 +983,7 @@ Custom funcions used in this section for bindings
 #+end_src
    
 #+begin_src emacs-lisp
-  (general-def  '(motion normal) 'global
+  (general-def  '(motion normal) 
     :prefix "SPC b"
     "" '(:ignore t :which-key "buffer")
     "s" 'kr/edit-scratch
@@ -997,9 +996,9 @@ Custom funcions used in this section for bindings
 #+begin_src emacs-lisp
   ;; there is a bug when you have company completion and hit C-h
   ;; (company-show-doc-buffer). If the next comand is C-k then insert-state takes
-  ;; that comand and runs evil-inser-digraph function insted of company-active-map
+  ;; that comand and runs evil-insert-digraph function insted of company-active-map
   ;; so we have to unbind C-k in insert state
-  (general-unbind 'insert 'global
+  (general-unbind 'insert 
     "C-k")
   (general-def 'company-active-map
      "<tab>" 'company-complete-common-or-cycle
@@ -1012,15 +1011,9 @@ Custom funcions used in this section for bindings
      "<f1>" 'helpful-key)
 #+end_src
 
-** Dired mode
-#+begin_src emacs-lisp
-  ;; (general-def 'normal 'dired-mode-map
-  ;;   "SPC" nil)
-#+end_src
-
 ** Files
 #+begin_src emacs-lisp
-  (general-def '(motion normal) 'global
+  (general-def '(motion normal) 
     :prefix "SPC f"
     "" '(:ignore t :which-key "file")
     "f" 'find-file
@@ -1065,29 +1058,13 @@ Helpful
     "S-<backspace>" 'Info-scroll-up)
 #+end_src
 
-** Scheme(geiser) mode
-#+begin_src emacs-lisp
-  ;; (general-def normal geiser-mode-map
-  ;;   "SPC '" 'switch-to-geiser)
-  (general-def 'normal 'geiser-mode-map
-    "gr" 'geiser-eval-definition)
-
-  (general-def 'normal 'geiser-repl-mode-map
-    "gz" 'switch-to-geiser)
-  ;;   "SPC '" 'switch-to-geiser)
-
-  (general-def 'normal 'geiser-doc-mode-map
-    "q" 'View-quit)
-
-#+end_src
-
 ** Windows
 #+begin_src emacs-lisp
-  (general-def '(motion normal) 'global
+  (general-def '(motion normal) 
     "]w" 'evil-window-next
     "[w" 'evil-window-prev)
 
-  (general-def '(motion normal) 'global
+  (general-def '(motion normal) 
     :prefix "SPC w"
     "" '(:ignore t :which-key "window")
     "b" 'consult-buffer-other-window
@@ -1140,6 +1117,7 @@ Helpful
     "C-x C-k" 'occur-cease-edit)
 #+end_src
 
+
 * Podsetnik za Info
 ** Korisne komande i promenive koje treba znati
 + ~(list-command-history)~ - izlistava istoriju komandi. Komande su izlistane
@@ -1161,13 +1139,12 @@ BUR_REPORT: Postoji bug u evil-matchit-mode -u koji neda da se macuju zagrade u 
   koristim magit ali možda ima nesto pametno da se pročita.
 - 28.4.2 i 28.4.3 TAGS preskočen
 - 28.6 Emerge preskočen
-- 30. Dired preskočen
 - 31. 32. 33. 34. preskočeni
 - 37. Document viewing preskočen
 - 38. do 47. preskočeno
 - 49.3.10. i 49.3.11. preskočeno
   
-
+  
 ** Korisne Info strane da se opet procitaju
 16.4 O spellcheck-u 
 26.2.3 imunu
