@@ -3,7 +3,7 @@
 #+startup: fold
 
 * Bootstrap
-  
+
 ** Use better defaults
 
 For experiments
@@ -202,6 +202,7 @@ Evil and all asociated packages are configured in this section.
 
 #+begin_src emacs-lisp
   (use-package evil
+    :defer 0
     :init (setq evil-want-C-u-scroll t
                 evil-undo-system 'undo-tree
                 evil-symbol-word-search t
@@ -261,7 +262,7 @@ Shows how many matches is in a search.
 
 #+begin_src emacs-lisp
   (use-package evil-collection
-    :after (evil)
+    :after evil
     ;; :disabled
     :config
     (setq evil-collection-company-use-tng nil)
@@ -323,7 +324,8 @@ Select a line with =vil= and =val= keys.
 
 *** evil-snipe and evil-quickscope
 
-- evil-snipe
+**** evil-snipe
+
 #+begin_src emacs-lisp
   (use-package evil-snipe
     :after evil
@@ -949,7 +951,7 @@ Which-key is used for easier keybindings discovery
     (setq inferior-lisp-program "sbcl"))
 #+end_src
 
-- SLIME
+**** SLIME
 #+begin_src emacs-lisp
 
   (use-package slime
@@ -1163,21 +1165,19 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
 
 - vidi /superword-mode/ Info emacs 26.11
 
-  
 ** Org mode info
 Strane koje vrede ponovo pročitati
 - 2.2.3 strana
 - 3.6 intresting org plot
   
-* Note
+* Notes
 Dobre stvari koje sam nasao kad sam se igrao sa emacsom ali nisam uspeo tada da ih konfigurisem.
 ** Consult
 [[https://github.com/minad/consult][Link za Consult]] gde moze da se vidi dokumentacija.
 =consult-command-history= - korisna komanda
 
 
-
-* Building pravila.el
+* Generating pravila.el
 Every time that pravila.org is saved generate pravila.el.
 I moved generating the ~kr-el-conf-file~ file from when I load emacs to when I save
 ~kr-org-conf-file~. So that emacs can just load ~kr-el-conf-file~ insted also
@@ -1186,12 +1186,67 @@ loading it.
 #+begin_src emacs-lisp
   (defun kr-generate-config-file ()
     (interactive)
-    "Generate pravila.el file on every save of pravile.org"
-    (org-babel-tangle-file kr-org-conf-file))
+    "If pravila.el is older than pravila.org than generate new pravila.el"
+    (let ((el-older-p
+           (time-less-p (nth 5 (file-attributes kr-el-conf-file))
+                        (nth 5 (file-attributes kr-org-conf-file)))))
+      (when el-older-p
+        (require 'org) ;; if org is not loaded, load it
+        (org-babel-tangle-file kr-org-conf-file kr-el-conf-file))))
 
-  (with-current-buffer (get-file-buffer kr-org-conf-file)
-    (general-define-key
-     :states 'normal
-     :keymaps 'local
-     "SPC f s" #'kr-generate-config-file))
+
+  ;; don't know how to do this at this moment will do in the future
+  ;; (with-current-buffer (get-file-buffer kr-org-conf-file)
+  ;;   (general-def 'normal 'local
+  ;;     "SPC f s" #'kr-generate-config-file))
+  (add-hook 'kill-emacs-hook #'kr-generate-config-file)
+#+end_src
+
+* *MAGIT TESTING* keybindings
+#+begin_src emacs-lisp
+  (general-def 'transient-map
+    "<escape>" 'transient-quit-one)
+
+  (general-def 'normal 'magit-mode-map
+    "[" 'nil
+    "]" 'nil
+    "[w" 'evil-window-prev
+    "]w" 'evil-window-next)
+#+end_src
+
+
+
+* COMMENT No export 
+#+begin_src emacs-lisp 
+  (defun what-face (pos)
+    "What is the face of char under point.
+  Whit this you can inspect the face to see what font the face is using."
+    (interactive "d")
+    (let ((face (or (get-char-property (point) 'read-face-name)
+                    (get-char-property (point) 'face))))
+      (if face (message "Face: %s" face) (message "No face at %d" pos))))
+#+end_src
+
+* COMMENT poboljsavanje company-a
+
+Pokusavam da napravim da kad je company aktivna SPC napise -("crticu") a da 
+"SPC SPC" izbrise tu ctricu i ubaci space izmedju reci.
+
+#+begin_src emacs-lisp
+    (defun ubaci-crticu ()
+      (interactive)
+      (insert "-"))
+    (defun izbrisi-crticu ()
+      (interactive)
+      )
+
+  (general-def company-active-map "SPC" 'self-insert-command)
+    (general-key-dispatch 'self-insert-command
+              :timeout 0.25
+             "SPC" 'ubaci-crticu))
+
+    (general-def insert company-mode-map
+      "SPC" 'ubaci-crticu)
+  ;; macro moze da se koristi da uradi od editinga sta treba u tekstu
+  (evil-execute-macro 1 "k$xI")
 #+end_src
