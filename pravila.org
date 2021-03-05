@@ -922,29 +922,26 @@ Which-key is used for easier keybindings discovery
     :init (setq lsp-keymap-prefix "C-l")
     :commands (lsp lsp-defered)
     :hook
-    (python-mode . lsp)
+    (css-mode . lsp)
     (web-mode . lsp)
-    (lsp-mode . (lambda () (lsp-enable-which-key-integration t)))
+    (python-mode . lsp)
+    (js-mode . lsp)
     :config
-    ;; treba lokalno da se postave za sve buffere pod lsp-om company
-    ;; ima ove backend-ove ali ja to ne znam kako da uradim sad
-    ;; (setq company-backends
-    ;;       '(company-files company-capf))
+    (defun kr-set-lsp-setings ()
+      "Hook for my lsp custom"
+      (general-def 'normal 'local
+        "gr" 'lsp-find-references)
+      (setq-local company-backends
+                  '(company-files company-capf)))
+    (general-add-hook 'lsp-mode-hook '(kr-set-lsp-setings
+                                       lsp-enable-which-key-integration))
     :general
     ('normal 'lsp-mode
              :definer 'minor-mode
              "SPC l" (general-simulate-key "C-l" :which-key "lsp")))
-
-  (use-package lsp-python-ms
-    :ensure t
-    :commands python-mode)
-  ;; privremeno ovde dok ne ukapiram sta da radim sa ovim
-  (use-package yasnippet
-    :defer t) 
 #+end_src
-
 ** Languages
-*** Python
+*** COMMENT Python
 #+begin_src emacs-lisp
   ;; (use-package python
   ;;   :defer t
@@ -969,8 +966,12 @@ Which-key is used for easier keybindings discovery
              "q" 'View-quit))
 #+end_src
 
+*** COMMENT JavaScript
+Prazno za sad
+
 *** Lisp
 
+**** Internal Lisp
 #+begin_src emacs-lisp
   (use-package inf-lisp
     :ensure nil
@@ -984,6 +985,52 @@ Which-key is used for easier keybindings discovery
 
   (use-package slime
     :defer t)
+#+end_src
+
+*** Web
+
+**** web-mode
+
+#+begin_src emacs-lisp
+  (use-package web-mode
+    :mode "\\.html?\\'"
+    :config
+    (setq web-mode-auto-close-style 1)
+    (setq web-mode-markup-indent-offset 4))
+#+end_src
+
+**** emmet-mode
+#+begin_src emacs-lisp
+  ;; stolen form spacemacs and a little modified
+  (defun spacemacs/emmet-expand ()
+    "Bind TAB to the right action when emmet is active."
+    (interactive)
+    (if emmet-preview-input
+        (call-interactively #'emmet-preview-accept)
+      (unless (if (bound-and-true-p yas-minor-mode)
+                  (call-interactively 'emmet-expand-yas)
+                (call-interactively 'emmet-expand-line))
+        (indent-for-tab-command))))
+
+
+  (use-package emmet-mode
+    :hook
+    (web-mode . emmet-mode)
+    (css-mode . emmet-mode)
+    :config
+    (setq emmet-move-cursor-after-expanding t)
+    (setq emmet-move-cursor-between-quotes t)
+    (defun kr-setup-for-emmet ()
+      (general-def 'insert 'local
+        "<tab>" 'spacemacs/emmet-expand))
+    (general-add-hook 'emmet-mode-hook 'kr-setup-for-emmet))
+#+end_src
+
+** Snipets (yassnipet)
+#+begin_src emacs-lisp
+  (use-package yasnippet
+    :diminish yas-minor-mode 
+    :hook (lsp-mode . yas-minor-mode))
 #+end_src
 
 * Keybindings
@@ -1107,6 +1154,7 @@ Custom funcions used in this section for bindings
     "gZ" 'org-edit-src-abort
     "gz" 'org-edit-src-exit)
 #+end_src
+
 
 ** comint
 #+begin_src emacs-lisp
