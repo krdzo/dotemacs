@@ -115,6 +115,15 @@ is there to prevent it from doing that.
     :ensure nil
     :hook (emacs-startup . global-so-long-mode))
 #+end_src
+
+** Garbage collector
+
+Improve emacs garbage collector
+
+#+begin_src emacs-lisp
+  (use-package gcmh :defer)
+#+end_src
+
 * Themes and UI
 
 ** Font

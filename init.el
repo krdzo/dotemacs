@@ -1,7 +1,7 @@
-;; Change default for faster startup 
-(setq gc-cons-percentage 0.6)
-(setq gc-cons-threshold (* 64 1024 1024)) ;; 100MB
-(setq read-process-output-max (* 1024 1024))
+;; tweaking the gc
+(when (package-installed-p 'gcmh)
+  (gcmh-mode 1)
+  (setq read-process-output-max (* 1024 1024)))
 
 ;; Mesuring startup
 (add-hook 'emacs-startup-hook
@@ -27,6 +27,7 @@
   (require 'use-package))
 (setq-default use-package-always-ensure t)
 
+;; (setq garbage-collection-messages t)
 (setq use-package-verbose t)
 (setq use-package-compute-statistics t)
 (define-key global-map (kbd "C-c x") 'use-package-report)
