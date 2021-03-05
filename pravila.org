@@ -157,9 +157,7 @@ This package alowes me to change what modes are listed in the modeline
       (diminish 'anzu-mode)
       (diminish 'evil-goggles-mode)
       (diminish 'eldoc-mode)
-      (diminish 'evil-snipe-local-mode)
       (diminish 'subword-mode)
-      (diminish 'evil-commentary-mode)
       (diminish 'evil-org-mode)
       (diminish 'which-key-mode)
       (diminish 'undo-tree-mode)))
@@ -213,12 +211,14 @@ Evil and all asociated packages are configured in this section.
 
 #+begin_src emacs-lisp
   (use-package evil
-    :defer 0
+    :defer t
     :init (setq evil-want-C-u-scroll t
                 evil-undo-system 'undo-tree
                 evil-symbol-word-search t
                 evil-want-keybinding nil
                 evil-want-Y-yank-to-eol t)
+    ;; (general-add-hook 'emacs-startup-hook #'evil-mode nil nil t)
+
     :config
     (evil-mode)
     ;; https://github.com/noctuid/evil-guide#whats-the-equivalent-of-nnoremap-n-nzz
@@ -258,7 +258,13 @@ Shows how many matches is in a search.
   (use-package evil-anzu
     :after evil
     :config
-    (global-anzu-mode 1))
+    (global-anzu-mode 1)
+    :general
+    ('normal
+     "/" 'evil-search-forward
+     "?" 'evil-search-backward
+     "*" 'evil-search-word-forward
+     "#" 'evil-search-word-backward))
 #+end_src
 
 *** evil-commentary
@@ -266,7 +272,11 @@ Shows how many matches is in a search.
 #+begin_src emacs-lisp
   (use-package evil-commentary
     :after (evil)
-    :config (evil-commentary-mode))
+    :diminish
+    :general
+    ('normal
+     "gy" 'evil-commentary-yank
+     "gc" 'evil-commentary))
 #+end_src
 
 *** evil-collection
@@ -286,6 +296,7 @@ Shows how many matches is in a search.
                             eshell
                             help 
                             info
+                            xref
                             magit
                             (term term ansi-term multi-term)
                             (package-menu package))))
@@ -301,9 +312,10 @@ Shows how many matches is in a search.
 *** evil-lion 
 #+begin_src emacs-lisp
   (use-package evil-lion
-    :after (evil)
-    :config
-    (evil-lion-mode))
+    :general
+    ('(normal visual)
+     "gl" 'evil-lion-left
+     "gL" 'evil-lion-right))
 #+end_src
 
 *** evil-textobj-line
@@ -340,6 +352,7 @@ Select a line with =vil= and =val= keys.
 #+begin_src emacs-lisp
   (use-package evil-snipe
     :after evil
+    :diminish evil-snipe-local-mode
     :config
     (setq evil-snipe-repeat-scope 'visible)
     (evil-snipe-mode 1)
@@ -703,9 +716,17 @@ between Emacs sessions.
 ** Git - magit
    
 #+begin_src emacs-lisp
-  (use-package magit
-    :general
-    ("C-x g" 'magit-status))
+    (use-package magit
+      :config
+      (defun kr-magit-set ()
+        (general-def 'normal 'magit-mode-map
+          "[" 'nil
+          "]" 'nil
+          "[w" 'evil-window-prev
+          "]w" 'evil-window-next))
+      (add-hook 'magit-mode-hook 'kr-magit-set)
+      :general
+      ("C-x g" 'magit-status))
 #+end_src
    
 ** Help 
@@ -720,7 +741,7 @@ between Emacs sessions.
 #+begin_src emacs-lisp
   (use-package helpful
     :general
-    ('(normal motion) 
+    ('(normal insert) 
       "C-h k" 'helpful-key
       "C-h o" 'helpful-symbol
       "C-h C" 'helpful-command
@@ -842,6 +863,7 @@ Package for trying out different packages
     :ensure nil
     :defer t
     :config
+    (diminish 'org-indent-mode)
     (add-to-list 'org-structure-template-alist
                  '("el" . "src emacs-lisp"))
     (add-to-list 'org-modules 'org-tempo t)
@@ -851,10 +873,10 @@ Package for trying out different packages
           org-ellipsis " ⮷"
           org-return-follows-link t
           org-src-window-setup 'current-window)
-    :general
-    ('normal 'org-mode-map
+    (general-def 'normal 'org-mode-map
              "C-j" 'org-next-visible-heading
              "C-k" 'org-previous-visible-heading)) 
+
 
   ;; (use-package toc-org
   ;;   :hook (org )
@@ -864,7 +886,7 @@ Package for trying out different packages
 *** evil-org
 #+begin_src emacs-lisp
   (use-package evil-org
-    :hook (org-mode . evil-org-mode)
+    :diminish
     :after (evil org)
     :config
     (setq evil-org-retain-visual-state-on-shift t)
@@ -1148,12 +1170,17 @@ Custom funcions used in this section for bindings
 
 ** Org
 #+begin_src emacs-lisp
-  (general-def 'normal org-mode-map
+  (general-def 'normal 'org-mode-map
     "RET" 'org-return
     "gz" 'org-edit-special)
   ;; smeta sa tabon iza elipsa kod headinga
   ;; "j" 'evil-next-visual-line
   ;; "k" 'evil-previous-visual-line)
+  (general-def 'insert 'org-mode-map
+    "M-l" 'org-metaright
+    "M-h" 'org-metaleft
+    "M-j" 'org-metadown
+    "M-j" 'org-metaup)
 
   ;; https://github.com/noctuid/general.el#wrapping-evil-define-minor-mode-key
   (general-def
@@ -1189,6 +1216,21 @@ Custom funcions used in this section for bindings
     "C-x C-k" 'occur-cease-edit)
 #+end_src
 
+** Expand evil-collection 
+
+For modes that evil-collection didn't setup.
+
+*** Quit vairous modes
+
+Quiting modes 
+
+#+begin_src emacs-lisp
+
+  ;; setup for quit modes
+  (general-def 'normal 'special-mode-map
+    "q" 'quit-window)
+
+#+end_src
 
 * Podsetnik za Info
 ** Korisne komande i promenive koje treba znati
@@ -1277,11 +1319,6 @@ loading it.
   (general-def 'transient-map
     "<escape>" 'transient-quit-one)
 
-  (general-def 'normal 'magit-mode-map
-    "[" 'nil
-    "]" 'nil
-    "[w" 'evil-window-prev
-    "]w" 'evil-window-next)
 #+end_src
 
 
@@ -1297,26 +1334,3 @@ loading it.
       (if face (message "Face: %s" face) (message "No face at %d" pos))))
 #+end_src
 
-* COMMENT poboljsavanje company-a
-
-Pokusavam da napravim da kad je company aktivna SPC napise -("crticu") a da 
-"SPC SPC" izbrise tu ctricu i ubaci space izmedju reci.
-
-#+begin_src emacs-lisp
-    (defun ubaci-crticu ()
-      (interactive)
-      (insert "-"))
-    (defun izbrisi-crticu ()
-      (interactive)
-      )
-
-  (general-def company-active-map "SPC" 'self-insert-command)
-    (general-key-dispatch 'self-insert-command
-              :timeout 0.25
-             "SPC" 'ubaci-crticu))
-
-    (general-def insert company-mode-map
-      "SPC" 'ubaci-crticu)
-  ;; macro moze da se koristi da uradi od editinga sta treba u tekstu
-  (evil-execute-macro 1 "k$xI")
-#+end_src
