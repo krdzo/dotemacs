@@ -716,17 +716,28 @@ between Emacs sessions.
 ** Git - magit
    
 #+begin_src emacs-lisp
-    (use-package magit
-      :config
-      (defun kr-magit-set ()
-        (general-def 'normal 'magit-mode-map
-          "[" 'nil
-          "]" 'nil
-          "[w" 'evil-window-prev
-          "]w" 'evil-window-next))
-      (add-hook 'magit-mode-hook 'kr-magit-set)
-      :general
-      ("C-x g" 'magit-status))
+  (use-package magit
+    :config
+    (defun kr-magit-set ()
+      (general-def 'magit-mode-map
+        "SPC" 'nil)
+      (general-def 'normal 'magit-mode-map
+        "SPC" nil
+        "[" nil
+        "]" nil
+        "SPC SPC" 'magit-diff-show-or-scroll-up
+        "[w" 'evil-window-prev
+        "]w" 'evil-window-next))
+    (add-hook 'magit-mode-hook 'kr-magit-set)
+    :general
+    ("C-x g" 'magit-status))
+#+end_src
+
+When transient-mode is active this helps to escape it like with "C-g"
+#+begin_src emacs-lisp
+
+  (general-def 'transient-map
+    "<escape>" 'transient-quit-one)
 #+end_src
    
 ** Help 
@@ -746,8 +757,9 @@ between Emacs sessions.
       "C-h o" 'helpful-symbol
       "C-h C" 'helpful-command
       "C-h f" 'helpful-callable
-      "C-h v" 'helpful-variable
-      "K" 'helpful-at-point))
+      "C-h v" 'helpful-variable)
+    ('normal
+     "K" 'helpful-at-point))
 #+end_src
 
 *** elisp-demos
@@ -1316,8 +1328,6 @@ loading it.
 
 * *MAGIT TESTING* keybindings
 #+begin_src emacs-lisp
-  (general-def 'transient-map
-    "<escape>" 'transient-quit-one)
 
 #+end_src
 

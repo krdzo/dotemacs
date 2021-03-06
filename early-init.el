@@ -13,3 +13,4 @@
 ;; ali cu ga tek ukljuciti kad budem imao vremena da se
 ;; zazam sa ovim sad sam ga samo postavio radi podsecanja
 ;; (setq generated-autoload-file t)
+(setq package-quickstart t)
