@@ -52,6 +52,7 @@ These are emacs builtin options changed for what I think are better defaults.
   (setf ring-bell-function 'ignore)                 ; Disable Emacs bell
   (show-paren-mode 1)                               ; Highlight matching parens
   (recentf-mode 1)                                  ; Save recently opened files
+  (set-fringe-style '(10 . 4))
 #+end_src
 
 Enable fullscreen.
@@ -121,7 +122,9 @@ is there to prevent it from doing that.
 Improve emacs garbage collector
 
 #+begin_src emacs-lisp
-  (use-package gcmh :defer)
+  (use-package gcmh
+    :defer
+    :diminish)
 #+end_src
 
 * Themes and UI
@@ -141,7 +144,23 @@ Improve emacs garbage collector
     :defer t)
   (use-package color-theme-sanityinc-tomorrow
     :defer t)
-  (load-theme 'sanityinc-tomorrow-eighties t)
+  (use-package doom-themes
+    :defer t)
+
+  ;; list of ok themes:
+  ;; doom-dark+
+  ;; doom-hena
+  ;; doom-snazy
+  ;; doom-dracula
+  ;; doom-Iosvkem
+  ;; doom-old-hope
+  ;; doom-palenight
+  ;; doom-city-lights
+  ;; dom-ocean-next
+  ;; doom-monkai-clasic
+  ;; doom-monkai-spectrum
+
+  (load-theme 'doom-oceanic-next t)
 #+end_src
 
 ** Modeline
@@ -255,16 +274,10 @@ Evil and all asociated packages are configured in this section.
 Shows how many matches is in a search.
 
 #+begin_src emacs-lisp
-  (use-package evil-anzu
-    :after evil
-    :config
-    (global-anzu-mode 1)
-    :general
-    ('normal
-     "/" 'evil-search-forward
-     "?" 'evil-search-backward
-     "*" 'evil-search-word-forward
-     "#" 'evil-search-word-backward))
+  ;; (use-package evil-anzu
+  ;;   :after evil
+  ;;   :config
+  ;;   (global-anzu-mode))  
 #+end_src
 
 *** evil-commentary
@@ -307,6 +320,16 @@ Shows how many matches is in a search.
 #+begin_src emacs-lisp
   (use-package evil-matchit
     :hook (prog-mode . evil-matchit-mode))
+#+end_src
+
+*** evil-multiedit
+#+begin_src emacs-lisp
+  (use-package evil-multiedit
+    :after evil)
+
+  (general-def 'normal
+    "R" 'evil-multiedit-match-and-next
+    "Q" 'evil-multiedit-match-and-prev)
 #+end_src
 
 *** evil-lion 
@@ -597,8 +620,8 @@ between Emacs sessions.
   (use-package dired
     :ensure nil
     ;; :defer t
-    ;; :hook ((dired-mode . auto-revert-mode)
-    ;;        (dired-mode . toggle-truncate-lines))
+    :hook ((dired-mode . auto-revert-mode)
+           (dired-mode . toggle-truncate-lines))
     :config
     (setq dired-dwim-target t)
     (setq dired-isearch-filenames 'dwim)
@@ -630,6 +653,7 @@ between Emacs sessions.
              "C-k" 'dired-prev-marked-file
              "DEL" 'dired-unmark-backward))
 #+end_src
+
 *** Dired-x
 #+begin_src emacs-lisp
   (use-package dired-x
@@ -654,7 +678,7 @@ between Emacs sessions.
 **** dired-k
 #+begin_src emacs-lisp
   (use-package dired-k
-    :disabled
+    ;; :disabled
     :hook
     ((dired-initial-position . dired-k)
      (dired-after-readin . dired-k-no-revert))
@@ -698,14 +722,6 @@ between Emacs sessions.
     (dired-rainbow-define-chmod executable-unix "#38c172" "-.*x.*"))
 #+end_src
 
-**** dired-open
-#+begin_src emacs-lisp
-  (use-package dired-open
-    :general
-    ('normal 'dired-mode-map
-            "w" 'dired-open-xdg))
-#+end_src
-
 ** Calendar
 
 #+begin_src emacs-lisp
@@ -715,6 +731,8 @@ between Emacs sessions.
 
 ** Git - magit
    
+*** Magit
+
 #+begin_src emacs-lisp
   (use-package magit
     :config
@@ -735,11 +753,17 @@ between Emacs sessions.
 
 When transient-mode is active this helps to escape it like with "C-g"
 #+begin_src emacs-lisp
-
   (general-def 'transient-map
     "<escape>" 'transient-quit-one)
 #+end_src
    
+*** Git-gutter
+
+#+begin_src emacs-lisp
+  (use-package git-gutter-fringe
+    :init (add-hook 'emacs-startup-hook #'global-git-gutter-mode))
+#+end_src
+
 ** Help 
 
 *** help
@@ -900,6 +924,7 @@ Package for trying out different packages
   (use-package evil-org
     :diminish
     :after (evil org)
+    :hook (org-mode . evil-org-mode)
     :config
     (setq evil-org-retain-visual-state-on-shift t)
     (add-hook 'evil-org-mode-hook
@@ -912,49 +937,6 @@ Package for trying out different packages
                                           calendar))))
     (require 'evil-org-agenda)
     (evil-org-agenda-set-keys))
-#+end_src
-
-*** Custom Org snipets
-    
-For emacs-lisp
-#+begin_src emacs-lisp
-#+end_src
-
-** Parentheses
-
-Highlight parenthese-like delimiters in a rainbow fashion. It ease the reading when dealing with mismatched parentheses.
-   
-#+begin_src emacs-lisp
-  (use-package rainbow-delimiters
-    :hook ((prog-mode comint-mode) . rainbow-delimiters-mode))
-#+end_src
-  
-Smartparens for better paren handling, and everything that goes in pairs.
-   
-#+begin_src emacs-lisp
-  ;; (use-package smartparens
-  ;;   :ensure t
-  ;;   :diminish
-  ;;   :hook (prog-mode . smartparens-mode)
-  ;;   :config
-  ;;   (sp-local-pair '(emacs-lisp-mode lisp-interaction-mode inferior-emacs-lisp-mode) "'" "")
-  ;;   (sp-local-pair '(emacs-lisp-mode lisp-interaction-mode inferior-emacs-lisp-mode) "`" ""))
-#+end_src
-#+begin_src emacs-lisp
-  ;; just here for the time being
-  ;; needs to be faktored
-  (add-hook 'prog-mode-hook 'electric-pair-local-mode)
-#+end_src
-   
-** Which-key
-   
-Which-key is used for easier keybindings discovery
-
-#+begin_src emacs-lisp
-  (use-package which-key
-    :hook (after-init . which-key-mode)
-    :config
-    (setq which-key-idle-delay 0.5))
 #+end_src
 
 * Programming
@@ -1300,7 +1282,6 @@ Dobre stvari koje sam nasao kad sam se igrao sa emacsom ali nisam uspeo tada da 
 [[https://github.com/minad/consult][Link za Consult]] gde moze da se vidi dokumentacija.
 =consult-command-history= - korisna komanda
 
-
 * Generating pravila.el
 Every time that pravila.org is saved generate pravila.el.
 I moved generating the ~kr-el-conf-file~ file from when I load emacs to when I save
@@ -1317,6 +1298,9 @@ loading it.
       (when el-older-p
         (require 'org) ;; if org is not loaded, load it
         (org-babel-tangle-file kr-org-conf-file kr-el-conf-file))))
+  ;; ima ovde novi git 
+  ;; a evo jos
+  ;; i samo nastavi
 
 
   ;; don't know how to do this at this moment will do in the future
@@ -1344,3 +1328,5 @@ loading it.
       (if face (message "Face: %s" face) (message "No face at %d" pos))))
 #+end_src
 
+
+ovde dodam nesto i hoce li to raditi
