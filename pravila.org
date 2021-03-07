@@ -303,6 +303,7 @@ Shows how many matches is in a search.
     (evil-collection-init '(comint
                             compile
                             dired
+                            dired-sidebar
                             geiser
                             helpful
                             (occur replace)
@@ -614,13 +615,19 @@ between Emacs sessions.
 ** Dired
 
 #+NOTE: notes for dired enhancement packages: dired-rmjunk, dired-postframe, maybe dired-git, dired-sidebar, dired-filter, dired-narow, all-the-icons-dired, treemacs-icons-dired there maybe but I didn't look further 
-
-*** Dired 
+ notes for dired enhancement packages: dired-rmjunk, dired-postframe, maybe
+ dired-git, dired-sidebar, dired-filter, dired-narow, all-the-icons-dired,
+ treemacs-icons-dired
+ dired-postframe
+ 
+*** dired 
 #+begin_src emacs-lisp
   (use-package dired
     :ensure nil
     ;; :defer t
-    :hook ((dired-mode . auto-revert-mode)
+    :hook ((dired-mode . (lambda ()
+                           (unless (file-remote-p default-directory)
+                             (auto-revert-mode))))
            (dired-mode . toggle-truncate-lines))
     :config
     (setq dired-dwim-target t)
@@ -654,7 +661,7 @@ between Emacs sessions.
              "DEL" 'dired-unmark-backward))
 #+end_src
 
-*** Dired-x
+*** dired-x
 #+begin_src emacs-lisp
   (use-package dired-x
     :ensure nil
@@ -673,12 +680,23 @@ between Emacs sessions.
     )
 #+end_src
 
-*** Dired-hacks
+*** dired-sidebar
+#+begin_src emacs-lisp
+  (use-package dired-sidebar
+    :commands (dired-sidebar-toggle-sidebar)
+    :config
+    (setq dired-sidebar-width 30)
+    :general
+    ('normal
+     "SPC f d" 'dired-sidebar-toggle-sidebar))
+#+end_src
+
+*** dired-hacks
 
 **** dired-k
 #+begin_src emacs-lisp
   (use-package dired-k
-    ;; :disabled
+    :disabled
     :hook
     ((dired-initial-position . dired-k)
      (dired-after-readin . dired-k-no-revert))
@@ -965,6 +983,7 @@ Package for trying out different packages
              :definer 'minor-mode
              "SPC l" (general-simulate-key "C-l" :which-key "lsp")))
 #+end_src
+
 ** Languages
 *** COMMENT Python
 #+begin_src emacs-lisp
@@ -1120,7 +1139,7 @@ Custom funcions used in this section for bindings
     "" '(:ignore t :which-key "file")
     "f" 'find-file
     "ee" 'consult-file-externally
-    "d" 'dired-jump
+    "D" 'dired-jump
     "S" 'write-file
     "s" 'save-buffer)
 #+end_src
@@ -1310,12 +1329,6 @@ loading it.
   (add-hook 'kill-emacs-hook #'kr-generate-config-file)
 #+end_src
 
-* *MAGIT TESTING* keybindings
-#+begin_src emacs-lisp
-
-#+end_src
-
-
 
 * COMMENT No export 
 #+begin_src emacs-lisp 
@@ -1328,5 +1341,3 @@ loading it.
       (if face (message "Face: %s" face) (message "No face at %d" pos))))
 #+end_src
 
-
-ovde dodam nesto i hoce li to raditi
