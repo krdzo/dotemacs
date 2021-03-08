@@ -1021,14 +1021,17 @@ Which-key is used for easier keybindings discovery
     (python-mode . lsp)
     (js-mode . lsp)
     :config
+    (setq lsp-enable-completion-at-point nil)
     (defun kr-set-lsp-setings ()
       "Hook for my lsp custom"
       (general-def 'normal 'local
         "gr" 'lsp-find-references)
       (setq-local company-backends
-                  '(company-files company-capf)))
+                  '(company-files (company-capf company-yasnippet))))
+
     (general-add-hook 'lsp-mode-hook '(kr-set-lsp-setings
-                                       lsp-enable-which-key-integration))
+                                       lsp-enable-which-key-integration
+                                       lsp-completion-mode))
     :general
     ('normal 'lsp-mode
              :definer 'minor-mode
@@ -1126,7 +1129,20 @@ Prazno za sad
 #+begin_src emacs-lisp
   (use-package yasnippet
     :diminish yas-minor-mode 
-    :hook (lsp-mode . yas-minor-mode))
+    :hook (lsp-mode . yas-minor-mode)
+    :config
+    (defun company-yasnippet-or-completion ()
+      (interactive)
+      (unless (yas-expand)
+        (call-interactively #'company-complete-common)))
+    (general-def 'company-active-map
+      "<tab>" 'company-yasnippet-or-completion)
+    :general
+    ('insert
+     "M-<return>" 'yas-expand))
+
+  (use-package yasnippet-snippets
+    :after yasnippet)
 #+end_src
 
 * Keybindings
