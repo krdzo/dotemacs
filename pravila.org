@@ -147,6 +147,17 @@ Improve emacs garbage collector
 #+end_src
 
 ** Modeline
+
+*** Smart mode line
+#+begin_src emacs-lisp
+  (use-package smart-mode-line
+    :hook (emacs-startup . sml/setup)
+    :config
+    (add-to-list 'sml/replacer-regexp-list '("^~/\\.config/emacs/" ":ED:"))
+    (setq sml/no-confirm-load-theme t)
+    (setq sml/theme 'respectful))
+#+end_src
+
 *** Diminish
 
 This package alowes me to change what modes are listed in the modeline
@@ -257,10 +268,10 @@ Evil and all asociated packages are configured in this section.
 Shows how many matches is in a search.
 
 #+begin_src emacs-lisp
-  ;; (use-package evil-anzu
-  ;;   :after evil
-  ;;   :config
-  ;;   (global-anzu-mode))  
+  (use-package evil-anzu
+    :after evil
+    :config
+    (global-anzu-mode))  
 #+end_src
 
 *** evil-commentary
@@ -672,6 +683,13 @@ between Emacs sessions.
     :general
     ('normal
      "SPC f d" 'dired-sidebar-toggle-sidebar))
+#+end_src
+
+*** all-the-icons-dired
+
+#+begin_src emacs-lisp
+  (use-package all-the-icons-dired
+    :hook (dired-mode . all-the-icons-dired-mode))
 #+end_src
 
 *** dired-hacks
@@ -1091,6 +1109,7 @@ Prazno za sad
 
 
   (use-package emmet-mode
+    :diminish
     :hook
     (web-mode . emmet-mode)
     (css-mode . emmet-mode)
