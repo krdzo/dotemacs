@@ -6,32 +6,35 @@
                      gcs-done)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Init package and use-package
+;; Bootstrap straight.el and use-package
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(setq package-archives '(("org"       . "https://orgmode.org/elpa/")
-			 ("gnu"       . "https://elpa.gnu.org/packages/")
-			 ("melpa"     . "https://melpa.org/packages/")
-			 ;; ("melpa-stable" . "https://stable.melpa.org/packages/")
-             ))
-(require 'package)
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+;; imply :straight t in every use-package statment
+(setq straight-use-package-by-default t) 
 
-;; tweaking the gc
-(when (package-installed-p 'gcmh)
-  (gcmh-mode 1)
-  (setq read-process-output-max (* 1024 1024)))
-
-;; to see what use-package does you can use pp-macroexpand-last-sexp
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
-(eval-when-compile
-  (require 'use-package))
-(setq-default use-package-always-ensure t)
-
-;; (setq garbage-collection-messages t)
+;; installing use-package
+;;; to see what use-package does you can use pp-macroexpand-last-sexp
+(straight-use-package 'use-package)
+;;;; use-package options for debuging init ;;;;
 ;; (setq use-package-verbose t)
 ;; (setq use-package-compute-statistics t)
 ;; (define-key global-map (kbd "C-c x") 'use-package-report)
+
+;; tweaking the GC
+(straight-use-package 'gcmh)
+(gcmh-mode 1)
+
 
 
 

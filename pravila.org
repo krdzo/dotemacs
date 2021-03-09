@@ -100,7 +100,7 @@ is there to prevent it from doing that.
   (setq bidi-inhibit-bpa t)
 
   (use-package so-long
-    :ensure nil
+    :straight nil
     :hook (emacs-startup . global-so-long-mode))
 #+end_src
 
@@ -110,7 +110,6 @@ Improve emacs garbage collector
 
 #+begin_src emacs-lisp
   (use-package gcmh
-    :defer
     :diminish)
 #+end_src
 
@@ -167,6 +166,7 @@ This package alowes me to change what modes are listed in the modeline
     :hook (emacs-startup . my/diminish)
     :config
     (defun my/diminish ()
+      (diminish 'gcmh-mode)
       (diminish 'anzu-mode)
       (diminish 'evil-goggles-mode)
       (diminish 'eldoc-mode)
@@ -299,11 +299,9 @@ Shows how many matches is in a search.
 *** evil-multiedit
 #+begin_src emacs-lisp
   (use-package evil-multiedit
-    :after evil)
-
-  (general-def 'normal
-    "R" 'evil-multiedit-match-and-next
-    "Q" 'evil-multiedit-match-and-prev)
+    :after evil
+    :config
+    (evil-multiedit-default-keybinds))
 #+end_src
 
 *** evil-lion 
@@ -423,7 +421,7 @@ The * and # operators don't work as they should with this package.
 #+begin_src emacs-lisp
   (use-package ediff
     :defer t
-    :ensure nil
+    :straight nil
     :config
     (setq ediff-split-window-function 'split-window-horizontally)
     (setq ediff-window-setup-function 'ediff-setup-windows-plain))
@@ -433,7 +431,7 @@ The * and # operators don't work as they should with this package.
 
 #+begin_src emacs-lisp
   (use-package eshell
-    :ensure nil
+    :straight nil
     :defer t
     :hook (eshell-mode . (lambda () (company-mode -1))))
 #+end_src
@@ -620,7 +618,7 @@ between Emacs sessions.
 *** dired 
 #+begin_src emacs-lisp
   (use-package dired
-    :ensure nil
+    :straight nil
     ;; :defer t
     :hook ((dired-mode . (lambda ()
                            (unless (file-remote-p default-directory)
@@ -661,7 +659,7 @@ between Emacs sessions.
 *** dired-x
 #+begin_src emacs-lisp
   (use-package dired-x
-    :ensure nil
+    :straight nil
     :commands dired-jump
     :config
     ;; (setq dired-clean-confirm-killing-deleted-buffers nil)
@@ -784,7 +782,6 @@ When transient-mode is active this helps to escape it like with "C-g"
 #+begin_src emacs-lisp
   (use-package git-gutter-fringe
     :init (add-hook 'emacs-startup-hook #'global-git-gutter-mode)
-    :diminish git-gutter-mode
     :general
     ('normal
      "]g" 'git-gutter:next-hunk
@@ -908,25 +905,15 @@ Keybindings for these functions
     "i" 'my/edit-config-init)
 #+end_src
 
-** Try
-
-Package for trying out different packages
-
-#+begin_src emacs-lisp
-  (use-package try
-    :commands (try))
-#+end_src
-
 ** Org
 
 *** org
 
 #+begin_src emacs-lisp
   (use-package org
-    :ensure nil
     :defer t
+    :straight nil
     :config
-    (diminish 'org-indent-mode)
     (add-to-list 'org-structure-template-alist
                  '("el" . "src emacs-lisp"))
     (add-to-list 'org-modules 'org-tempo t)
@@ -1003,15 +990,6 @@ Which-key is used for easier keybindings discovery
     (setq which-key-idle-delay 0.5))
 #+end_src
 
-** Paradox (list-package)
-#+begin_src emacs-lisp
-  (use-package paradox
-    :defer t
-    :general
-    ('normal 'paradox-menu-mode-map
-             "W" 'paradox-menu-visit-homepage))
-#+end_src
-
 * Programming
 ** LSP
 #+begin_src emacs-lisp
@@ -1081,7 +1059,7 @@ Prazno za sad
 **** Internal Lisp
 #+begin_src emacs-lisp
   (use-package inf-lisp
-    :ensure nil
+    :straight nil
     :defer t
     :config
     (setq inferior-lisp-program "sbcl"))
