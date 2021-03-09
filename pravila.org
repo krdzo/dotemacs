@@ -374,6 +374,7 @@ Select a line with =vil= and =val= keys.
     :config
     (setq evil-snipe-repeat-scope 'visible)
     (evil-snipe-mode 1)
+    (evil-snipe-override-mode 1)
     ;; (evil-snipe-override-mode 1)
     (push 'dired-mode evil-snipe-disabled-modes)
     :general
@@ -386,6 +387,7 @@ Select a line with =vil= and =val= keys.
 
 #+begin_src emacs-lisp
   (use-package evil-quickscope
+    :disabled
     :after evil
     :config
     ;; to make evil-snipe work with evil-quickscope
@@ -496,6 +498,8 @@ The * and # operators don't work as they should with this package.
     ("C-x C-z" 'selectrum-repeat)
     ('selectrum-minibuffer-map
      "C-r" 'evil-paste-from-register
+     "C-n" 'next-history-element
+     "C-p" 'previous-history-element
      "C-j" 'selectrum-next-candidate
      "C-k" 'selectrum-previous-candidate))
 #+end_src
@@ -781,6 +785,7 @@ When transient-mode is active this helps to escape it like with "C-g"
 #+begin_src emacs-lisp
   (use-package git-gutter-fringe
     :init (add-hook 'emacs-startup-hook #'global-git-gutter-mode)
+    :diminish git-gutter-mode
     :general
     ('normal
      "]g" 'git-gutter:next-hunk
@@ -1001,11 +1006,11 @@ Which-key is used for easier keybindings discovery
 
 ** Paradox (list-package)
 #+begin_src emacs-lisp
-  ;; (use-package paradox
-  ;;   :defer t
-  ;;   :general
-  ;;   ('normal 'paradox-menu-mode-map
-  ;;            "W" 'paradox-menu-visit-homepage))
+  (use-package paradox
+    :defer t
+    :general
+    ('normal 'paradox-menu-mode-map
+             "W" 'paradox-menu-visit-homepage))
 #+end_src
 
 * Programming
@@ -1021,17 +1026,17 @@ Which-key is used for easier keybindings discovery
     (python-mode . lsp)
     (js-mode . lsp)
     :config
-    (setq lsp-enable-completion-at-point nil)
+    (setq lsp-completion-enable nil)
     (defun kr-set-lsp-setings ()
-      "Hook for my lsp custom"
+      "All configuration that need to be run after LSP"
       (general-def 'normal 'local
         "gr" 'lsp-find-references)
       (setq-local company-backends
                   '(company-files (company-capf company-yasnippet))))
 
     (general-add-hook 'lsp-mode-hook '(kr-set-lsp-setings
-                                       lsp-enable-which-key-integration
-                                       lsp-completion-mode))
+                                       lsp-completion-mode
+                                       lsp-enable-which-key-integration))
     :general
     ('normal 'lsp-mode
              :definer 'minor-mode
@@ -1066,6 +1071,11 @@ Which-key is used for easier keybindings discovery
 
 *** COMMENT JavaScript
 Prazno za sad
+
+*** JSON
+#+begin_src emacs-lisp
+  (use-package json-mode)
+#+end_src
 
 *** Lisp
 
@@ -1131,12 +1141,6 @@ Prazno za sad
     :diminish yas-minor-mode 
     :hook (lsp-mode . yas-minor-mode)
     :config
-    (defun company-yasnippet-or-completion ()
-      (interactive)
-      (unless (yas-expand)
-        (call-interactively #'company-complete-common)))
-    (general-def 'company-active-map
-      "<tab>" 'company-yasnippet-or-completion)
     :general
     ('insert
      "M-<return>" 'yas-expand))
@@ -1147,11 +1151,17 @@ Prazno za sad
 
 * Keybindings
 ** Shufle emacs global keys
+The keybindings here are unsorted but they have in comon that they
+are emacs builtin features.
+
 #+begin_src emacs-lisp
   (general-def 
     "C-h p" 'describe-package
     "C-h P" 'finder-by-keyword
     "C-h l" 'find-library)
+
+  (general-def 'normal
+    "SPC p" project-prefix-map)
 #+end_src
 
 ** Buffers
@@ -1271,7 +1281,6 @@ Custom funcions used in this section for bindings
     "gZ" 'org-edit-src-abort
     "gz" 'org-edit-src-exit)
 #+end_src
-
 
 ** comint
 #+begin_src emacs-lisp
