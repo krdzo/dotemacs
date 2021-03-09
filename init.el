@@ -29,9 +29,9 @@
 (setq-default use-package-always-ensure t)
 
 ;; (setq garbage-collection-messages t)
-(setq use-package-verbose t)
-(setq use-package-compute-statistics t)
-(define-key global-map (kbd "C-c x") 'use-package-report)
+;; (setq use-package-verbose t)
+;; (setq use-package-compute-statistics t)
+;; (define-key global-map (kbd "C-c x") 'use-package-report)
 
 
 
