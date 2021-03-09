@@ -1,3 +1,7 @@
+;; disable package.el in favor of straight.el
+(setq package-enable-at-startup nil)
+
+
 ;; Do not resize the frame at this early stage.
 ;; Doesn't change load times, it's just more visualy appealing like this
 (scroll-bar-mode -1)
