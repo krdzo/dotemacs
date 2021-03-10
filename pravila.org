@@ -64,7 +64,9 @@ These are emacs builtin options changed for what I think are better defaults.
   (setf ring-bell-function 'ignore)                 ; Disable Emacs bell
   (show-paren-mode 1)                               ; Highlight matching parens
   (recentf-mode 1)                                  ; Save recently opened files
+  (setq recentf-max-saved-items 50)
   (set-fringe-style '(10 . 4))
+  (setq vc-follow-symlinks t)
 #+end_src
 
 Enable fullscreen.
@@ -353,11 +355,7 @@ Select a line with =vil= and =val= keys.
     (evil-snipe-mode 1)
     (evil-snipe-override-mode 1)
     ;; (evil-snipe-override-mode 1)
-    (push 'dired-mode evil-snipe-disabled-modes)
-    :general
-    ('normal 
-    ";" 'evil-snipe-repeat
-    "," 'evil-snipe-repeat-reverse))
+    (push 'dired-mode evil-snipe-disabled-modes))
 #+end_src
 
 **** evil-quickscope 
@@ -521,7 +519,6 @@ between Emacs sessions.
 
 ** Auto-Completion
 
-
 *** Company 
 #+begin_src emacs-lisp
   ;; hack for mit-scheme because comapny lags typing
@@ -540,7 +537,7 @@ between Emacs sessions.
     (set (make-local-variable 'company-minimum-prefix-length) 1))
 
   (use-package company
-    :hook (after-init . global-company-mode)
+    :hook (emacs-startup . global-company-mode)
     ;; :hook ((prog-mode . company-mode)
     ;;        (text-mode . company-mode))
     :config
@@ -550,7 +547,10 @@ between Emacs sessions.
     (add-hook 'org-mode-hook 'kr/company-for-text)
     ;; (add-hook 'scheme-mode-hook 'kr/company-for-mit)
     (add-hook 'comint-mode-hook 'kr/company-for-comint)
-    (setq company-idle-delay 0.0
+    (setq company-dabbrev-downcase nil)
+    (setq company-dabbrev-ignore-case t)
+
+    (setq company-idle-delay 0
           company-minimum-prefix-length 1
           company-selection-wrap-around t
           company-global-modes '(not help-mode
@@ -559,7 +559,10 @@ between Emacs sessions.
   ;; (evil-make-overriding-map company-active-map 'insert t)
 #+end_src
 
-**** COMMENT My company hack for space
+**** COMMENT My company hack for space-key
+
+This hack is stupid better use =orderless= package
+
 #+begin_src emacs-lisp
   ;; https://emacs.stackexchange.com/questions/14269/how-to-detect-if-the-point-is-within-a-comment-area
   (defun evilnc--in-comment-p (&optional pos)
@@ -600,6 +603,7 @@ between Emacs sessions.
 
   (add-hook 'prog-mode-hook #'kr-make-space)
 #+end_src
+
 *** company prescient
 #+begin_src emacs-lisp
   (use-package company-prescient
@@ -782,6 +786,8 @@ When transient-mode is active this helps to escape it like with "C-g"
 #+begin_src emacs-lisp
   (use-package git-gutter-fringe
     :init (add-hook 'emacs-startup-hook #'global-git-gutter-mode)
+    (add-hook 'git-gutter-mode-on-hook #'(lambda ()
+                                           (diminish 'git-gutter-mode)))
     :general
     ('normal
      "]g" 'git-gutter:next-hunk
@@ -914,6 +920,8 @@ Keybindings for these functions
     :defer t
     :straight nil
     :config
+    (add-hook 'org-indent-mode-hook #'(lambda ()
+                                        (diminish 'org-indent-mode)))
     (add-to-list 'org-structure-template-alist
                  '("el" . "src emacs-lisp"))
     (add-to-list 'org-modules 'org-tempo t)
@@ -990,6 +998,18 @@ Which-key is used for easier keybindings discovery
     (setq which-key-idle-delay 0.5))
 #+end_src
 
+** EPKG
+For listing packages
+#+begin_src emacs-lisp
+  (use-package epkg
+    :init
+    (defalias 'lp 'epkg-list-packages "Shortcut for list-packages")
+    :general
+    ("C-h p" 'epkg-describe-package))
+
+
+#+end_src
+
 * Programming
 ** LSP
 #+begin_src emacs-lisp
@@ -1008,9 +1028,10 @@ Which-key is used for easier keybindings discovery
       "All configuration that need to be run after LSP"
       (general-def 'normal 'local
         "gr" 'lsp-find-references)
+      (general-def 'company-active-map
+        "<backtab>" 'company-other-backend)
       (setq-local company-backends
-                  '(company-files (company-capf company-yasnippet))))
-
+                  '(company-files company-capf company-yasnippet)))
     (general-add-hook 'lsp-mode-hook '(kr-set-lsp-setings
                                        lsp-completion-mode
                                        lsp-enable-which-key-integration))
@@ -1086,18 +1107,6 @@ Prazno za sad
 
 **** emmet-mode
 #+begin_src emacs-lisp
-  ;; stolen form spacemacs and a little modified
-  (defun spacemacs/emmet-expand ()
-    "Bind TAB to the right action when emmet is active."
-    (interactive)
-    (if emmet-preview-input
-        (call-interactively #'emmet-preview-accept)
-      (unless (if (bound-and-true-p yas-minor-mode)
-                  (call-interactively 'emmet-expand-yas)
-                (call-interactively 'emmet-expand-line))
-        (indent-for-tab-command))))
-
-
   (use-package emmet-mode
     :diminish
     :hook
@@ -1108,7 +1117,7 @@ Prazno za sad
     (setq emmet-move-cursor-between-quotes t)
     (defun kr-setup-for-emmet ()
       (general-def 'insert 'local
-        "<tab>" 'spacemacs/emmet-expand))
+        "M-<return>" 'emmet-expand-yas)) ;; emmet works with old version of YAS so this is bugged
     (general-add-hook 'emmet-mode-hook 'kr-setup-for-emmet))
 #+end_src
 
@@ -1118,11 +1127,17 @@ Prazno za sad
     :diminish yas-minor-mode 
     :hook (lsp-mode . yas-minor-mode)
     :config
-    :general
-    ('insert
-     "M-<return>" 'yas-expand))
+    (defun kr-company-yasnippet-or-completion ()
+    "KR da se zna kad se otvori dokumentacija da je custom funkcija"
+      (interactive)
+      (unless (yas-expand)
+        (call-interactively #'company-complete-common)))
+    (general-def 'company-active-map
+      "<tab>" 'company-yasnippet-or-completion))
+
 
   (use-package yasnippet-snippets
+    :defer t
     :after yasnippet)
 #+end_src
 
@@ -1133,7 +1148,6 @@ are emacs builtin features.
 
 #+begin_src emacs-lisp
   (general-def 
-    "C-h p" 'describe-package
     "C-h P" 'finder-by-keyword
     "C-h l" 'find-library)
 
