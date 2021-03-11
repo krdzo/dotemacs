@@ -520,6 +520,11 @@ between Emacs sessions.
 ** Auto-Completion
 
 *** Company 
+
+NOTE: there is ~company-indent-or-complete-common~ command that is maybe good to 
+bind to <tab>.
+
+
 #+begin_src emacs-lisp
   ;; hack for mit-scheme because comapny lags typing
   (defun kr/company-for-comint ()
@@ -549,6 +554,9 @@ between Emacs sessions.
     (add-hook 'comint-mode-hook 'kr/company-for-comint)
     (setq company-dabbrev-downcase nil)
     (setq company-dabbrev-ignore-case t)
+    (setq company-require-match t)
+    (setq completion-styles '(basic initials flex partial-completion))
+    
 
     (setq company-idle-delay 0
           company-minimum-prefix-length 1
