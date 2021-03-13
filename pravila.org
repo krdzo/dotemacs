@@ -735,6 +735,14 @@ bind to <tab>.
 #+begin_src emacs-lisp
   (use-package magit
     :config
+    (set-face-background 'magit-diff-added-highlight
+                         "#1b2b34")
+    (set-face-background 'magit-diff-added
+                         "#1b2b34")
+    (set-face-background 'magit-diff-removed-highlight
+                         "#1b2b34")
+    (set-face-background 'magit-diff-removed
+                         "#1b2b34")
     (defun kr-magit-set ()
       (general-def 'magit-mode-map
         "SPC" 'nil)
@@ -744,7 +752,11 @@ bind to <tab>.
         "]" nil
         "SPC SPC" 'magit-diff-show-or-scroll-up
         "[w" 'evil-window-prev
-        "]w" 'evil-window-next))
+        "]w" 'evil-window-next)
+      (general-def 'magit-section-mode-map
+        "C-<tab>" nil
+        "<backtab>" 'magit-section-cycle))
+
     (add-hook 'magit-mode-hook 'kr-magit-set)
     :general
     ("C-x g" 'magit-status))
