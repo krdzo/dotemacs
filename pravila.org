@@ -903,12 +903,19 @@ Keybindings for these functions
 *** org
 
 #+begin_src emacs-lisp
+  (defun kr-org-hook ()
+    (interactive)
+    (general-def 'insert 'local
+      "<tab>" 'org-cycle))
+
+
   (use-package org
     :defer t
     :straight nil
     :config
     (add-hook 'org-indent-mode-hook #'(lambda ()
                                         (diminish 'org-indent-mode)))
+    (general-add-hook 'org-mode-hook #'kr-org-hook)
     (add-to-list 'org-structure-template-alist
                  '("el" . "src emacs-lisp"))
     (add-to-list 'org-modules 'org-tempo t)
@@ -1120,7 +1127,7 @@ Prazno za sad
       (unless (yas-expand)
         (call-interactively #'company-complete-common)))
     (general-def 'company-active-map
-      "<tab>" 'company-yasnippet-or-completion))
+      "<tab>" 'kr-company-yasnippet-or-completion))
 
 
   (use-package yasnippet-snippets
