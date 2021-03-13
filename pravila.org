@@ -277,6 +277,7 @@ Shows how many matches is in a search.
     (setq evil-collection-company-use-tng nil)
     (evil-collection-init '(comint
                             compile
+                            company
                             dired
                             dired-sidebar
                             geiser
@@ -553,63 +554,29 @@ bind to <tab>.
     ;; (add-hook 'scheme-mode-hook 'kr/company-for-mit)
     (add-hook 'comint-mode-hook 'kr/company-for-comint)
     (setq company-dabbrev-downcase nil)
-    (setq company-dabbrev-ignore-case t)
     (setq company-require-match t)
     (setq completion-styles '(basic initials flex partial-completion))
-    
+    (setq company-require-match 'never)
+
+
 
     (setq company-idle-delay 0
           company-minimum-prefix-length 1
-          company-selection-wrap-around t
-          company-global-modes '(not help-mode
+          company-selection-wrap-around t)
+    (setq company-global-modes '(not help-mode
                                      gud-mode
                                      helpful-mode)))
   ;; (evil-make-overriding-map company-active-map 'insert t)
-#+end_src
 
-**** COMMENT My company hack for space-key
-
-This hack is stupid better use =orderless= package
-
-#+begin_src emacs-lisp
-  ;; https://emacs.stackexchange.com/questions/14269/how-to-detect-if-the-point-is-within-a-comment-area
-  (defun evilnc--in-comment-p (&optional pos)
-    "Test if character at POS is comment or string.
-  If POS is nil, character at `(point)' is tested"
-    (unless pos (setq pos (point)))
-    (let* ((fontfaces (get-text-property pos 'face)))
-      (when (not (listp fontfaces))
-        (setf fontfaces (list fontfaces)))
-      (or (member 'font-lock-string-face fontfaces)
-          (member 'font-lock-comment-face fontfaces)
-          (member 'font-lock-doc-face fontfaces)
-          (member 'font-lock-comment-delimiter-face fontfaces))))
-
-  (defun crta-ili-space (arg)
-    "<space> will write eather space or - depending on context.
-  Space writes - if its preceded with any char other than - and
-  it will self-insert if it preceded with a -(dash) and will
-  delete the dash.
-  This behavior is disabled in comment or string lines."
-    (interactive "d")
-    (defun dash-p ()
-      (char-equal (char-before arg) ?-))
-    (cond ((dash-p)
-           (backward-delete-char-untabify 1)
-           (self-insert-command 1 ?\s) 
-           (company-abort)) 
-          (t (self-insert-command 1 ?-))))
-
-  (defun not-evil-in-comment-p ()
-    (not (or (evil-in-comment-p) (evilnc--in-comment-p))))
-
-  (defun kr-make-space ()
-    (interactive)
-    (general-def 'company-active-map
-      :predicate '(not-evil-in-comment-p)
-      "SPC" 'crta-ili-space))
-
-  (add-hook 'prog-mode-hook #'kr-make-space)
+  ;; here just to remember some variables
+  ;; company-tooltip-align-annotations
+  ;; company-tng
+  ;; company-auto-commit
+  ;; company-search-filtering
+  ;; company-dabbrev-other-buffers
+  ;; company-abort-manual-when-too-short
+  ;; company-prescient-sort-length-enable
+  ;; company-pseudo-tooltip-overlay
 #+end_src
 
 *** company prescient
@@ -1198,15 +1165,20 @@ Custom funcions used in this section for bindings
   ;; so we have to unbind C-k in insert state
   (general-unbind 'insert 
     "C-k")
+  ;;;;;;;;;;;
+
+  (defun kr-company-escape ()
+    (interactive)
+    (company-abort)
+    (evil-force-normal-state))
+
+  (general-def 'insert
+    "<tab>" 'company-indent-or-complete-common)
+
   (general-def 'company-active-map
-     "<tab>" 'company-complete-common-or-cycle
-     "C-n" 'company-select-next-or-abort
-     "C-p" 'company-select-previous-or-abort
-     "C-j" 'company-select-next-or-abort
-     "C-k" 'company-select-previous-or-abort
-     "M-j" 'company-select-next
-     "M-k" 'company-select-previous
-     "<f1>" 'helpful-key)
+    ;; "<escape>" 'kr-company-escape
+    ;; "<tab>" 'company-complete-common-or-cycle
+    "<f1>" 'helpful-key)
 #+end_src
 
 ** Files
