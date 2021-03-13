@@ -245,28 +245,6 @@ This is set before everything because it needs to define =:general= keyword for 
    
 Evil and all asociated packages are configured in this section.
 
-*** evil-anzu
-Shows how many matches is in a search.
-
-#+begin_src emacs-lisp
-  (use-package evil-anzu
-    :after evil
-    :config
-    (global-anzu-mode))  
-#+end_src
-
-*** evil-commentary
-
-#+begin_src emacs-lisp
-  (use-package evil-commentary
-    :after (evil)
-    :diminish
-    :general
-    ('normal
-     "gy" 'evil-commentary-yank
-     "gc" 'evil-commentary))
-#+end_src
-
 *** evil-collection
 
 #+begin_src emacs-lisp
@@ -274,7 +252,6 @@ Shows how many matches is in a search.
     :after evil
     ;; :disabled
     :config
-    (setq evil-collection-company-use-tng nil)
     (evil-collection-init '(comint
                             compile
                             company
@@ -290,6 +267,28 @@ Shows how many matches is in a search.
                             magit
                             (term term ansi-term multi-term)
                             (package-menu package))))
+#+end_src
+
+*** evil-anzu
+Shows how many matches is in a search.
+
+#+begin_src emacs-lisp
+  (use-package evil-anzu
+    :after evil
+    :config
+    (global-anzu-mode))
+#+end_src
+
+*** evil-commentary
+
+#+begin_src emacs-lisp
+  (use-package evil-commentary
+    :after (evil)
+    :diminish
+    :general
+    ('normal
+     "gy" 'evil-commentary-yank
+     "gc" 'evil-commentary))
 #+end_src
 
 *** evil-matchit
@@ -519,7 +518,7 @@ between Emacs sessions.
 * Features
 
 ** Auto-Completion
-
+*** TODO probaj company-box
 *** Company 
 
 NOTE: there is ~company-indent-or-complete-common~ command that is maybe good to 
@@ -543,7 +542,8 @@ bind to <tab>.
     (set (make-local-variable 'company-minimum-prefix-length) 1))
 
   (use-package company
-    :hook (emacs-startup . global-company-mode)
+    :hook
+    (emacs-startup . global-company-mode)
     ;; :hook ((prog-mode . company-mode)
     ;;        (text-mode . company-mode))
     :config
@@ -554,9 +554,7 @@ bind to <tab>.
     ;; (add-hook 'scheme-mode-hook 'kr/company-for-mit)
     (add-hook 'comint-mode-hook 'kr/company-for-comint)
     (setq company-dabbrev-downcase nil)
-    (setq company-require-match t)
-    (setq completion-styles '(basic initials flex partial-completion))
-    (setq company-require-match 'never)
+    (setq completion-styles '(basic flex partial-completion))
 
 
 
@@ -566,33 +564,33 @@ bind to <tab>.
     (setq company-global-modes '(not help-mode
                                      gud-mode
                                      helpful-mode)))
-  ;; (evil-make-overriding-map company-active-map 'insert t)
 
   ;; here just to remember some variables
   ;; company-tooltip-align-annotations
-  ;; company-tng
   ;; company-auto-commit
   ;; company-search-filtering
   ;; company-dabbrev-other-buffers
   ;; company-abort-manual-when-too-short
   ;; company-prescient-sort-length-enable
-  ;; company-pseudo-tooltip-overlay
+
+
+  ;; korisne company funkcije
+  ;; company-show-location
+  ;; company-complete-commot-or-cycle
 #+end_src
 
 *** company prescient
 #+begin_src emacs-lisp
   (use-package company-prescient
       :after (prescient company)
-      :config (company-prescient-mode 1))
+      :config
+      (setq company-prescient-sort-length-enable nil)
+      (company-prescient-mode 1))
 #+end_src
 
 ** Dired
 
-#+NOTE: notes for dired enhancement packages: dired-rmjunk, dired-postframe, maybe dired-git, dired-sidebar, dired-filter, dired-narow, all-the-icons-dired, treemacs-icons-dired there maybe but I didn't look further 
- notes for dired enhancement packages: dired-rmjunk, dired-postframe, maybe
- dired-git, dired-sidebar, dired-filter, dired-narow, all-the-icons-dired,
- treemacs-icons-dired
- dired-postframe
+NOTE - dired enhancement packages: dired-postframe, dired-git, dired-filter, dired-narow
  
 *** dired 
 #+begin_src emacs-lisp
@@ -614,9 +612,11 @@ bind to <tab>.
     ;; and overrides :general map so for now I must do this so that
     ;; I unbind SPC in dired-mode
     (add-hook 'dired-mode-hook
-              #'(lambda () (general-unbind 'normal 'dired-mode-map
-                             "SPC")))
-
+              #'(lambda ()
+                  (general-unbind 'normal 'dired-mode-map
+                    "SPC")
+                  (general-def 'normal 'dired-mode-map
+                    "gh" 'kr-go-home)))
     ;; (general-def 'normal dired-mode-map
     ;;   "SPC" nil)
     (defun kr-go-home ()
@@ -626,8 +626,6 @@ bind to <tab>.
 
     :general
     ('normal 'dired-mode-map
-             "SPC" nil
-             "gh" 'kr-go-home
              "C-M-j" 'dired-next-subdir
              "C-M-k" 'dired-prev-subdir
              "C-j" 'dired-next-marked-file
@@ -1118,16 +1116,27 @@ Prazno za sad
 ** Snipets (yassnipet)
 #+begin_src emacs-lisp
   (use-package yasnippet
+    :after company
     :diminish yas-minor-mode 
     :hook (lsp-mode . yas-minor-mode)
     :config
-    (defun kr-company-yasnippet-or-completion ()
-    "KR da se zna kad se otvori dokumentacija da je custom funkcija"
+
+    (defun kr-company-tng-yasnippet-or-completion ()
+      "KR da se zna kad se otvori dokumentacija da je custom funkcija"
       (interactive)
       (unless (yas-expand)
-        (call-interactively #'company-complete-common)))
+        (call-interactively #'company-select-next)))
+
     (general-def 'company-active-map
-      "<tab>" 'kr-company-yasnippet-or-completion))
+      "<tab>" 'kr-company-tng-yasnippet-or-completion))
+
+    ;; (defun kr-company-yasnippet-or-completion ()
+    ;; "KR da se zna kad se otvori dokumentacija da je custom funkcija"
+    ;;   (interactive)
+    ;;   (unless (yas-expand)
+    ;;     (call-interactively #'company-complete-common-or-cycle)))
+    ;; (general-def 'company-active-map
+    ;;   "<tab>" 'kr-company-yasnippet-or-completion))
 
 
   (use-package yasnippet-snippets
