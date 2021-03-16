@@ -1,3 +1,8 @@
+;; So that straight.el behaves nice with git emacs
+(when (version< "28" emacs-version)
+  (setq straight-base-dir "~/.emacs.d"))
+
+
 ;; Mesuring startup
 (add-hook 'emacs-startup-hook
           (lambda ()
