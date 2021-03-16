@@ -466,7 +466,7 @@ The * and # operators don't work as they should with this package.
           embark-become-indicator embark-action-indicator)
     :general
     ('minibuffer-local-map
-     "M-m" 'embark-act)
+     "M-o" 'embark-act)
     ('(emacs normal) 'embark-occur-mode-map
      "a" 'embark-act
      "h" 'helpful-at-point))
@@ -492,7 +492,7 @@ The * and # operators don't work as they should with this package.
     :config
     (setq selectrum-count-style 'current/matches)
     :general
-    ("C-x C-z" 'selectrum-repeat)
+    ("M-c" 'selectrum-repeat)
     ('selectrum-minibuffer-map
      "C-r" 'evil-paste-from-register
      "C-n" 'next-history-element
@@ -556,7 +556,7 @@ bind to <tab>.
     ;; (add-hook 'scheme-mode-hook 'kr/company-for-mit)
     (add-hook 'comint-mode-hook 'kr/company-for-comint)
     (setq company-dabbrev-downcase nil)
-    (setq completion-styles '(basic flex partial-completion))
+    (setq completion-styles '(basic partial-completion flex))
 
 
 
