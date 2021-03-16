@@ -69,12 +69,6 @@ These are emacs builtin options changed for what I think are better defaults.
   (setq vc-follow-symlinks t)
 #+end_src
 
-Enable fullscreen.
-#+begin_src emacs-lisp
-  (when window-system
-    (add-to-list 'initial-frame-alist '(fullscreen . maximized)))
-#+end_src
-
 Garbage-collect on focus-out, Emacs should feel snappier.
 #+begin_src emacs-lisp
   (add-hook 'focus-out-hook #'garbage-collect)
@@ -120,7 +114,15 @@ Improve emacs garbage collector
 ** Font
 
 #+begin_src emacs-lisp
-  (set-face-attribute 'default nil :font  "Source Code Pro 12")
+  (set-face-attribute 'default nil :font  "Inconsolata Nerd Font 13")
+#+end_src
+
+** Frame
+
+Enable fullscreen.
+#+begin_src emacs-lisp
+  (when window-system
+    (add-to-list 'initial-frame-alist '(fullscreen . maximized)))
 #+end_src
 
 ** Themes
@@ -194,51 +196,51 @@ This is set before everything because it needs to define =:general= keyword for 
 ** Evil mode
 
 #+begin_src emacs-lisp
-    (use-package evil
-      :defer t
-      :init (setq evil-want-C-u-scroll t
-                  evil-undo-system 'undo-tree
-                  evil-symbol-word-search t
-                  evil-want-keybinding nil
-                  evil-want-Y-yank-to-eol t)
-      ;; (general-add-hook 'emacs-startup-hook #'evil-mode nil nil t)
+  (use-package evil
+    :defer t
+    :init (setq evil-want-C-u-scroll t
+                evil-undo-system 'undo-tree
+                evil-symbol-word-search t
+                evil-want-keybinding nil
+                evil-want-Y-yank-to-eol t)
+    ;; (general-add-hook 'emacs-startup-hook #'evil-mode nil nil t)
 
 
-      :config
-      (evil-mode)
+    :config
+    (evil-mode)
 
 
 
 
-      ;; https://github.com/noctuid/evil-guide#whats-the-equivalent-of-nnoremap-n-nzz
-      (advice-add 'evil-search-next :after #'evil-scroll-line-to-center)
-      (advice-add 'evil-search-previous :after #'evil-scroll-line-to-center)
-      (setq evil-motion-state-cursor "#bb1111"
-            evil-normal-state-cursor "#eeeeee"
-            evil-emacs-state-cursor "#ee6622"
-            evil-insert-state-cursor '(bar "#ff1547"))
-      (setq evil-search-module 'evil-search)
-      ;; :q should kill the current buffer rather than quitting emacs entirely
-      (evil-ex-define-cmd "q" 'kill-this-buffer)
-      (evil-ex-define-cmd "wq" 'save-and-kill-this-buffer)
-      ;; Need to type out :quit to close emacs
-      (evil-ex-define-cmd "quit" 'kill-buffer-and-window)
+    ;; https://github.com/noctuid/evil-guide#whats-the-equivalent-of-nnoremap-n-nzz
+    (advice-add 'evil-search-next :after #'evil-scroll-line-to-center)
+    (advice-add 'evil-search-previous :after #'evil-scroll-line-to-center)
+    (setq evil-motion-state-cursor "#bb1111"
+          evil-normal-state-cursor "#eeeeee"
+          evil-emacs-state-cursor "#ee6622"
+          evil-insert-state-cursor '(bar "#ff1547"))
+    (setq evil-search-module 'evil-search)
+    ;; :q should kill the current buffer rather than quitting emacs entirely
+    (evil-ex-define-cmd "q" 'kill-this-buffer)
+    (evil-ex-define-cmd "wq" 'save-and-kill-this-buffer)
+    ;; Need to type out :quit to close emacs
+    (evil-ex-define-cmd "quit" 'kill-buffer-and-window)
 
-      :general
-      ('normal 
-       "SPC" nil
-       "gb" 'pop-tag-mark
-       "gp" "`[v`]"
-       "go" 'browse-url-at-point)
-      ('emacs 
-       "<escape>" 'evil-normal-state)
-      ('normal 'messages-buffer-mode-map
-               "q" 'quit-window))
-    ;; https://github.com/noctuid/evil-guide#binding-keys-to-keys-keyboard-macros
-    ;; (general-def 'normal 
-    ;;   ;; select the previously pasted text
-    ;; (general-def 'emacs 
-    ;;   "<escape>" 'evil-normal-state)
+    :general
+    ('normal 
+     "SPC" nil
+     "gb" 'pop-tag-mark
+     "gp" 'pop-tag-mark
+     "go" 'browse-url-at-point)
+    ('emacs 
+     "<escape>" 'evil-normal-state)
+    ('normal 'messages-buffer-mode-map
+             "q" 'quit-window))
+  ;; https://github.com/noctuid/evil-guide#binding-keys-to-keys-keyboard-macros
+  ;; (general-def 'normal 
+  ;;   ;; select the previously pasted text
+  ;; (general-def 'emacs 
+  ;;   "<escape>" 'evil-normal-state)
 #+end_src
 
 ** Evil's friends
@@ -1201,6 +1203,7 @@ Custom funcions used in this section for bindings
     (evil-force-normal-state))
 
   (general-def 'insert
+    "C-j" 'company-select-next
     "<tab>" 'company-indent-or-complete-common)
 
   (general-def 'company-active-map
