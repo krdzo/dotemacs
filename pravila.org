@@ -1336,6 +1336,7 @@ Quiting modes
 
 * Podsetnik za Info
 ** Korisne komande i promenive koje treba znati
+
 + ~(list-command-history)~ - izlistava istoriju komandi. Komande su izlistane
   detaljno tj. sa svim argumentima itd.
 + =C-x <ESC> <ESC>= ~(repeat-complex-command)~ - daje mogućnost da ponoviš poslednju
@@ -1345,9 +1346,6 @@ Quiting modes
 + ~(apropos-variable)~ - Search for variables.  With a prefix argument, search for
   customizable variables only.
 + ~show-trailing-whitespace~ - promenjiva, ono sto ime kaže
-  
-
-BUR_REPORT: Postoji bug u evil-matchit-mode -u koji neda da se macuju zagrade u org tekstu
 
 ** Preskoceno u Emacs Info manual-u
 - 11. 12. 13. 17. 22. sekcije Emacs info manual-a su preskočene
@@ -1400,17 +1398,20 @@ loading it.
   (defun kr-generate-config-file ()
     (interactive)
     "If pravila.el is older than pravila.org than generate new pravila.el"
-    (save-buffer (get-buffer kr-org-conf-file))
+    (if (bufferp kr-org-conf-file)
+      (with-current-buffer kr-org-conf-file
+        (save-buffer)))
+
     (let ((el-older-p
            (time-less-p (nth 5 (file-attributes kr-el-conf-file))
                         (nth 5 (file-attributes kr-org-conf-file)))))
       (when el-older-p
         (require 'org) ;; if org is not loaded, load it 
         (org-babel-tangle-file kr-org-conf-file kr-el-conf-file))))
-        
+
   (add-hook 'kill-emacs-hook #'kr-generate-config-file)
-  
-  
+
+
   ;; don't know how to do this at this moment will do in the future
   ;; (with-current-buffer (get-file-buffer kr-org-conf-file)
   ;;   (general-def 'normal 'local
