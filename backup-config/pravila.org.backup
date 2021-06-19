@@ -4,111 +4,11 @@
 
 * Bootstrap
 
-** no-littering
-#+begin_src emacs-lisp
-  (use-package no-littering
-    :config
-    (with-eval-after-load 'recentf
-      (add-to-list 'recentf-exclude no-littering-var-directory)
-      (add-to-list 'recentf-exclude no-littering-etc-directory))
-    (setq auto-save-file-name-transforms
-          `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))
-          custom-file (no-littering-expand-etc-file-name "custom.el")))
-#+end_src
-
-** Use better defaults
-
-For experiments
-#+begin_src emacs-lisp
-  (setq read-process-output-max (* 20 1024))
-  (setq max-specpdl-size 10000
-        max-lisp-eval-depth 5000)
-  (setq comint-input-ignoredups t)
-#+end_src
-
-Change Emacs default UI.
-#+begin_src emacs-lisp
-  (when window-system
-    (blink-cursor-mode 0))
-#+end_src
-   
-These are emacs builtin options changed for what I think are better defaults.
-#+begin_src emacs-lisp
-  (setq-default
-   auto-window-vscroll nil                          ; Lighten vertical scroll
-   confirm-kill-emacs 'yes-or-no-p                  ; Confirm before exiting Emacs
-   delete-by-moving-to-trash t                      ; Delete files to trash
-   display-time-default-load-average nil            ; Don't display load average
-   fill-column 80                                   ; Set width for automatic line breaks
-   help-window-select t                             ; Focus new help windows when opened
-   hscroll-margin 4                    ; horizontal margin
-   hscroll-step 1                                   ; Scroll one by one column and don't jump the point to center of screen
-   indent-tabs-mode nil                             ; Stop using tabs to indent
-   inhibit-startup-screen t                         ; Disable start-up screen
-   initial-scratch-message ""                       ; Empty the initial *scratch* buffer
-   mouse-yank-at-point t                            ; Yank at point rather than pointer
-   mouse-wheel-scroll-amount '(1)                   ; Scroll for mouse wheel
-   save-interprogram-paste-before-kill t            ; Better interaction with clipboard
-   scroll-conservatively most-positive-fixnum       ; Always scroll by one line
-   scroll-margin 4                                  ; Add a margin when scrolling vertically
-   sentence-end-double-space nil                    ; End a sentence after a dot and a space
-   show-trailing-whitespace nil                     ; Display trailing whitespaces
-   tab-width 4                                      ; Set width for tabs
-   uniquify-buffer-name-style 'forward              ; Uniquify buffer names
-   x-stretch-cursor t)                              ; Stretch cursor to the glyph width
-  ;; (cd "~/")                                         ; Move to the user directory
-  (column-number-mode 1)                            ; Show coulum numbers in modeline
-  (defalias 'yes-or-no-p 'y-or-n-p)                 ; Replace yes/no prompts with y/n
-  (global-auto-revert-mode 1)                       ; Automatically update buffers if file content on the disk has changed.
-  (global-subword-mode 1)                           ; Iterate through CamelCase words
-  (prefer-coding-system 'utf-8)                     ; Default to utf-8 encoding
-  (setf ring-bell-function 'ignore)                 ; Disable Emacs bell
-  (show-paren-mode 1)                               ; Highlight matching parens
-  (recentf-mode 1)                                  ; Save recently opened files
-  (save-place-mode 1)
-  (setq recentf-max-saved-items 50)
-  (set-fringe-style '(10 . 4))
-  (setq vc-follow-symlinks t)
-#+end_src
-
-Garbage-collect on focus-out, Emacs should feel snappier.
-#+begin_src emacs-lisp
-  (add-hook 'focus-out-hook #'garbage-collect)
-#+end_src
-
 ** Hooks
 Here are all the hooks that can't go in a specific use-package statment
 #+begin_src emacs-lisp
   (add-hook 'prog-mode-hook 'toggle-truncate-lines)
   (add-hook 'prog-mode-hook 'display-line-numbers-mode)
-  (add-hook 'after-init-hook 'global-hl-line-mode)
-#+end_src
-
-** Changing some defaults
-#+begin_src emacs-lisp
-  (global-set-key (kbd "RET") 'newline-and-indent)
-#+end_src
-
-** Configurating so-long.el 
-When emacs load files with long lines it can block or crash so this minor mode
-is there to prevent it from doing that.
-
-#+begin_src emacs-lisp
-  (setq-default bidi-paragraph-direction 'left-to-right)
-  (setq bidi-inhibit-bpa t)
-
-  (use-package so-long
-    :straight nil
-    :hook (emacs-startup . global-so-long-mode))
-#+end_src
-
-** Garbage collector
-
-Improve emacs garbage collector
-
-#+begin_src emacs-lisp
-  (use-package gcmh
-    :diminish)
 #+end_src
 
 * Themes and UI
