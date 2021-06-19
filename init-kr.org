@@ -77,104 +77,77 @@ in ~use-package~ blocks.
     :config
     (general-evil-setup)
   
-    (general-create-definer lc/leader-keys
+    ;; leaders for general
+    (general-create-definer kr/leader-keys
       :states '(normal insert visual emacs)
       :keymaps 'override
       :prefix "SPC"
       :global-prefix "C-SPC")
   
-    (general-create-definer lc/local-leader-keys
+    (general-create-definer kr/local-leader-keys
       :states '(normal visual)
       :keymaps 'override
       :prefix ","
       :global-prefix "SPC m")
   
-    (general-nmap
-      :states 'normal
-      "gD" '(xref-find-references :wk "references")
-      )
   
-    (lc/leader-keys
-      "SPC" '(execute-extended-command :which-key "execute command")
-      "`" '((lambda () (interactive) (switch-to-buffer (other-buffer (current-buffer) 1))) :which-key "prev buffer")
+    (general-nmap "gD" '(xref-find-references :wk "references"))
+  
+    (kr/leader-keys
       "<escape>" 'keyboard-escape-quit
   
-      ";" '(eval-expression :which-key "eval sexp")
   
       "b" '(:ignore t :which-key "buffer")
-      "br"  'revert-buffer
+      "br" 'revert-buffer
+      "bd" 'kill-current-buffer
+      "bs" '((lambda () (interactive)
+               (switch-to-buffer "*scratch*"))
+             :wk "scratch")
+      ;; maybe better option for *scratch*
       ;; "bs" '((lambda () (interactive)
       ;;          (pop-to-buffer "*scratch*"))
       ;;        :wk "scratch")
-      "bd"  'kill-current-buffer
   
-      "c" '(:ignore t :which-key "code")
   
       "f" '(:ignore t :which-key "file")
-      "fD" '((lambda () (interactive) (delete-file (buffer-file-name))) :wk "delete")
-      "ff"  'find-file
+      "ff" 'find-file
       "fs" 'save-buffer
-      "fR" '(lc/rename-current-file :wk "rename")
+      "fD" 'dired-jump
+      "fS" 'write-file
+      ;; "fR" '(lc/rename-current-file :wk "rename")
+      ;; "fD" '((lambda () (interactive) (delete-file (buffer-file-name))) :wk "delete")
   
       "g" '(:ignore t :which-key "git")
       ;; keybindings defined in magit
   
-      "h" '(:ignore t :which-key "describe")
-      "he" 'view-echo-area-messages
-      "hf" 'describe-function
-      "hF" 'describe-face
-      "hl" 'view-lossage
-      "hL" 'find-library
-      "hm" 'describe-mode
-      "hk" 'describe-key
-      "hK" 'describe-keymap
-      "hp" 'describe-package
-      "hv" 'describe-variable
-  
-      "k" '(:ignore t :which-key "kubernetes")
-      ;; keybindings defined in kubernetes.el
-  
-      "o" '(:ignore t :which-key "org")
-      ;; keybindings defined in org-mode
-  
-      ;; "p" '(:ignore t :which-key "project")
-      ;; keybindings defined in projectile
-  
-      "s" '(:ignore t :which-key "search")
-      ;; keybindings defined in consult
   
       "t"  '(:ignore t :which-key "toggle")
-      "t d"  '(toggle-debug-on-error :which-key "debug on error")
-      "t l" '(display-line-numbers-mode :wk "line numbers")
-      "t w" '((lambda () (interactive) (toggle-truncate-lines)) :wk "word wrap")
-      "t +"	'(lc/increase-font-size :wk "+ font")
-      "t -"	'(lc/decrease-font-size :wk "- font")
-      "t 0"	'(lc/reset-font-size :wk "reset font")
+      "td" '(toggle-debug-on-error :which-key "debug on error")
+      "tl" '(display-line-numbers-mode :wk "line numbers")
+      "tw" '((lambda () (interactive) (toggle-truncate-lines)) :wk "word wrap")
+      ;; "t +"	'(lc/increase-font-size :wk "+ font")
+      ;; "t -"	'(lc/decrease-font-size :wk "- font")
+      ;; "t 0"	'(lc/reset-font-size :wk "reset font")
   
       "u" '(universal-argument :wk "universal")
   
       "w" '(:ignore t :which-key "window")
-      "wl"  'windmove-right
-      "wh"  'windmove-left
-      "wk"  'windmove-up
-      "wj"  'windmove-down
-      "wr" 'winner-redo
-      "wd"  'delete-window
+      "wl" 'windmove-right
+      "wh" 'windmove-left
+      "wk" 'windmove-up
+      "wj" 'windmove-down
+      "wd" 'delete-window
+      "wv" 'evil-window-vsplit
+      "ws" 'evil-window-split
       "w=" 'balance-windows-area
       "wD" 'kill-buffer-and-window
-      "wu" 'winner-undo
-      "wr" 'winner-redo
-      "wm"  '(delete-other-windows :wk "maximize")
+      ;; "wu" 'winner-undo
+      ;; "wr" 'winner-redo
+      "wo" '(delete-other-windows :wk "maximize")
   
-      "x" '(:ignore t :which-key "browser")
-      ;; keybindings defined in xwwp
+  
       )
-  
-    (lc/local-leader-keys
-      :states 'normal
-      "d" '(:ignore t :which-key "debug")
-      "e" '(:ignore t :which-key "eval")
-      "t" '(:ignore t :which-key "test")))
+    )
 #+END_SRC
 
 ** Sane defaults
