@@ -1,0 +1,637 @@
+#+title: DotEmacs
+#+author: Krdzo
+#+startup: fold
+
+
+* Introduction
+This config is primarily inspired from [[phttps://www.lucacambiaghi.com/vanilla-emacs/readme.html#h:16B948EA-5375-44DE-ACD7-3664D4A9CE5F][here]] and most of this is directly taken from there.
+
+* Bootstrap straight.el
+
+I'm using straight in combination with use-package for package management.
+
+Some rules/conventions:
+- Prefer ~:init~ to ~:custom~. Prefer multiple ~setq~ expressions to one.
+- Default to ~:defer t~, use ~:demand~ to force loading
+- When packages do not require installation e.g. ~dired~, we need ~:straight (:type built-in)~ 
+- If you specify ~:commands~, they will be autoloaded and the package will be loaded when the commands are first executed
+    + If you use ~:general~ and bind commands to keys it will automatically load the package on first invokation
+
+NOTE: if you change a package recipe from ~melpa~ to ~github~ in a ~use-package~
+block but that package is used as a dependency is used in a previous
+~use-package~ block with a ~melpa~ recipe, you will get a warning. Just make
+sure to declare the "base" package with the ~github~ recipe first.
+
+#+begin_src emacs-lisp
+  (setq straight-use-package-by-default t)
+  (setq straight-vc-git-default-clone-depth 1)
+  (setq straight-recipes-gnu-elpa-use-mirror t)
+  ;; (setq straight-check-for-modifications '(check-on-save find-when-checking))
+  (defvar bootstrap-version)
+  (let* ((straight-repo-dir
+          (expand-file-name "straight/repos" user-emacs-directory))
+         (bootstrap-file
+          (concat straight-repo-dir "/straight.el/bootstrap.el"))
+         (bootstrap-version 5))
+    (unless (file-exists-p bootstrap-file)
+      (shell-command
+       (concat
+        "mkdir -p " straight-repo-dir " && "
+        "git -C " straight-repo-dir " clone "
+        "https://github.com/raxod502/straight.el.git && "
+        "git -C " straight-repo-dir " checkout 2d407bc")))
+    (load bootstrap-file nil 'nomessage))
+  (straight-use-package 'use-package)
+  ;; This is a variable that has been renamed but straight still refers when
+  ;; doing :sraight (:no-native-compile t)
+  ;; (setq comp-deferred-compilation-black-list nil)
+#+end_src
+
+* Emacs
+Here is configuration that concerns Emacs builtin options, ether changing the
+default options or installing packages that enhance some core Emacs features,
+like for example changing the help system with helpful package.
+
+** Measuring start-up
+So I know how many dreadful seconds it took.
+
+#+begin_src emacs-lisp
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (message "Emacs ready in %s with %d garbage collections."
+                     (emacs-init-time)
+                     gcs-done)))
+#+end_src
+
+** Keybindings - General.el
+For better and uniform keybinding. 
+In this block we load ~general~ and define bindings for generic commands e.g. ~find-file~.
+The commands provided by packages should be binded in the ~use-package~ block,
+thanks to the ~:general~ keyword.
+NOTE: We need to load ~general~ before everything else because we want to use is
+in ~use-package~ blocks.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package general
+    :demand t
+    :config
+    (general-evil-setup)
+  
+    (general-create-definer lc/leader-keys
+      :states '(normal insert visual emacs)
+      :keymaps 'override
+      :prefix "SPC"
+      :global-prefix "C-SPC")
+  
+    (general-create-definer lc/local-leader-keys
+      :states '(normal visual)
+      :keymaps 'override
+      :prefix ","
+      :global-prefix "SPC m")
+  
+    (general-nmap
+      :states 'normal
+      "gD" '(xref-find-references :wk "references")
+      )
+  
+    (lc/leader-keys
+      "SPC" '(execute-extended-command :which-key "execute command")
+      "`" '((lambda () (interactive) (switch-to-buffer (other-buffer (current-buffer) 1))) :which-key "prev buffer")
+      "<escape>" 'keyboard-escape-quit
+  
+      ";" '(eval-expression :which-key "eval sexp")
+  
+      "b" '(:ignore t :which-key "buffer")
+      "br"  'revert-buffer
+      ;; "bs" '((lambda () (interactive)
+      ;;          (pop-to-buffer "*scratch*"))
+      ;;        :wk "scratch")
+      "bd"  'kill-current-buffer
+  
+      "c" '(:ignore t :which-key "code")
+  
+      "f" '(:ignore t :which-key "file")
+      "fD" '((lambda () (interactive) (delete-file (buffer-file-name))) :wk "delete")
+      "ff"  'find-file
+      "fs" 'save-buffer
+      "fR" '(lc/rename-current-file :wk "rename")
+  
+      "g" '(:ignore t :which-key "git")
+      ;; keybindings defined in magit
+  
+      "h" '(:ignore t :which-key "describe")
+      "he" 'view-echo-area-messages
+      "hf" 'describe-function
+      "hF" 'describe-face
+      "hl" 'view-lossage
+      "hL" 'find-library
+      "hm" 'describe-mode
+      "hk" 'describe-key
+      "hK" 'describe-keymap
+      "hp" 'describe-package
+      "hv" 'describe-variable
+  
+      "k" '(:ignore t :which-key "kubernetes")
+      ;; keybindings defined in kubernetes.el
+  
+      "o" '(:ignore t :which-key "org")
+      ;; keybindings defined in org-mode
+  
+      ;; "p" '(:ignore t :which-key "project")
+      ;; keybindings defined in projectile
+  
+      "s" '(:ignore t :which-key "search")
+      ;; keybindings defined in consult
+  
+      "t"  '(:ignore t :which-key "toggle")
+      "t d"  '(toggle-debug-on-error :which-key "debug on error")
+      "t l" '(display-line-numbers-mode :wk "line numbers")
+      "t w" '((lambda () (interactive) (toggle-truncate-lines)) :wk "word wrap")
+      "t +"	'(lc/increase-font-size :wk "+ font")
+      "t -"	'(lc/decrease-font-size :wk "- font")
+      "t 0"	'(lc/reset-font-size :wk "reset font")
+  
+      "u" '(universal-argument :wk "universal")
+  
+      "w" '(:ignore t :which-key "window")
+      "wl"  'windmove-right
+      "wh"  'windmove-left
+      "wk"  'windmove-up
+      "wj"  'windmove-down
+      "wr" 'winner-redo
+      "wd"  'delete-window
+      "w=" 'balance-windows-area
+      "wD" 'kill-buffer-and-window
+      "wu" 'winner-undo
+      "wr" 'winner-redo
+      "wm"  '(delete-other-windows :wk "maximize")
+  
+      "x" '(:ignore t :which-key "browser")
+      ;; keybindings defined in xwwp
+      )
+  
+    (lc/local-leader-keys
+      :states 'normal
+      "d" '(:ignore t :which-key "debug")
+      "e" '(:ignore t :which-key "eval")
+      "t" '(:ignore t :which-key "test")))
+#+END_SRC
+
+** Sane defaults
+
+Inspired by https://github.com/natecox/dotfiles/blob/master/emacs/emacs.d/nathancox.org
+
+To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/ with =e=
+
+#+BEGIN_SRC emacs-lisp
+  (use-package emacs
+    :init
+    (setq initial-scratch-message nil
+          sentence-end-double-space nil
+          ring-bell-function 'ignore
+          frame-resize-pixelwise t)
+  
+    ;; (setq user-full-name "Luca Cambiaghi"
+    ;;       user-mail-address "luca.cambiaghi@me.com")
+  
+    (setq read-process-output-max (* 1024 1024)) ;; 1mb
+  
+    ;; always allow 'y' instead of 'yes'.
+    (defalias 'yes-or-no-p 'y-or-n-p)
+  
+    ;; default to utf-8 for all the things
+    (set-charset-priority 'unicode)
+    (setq locale-coding-system 'utf-8
+          coding-system-for-read 'utf-8
+          coding-system-for-write 'utf-8)
+    (set-terminal-coding-system 'utf-8)
+    (set-keyboard-coding-system 'utf-8)
+    (set-selection-coding-system 'utf-8)
+    (prefer-coding-system 'utf-8)
+    (setq default-process-coding-system '(utf-8-unix . utf-8-unix))
+  
+    ;; write over selected text on input... like all modern editors do
+    (delete-selection-mode t)
+  
+  
+    ;; don't want ESC as a modifier
+    (general-def "<escape>" 'keyboard-escape-quit)
+    ;; prevent ESC from window quiting
+    (defadvice keyboard-escape-quit
+        (around keyboard-escape-quit-dont-close-windows activate)
+      (let ((buffer-quit-function (lambda () ())))
+        ad-do-it))
+  
+    ;; Don't persist a custom file, this bites me more than it helps
+    (setq custom-file (make-temp-file "")) ; use a temp file as a placeholder
+    (setq custom-safe-themes t)            ; mark all themes as safe, since we can't persist now
+    (setq enable-local-variables :all)     ; fix =defvar= warnings
+  
+    ;; stop emacs from littering the file system with backup files
+    ;; (setq make-backup-files nil
+    ;;       auto-save-default nil
+    ;;       create-lockfiles nil)
+  
+    ;; follow symlinks 
+    (setq vc-follow-symlinks t)
+  
+    ;; don't show any extra window chrome
+    (when (window-system)
+      (tool-bar-mode -1)
+      (toggle-scroll-bar -1))
+  
+    ;; enable winner mode globally for undo/redo window layout changes
+    ;; (winner-mode t)
+  
+    (show-paren-mode t)
+  
+    ;; less noise when compiling elisp
+    ;; (setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
+    ;; (setq native-comp-async-report-warnings-errors nil)
+    (setq load-prefer-newer t)
+  
+    ;; use common convention for indentation by default
+    (setq-default indent-tabs-mode t)
+    (setq-default tab-width 2)
+  
+    ;; Enable indentation+completion using the TAB key.
+    ;; Completion is often bound to M-TAB.
+    (setq tab-always-indent 'complete)
+  
+    ;; Delete files to trash
+    (setq delete-by-moving-to-trash t)
+  
+    ;; Uniquify buffer names
+    (setq-default uniquify-buffer-name-style 'forward)
+  
+    ;; Better scrolling behaviour
+    (setq-default
+     hscroll-step 1
+     scroll-margin 4
+     hscroll-margin 4
+     mouse-yank-at-point t
+     auto-window-vscroll nil
+     mouse-wheel-scroll-amount '(1)
+     scroll-conservatively most-positive-fixnum)
+  
+    ;; Better interaction with clipboard
+    (setq-default save-interprogram-paste-before-kill t)
+  
+    (setq-default show-trailing-whitespace nil)
+  
+    (setq-default fill-column 80)
+  
+    ;; LSP recomendation
+    (setq read-process-output-max (* 1024 1024))
+  
+    ;; Some usefull builtin minor modes
+    (save-place-mode 1)
+    (blink-cursor-mode 0)
+    (column-number-mode 1)
+    (global-hl-line-mode 1)
+    (global-subword-mode 1)
+    (global-auto-revert-mode 1)
+    (set-fringe-style '(10 . 4))
+  
+    ;; Maybe gives some optimization
+    (add-hook 'focus-out-hook #'garbage-collect)
+    )
+#+END_SRC
+
+** recentf
+#+begin_src emacs-lisp
+  (use-package recentf
+    :straight (:type built-in)
+    :config
+    (recentf-mode t)
+    (setq recentf-max-saved-items 50)
+    (setq recentf-exclude `(,(expand-file-name "straight/build/" user-emacs-directory)
+                            ,(expand-file-name "eln-cache/" user-emacs-directory)
+                            ,(expand-file-name "etc/" user-emacs-directory)
+                            ,(expand-file-name "var/" user-emacs-directory))))
+#+end_src
+
+** Garbage collector magic hack
+Used by DOOM to manage garbage collection
+#+BEGIN_SRC emacs-lisp
+(use-package gcmh
+  :config
+  (gcmh-mode 1))
+#+END_SRC
+
+** helpful
+#+BEGIN_SRC emacs-lisp
+  (use-package helpful
+    :after evil
+    :init
+    (setq evil-lookup-func #'helpful-at-point)
+    :general
+    ([remap describe-function] 'helpful-callable
+     [remap describe-command] 'helpful-command
+     [remap describe-variable] 'helpful-variable
+     [remap describe-key] 'helpful-key))
+#+END_SRC
+
+** eldoc
+#+begin_src emacs-lisp
+  (use-package eldoc
+    :hook (emacs-lisp-mode cider-mode))
+#+end_src
+
+** no littering
+#+begin_src emacs-lisp
+  (use-package no-littering
+    :config
+    (with-eval-after-load 'recentf
+      (add-to-list 'recentf-exclude no-littering-var-directory)
+      (add-to-list 'recentf-exclude no-littering-etc-directory))
+    (setq auto-save-file-name-transforms
+          `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))
+          custom-file (no-littering-expand-etc-file-name "custom.el")))
+#+end_src
+
+** Configurating so-long.el 
+When emacs load files with long lines it can block or crash so this minor mode
+is there to prevent it from doing that.
+
+#+begin_src emacs-lisp
+  (setq-default bidi-paragraph-direction 'left-to-right)
+  (setq bidi-inhibit-bpa t)
+
+  (use-package so-long
+    :straight nil
+    :hook (emacs-startup . global-so-long-mode))
+#+end_src
+
+* Evil
+** evil
+*** evil mode
+Best VIM reference: https://countvajhula.com/2021/01/21/vim-tip-of-the-day-a-series/
+
+Search tricks:
+- =*= / # to go to next/prev occurence of symbol under point
+- =/= starts a search, use =n= / =N= to go to next/prev
+- Use the =gn= noun to, for example, change next match with =cgn=
+
+Some interesting vim nouns:
+- =_= :: first character in the line (synonym to =^=)
+- =g_= :: last character on the line (synonym to =$=)
+  
+Marks:
+- =ma= :: mark a position in buffer and save it to register ~a~
+- ='a= :: go to mark ~a~
+- =mA= :: mark position and filename                              [
+- =]'= :: go to next mark
+- =''= :: go back to previous mark (kept track automatically)
+- =g;= :: go to previous change location
+  + =gi= :: go back to insert mode where you left off
+- =C-o= :: jump (out) to previous position (useful after =gd=)
+- =C-i= :: jump (in) to previous position
+
+Macros:
+- =qq= :: record macro ~q~
+- =@q= :: execute macro ~q~
+
+Registers:
+- ="ayio= :: save object in register ~a~                              "
+- ="ap= :: paste object in register ~a~                                "
+  + Macros are saved in registers so you can simply ="qp= and paste your macro!!          "
+
+NOTE: I inserted the above quotes because the single double quotes were breaking my VIM object detection
+in the rest of the file
+
+#+BEGIN_SRC emacs-lisp
+(use-package evil
+  :demand
+  :general
+  (lc/leader-keys
+    "wv" 'evil-window-vsplit
+    "ws" 'evil-window-split)
+  :init
+  (setq evil-want-integration t)
+  (setq evil-want-keybinding nil)
+  (setq evil-want-C-u-scroll t)
+  (setq evil-want-C-i-jump nil)
+  (setq evil-want-Y-yank-to-eol t)
+  (setq evil-respect-visual-line-mode t)
+  (setq evil-undo-system 'undo-fu)
+	(setq evil-search-module 'evil-search)  ;; enables gn
+  ;; move to window when splitting
+  (setq evil-split-window-below t)
+  (setq evil-vsplit-window-right t)
+  ;; (setq-local evil-scroll-count 0)
+  (setq evil-auto-indent nil)
+  :config
+  (evil-mode 1)
+  (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
+	(define-key evil-motion-state-map "_" 'evil-end-of-line)
+	(define-key evil-motion-state-map "0" 'evil-beginning-of-line)
+  (evil-set-initial-state 'messages-buffer-mode 'normal)
+  (evil-set-initial-state 'dashboard-mode 'normal)
+  ;; don't move cursor after ==
+  (defun lc/evil-dont-move-cursor (orig-fn &rest args)
+    (save-excursion (apply orig-fn args)))
+  (advice-add 'evil-indent :around #'lc/evil-dont-move-cursor)
+  )
+#+END_SRC
+
+*** evil-collection
+#+BEGIN_SRC emacs-lisp
+(use-package evil-collection
+  :after evil
+  :demand
+	:init
+	(setq evil-collection-magit-use-z-for-folds nil)
+  :config
+  (evil-collection-init))
+#+END_SRC
+
+*** eval operator
+This section provides a custom eval operator, accessible with =gr=.
+This gives you super powers when coupled with custom text objects (provided by  [[*evil-indent-plus][evil-indent-plus]]  and [[*evil-cleverparens][evil-cleverparens]] )
+
+For example:
+- =grab= evals the form at point
+- =grad= evals the top-level form (e.g. use-package blocks or functions)
+- =grak= evals the function in ~python~
+- =grr= evals the line
+
+#+begin_src emacs-lisp
+(use-package evil
+  :config
+  (defcustom evil-extra-operator-eval-modes-alist
+    '(;; (emacs-lisp eval-region)
+      ;; (scheme-mode geiser-eval-region)
+      (clojure-mode cider-eval-region)
+			(jupyter-python jupyter-eval-region) ;; when executing in src block
+      (python-mode jupyter-eval-region) ;; when executing in org-src-edit mode
+      )
+    "Alist used to determine evil-operator-eval's behaviour.
+Each element of this alist should be of this form:
+ (MAJOR-MODE EVAL-FUNC [ARGS...])
+MAJOR-MODE denotes the major mode of buffer. EVAL-FUNC should be a function
+with at least 2 arguments: the region beginning and the region end. ARGS will
+be passed to EVAL-FUNC as its rest arguments"
+    :type '(alist :key-type symbol)
+    :group 'evil-extra-operator)
+
+  (evil-define-operator evil-operator-eval (beg end)
+    "Evil operator for evaluating code."
+    :move-point nil
+    (interactive "<r>")
+    (let* ((mode (if (org-in-src-block-p) (intern (car (org-babel-get-src-block-info))) major-mode))
+					 (ele (assoc mode evil-extra-operator-eval-modes-alist))
+           (f-a (cdr-safe ele))
+           (func (car-safe f-a))
+           (args (cdr-safe f-a)))
+      (if (fboundp func)
+          (apply func beg end args)
+        (eval-region beg end t))))
+	
+  (define-key evil-motion-state-map "gr" 'evil-operator-eval)
+  
+  )
+
+#+end_src
+
+*** evil-goggles
+#+BEGIN_SRC emacs-lisp
+(use-package evil-goggles
+  :after evil
+  :demand
+  :init
+  (setq evil-goggles-duration 0.05)
+  :config
+  (push '(evil-operator-eval
+          :face evil-goggles-yank-face
+          :switch evil-goggles-enable-yank
+          :advice evil-goggles--generic-async-advice)
+        evil-goggles--commands)
+  (evil-goggles-mode)
+  (evil-goggles-use-diff-faces)
+  )
+#+END_SRC
+
+*** evil-snipe
+#+BEGIN_SRC emacs-lisp
+(use-package evil-snipe
+	:after evil
+	:demand
+	:config
+	(evil-snipe-mode +1)
+  (evil-snipe-override-mode +1))
+#+END_SRC
+
+*** evil-nerd-commenter
+#+BEGIN_SRC emacs-lisp
+(use-package evil-nerd-commenter
+  :general
+  (general-nvmap
+    "gc" 'evilnc-comment-operator
+    "gC" 'evilnc-copy-and-comment-operator)
+  )
+#+END_SRC
+
+*** evil-surround
+(
+- Use =S)= to surround something without spaces e.g. ~(sexp)~ 
+- Use =S(= to surround something with spaces e.g. ~( sexp )~
+)
+
+#+BEGIN_SRC emacs-lisp
+(use-package evil-surround
+  :general
+  (:states 'operator
+   "s" 'evil-surround-edit
+   "S" 'evil-Surround-edit)
+  (:states 'visual
+   "S" 'evil-surround-region
+   "gS" 'evil-Surround-region))
+#+END_SRC
+
+*** evil-indent-plus
+To select a function in ~python~:
+- Stand on a line in the body of the function (root, not an if)
+- Select with =vik= 
+
+#+begin_src emacs-lisp
+(use-package evil-indent-plus
+	:after evil
+	:demand
+  :config
+  (define-key evil-inner-text-objects-map "i" 'evil-indent-plus-i-indent)
+  (define-key evil-outer-text-objects-map "i" 'evil-indent-plus-a-indent)
+	(define-key evil-inner-text-objects-map "k" 'evil-indent-plus-i-indent-up)
+	(define-key evil-outer-text-objects-map "k" 'evil-indent-plus-a-indent-up)
+	(define-key evil-inner-text-objects-map "j" 'evil-indent-plus-i-indent-up-down)
+	(define-key evil-outer-text-objects-map "j" 'evil-indent-plus-a-indent-up-down)
+	)
+#+end_src
+
+*** evil-cleverparens
+This package provides additional text objects for LISPs. For example:
+- Mark the outer form with =v a d=
+- Mark the current form with =v a f= (similar to the =b= text object)
+
+#+begin_src emacs-lisp
+(use-package evil-cleverparens
+  :hook
+  ((emacs-lisp-mode . evil-cleverparens-mode)
+   (clojure-mode . evil-cleverparens-mode))
+  :init
+  (setq evil-move-beyond-eol t
+        evil-cleverparens-use-additional-bindings nil
+        evil-cleverparens-use-s-and-S nil
+        ;; evil-cleverparens-swap-move-by-word-and-symbol t
+        ;; evil-cleverparens-use-regular-insert t
+        )
+  ;; :config
+  ;; (sp-local-pair 'emacs-lisp-mode "'" nil :actions nil)
+  )
+#+end_src
+
+*** evil-iedit-state
+Keybindings:
+- =TAB= :: toggle occurrence
+- =n= / =N= :: next/prev occurrence
+- =F= :: restrict scope to function
+- =J= / =K= :: extend scope of match down/up
+- =V= :: toggle visibility of matches
+  
+#+begin_src emacs-lisp
+(use-package evil-iedit-state
+  :general
+  (lc/leader-keys
+		"s e" '(evil-iedit-state/iedit-mode :wk "iedit")
+		"s q" '(evil-iedit-state/quit-iedit-mode :wk "iedit quit")))
+#+end_src
+
+*** evil-mc
+#+begin_src emacs-lisp
+(use-package evil-mc
+	:general
+	(general-vmap
+    "A" #'evil-mc-make-cursor-in-visual-selection-end
+    "I" #'evil-mc-make-cursor-in-visual-selection-beg)
+	(general-nmap
+		"Q" #'evil-mc-undo-all-cursors)
+	:config
+	(global-evil-mc-mode 1)
+	)
+#+end_src
+
+** which-key
+#+BEGIN_SRC emacs-lisp
+(use-package which-key
+  :demand
+  :general
+  (lc/leader-keys
+    "?" 'which-key-show-top-level
+    )
+  :init
+  (setq which-key-separator " ")
+  (setq which-key-prefix-prefix "+")
+  ;; (setq which-key-idle-delay 0.5)
+  :config
+  (which-key-mode))
+#+END_SRC
