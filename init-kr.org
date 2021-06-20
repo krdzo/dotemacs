@@ -47,29 +47,15 @@ sure to declare the "base" package with the ~github~ recipe first.
   ;; (setq comp-deferred-compilation-black-list nil)
 #+end_src
 
-* Emacs
-Here is configuration that concerns Emacs builtin options, ether changing the
-default options or installing packages that enhance some core Emacs features,
-like for example changing the help system with helpful package.
 
-** Measuring start-up
-So I know how many dreadful seconds it took.
 
-#+begin_src emacs-lisp
-(add-hook 'emacs-startup-hook
-          (lambda ()
-            (message "Emacs ready in %s with %d garbage collections."
-                     (emacs-init-time)
-                     gcs-done)))
-#+end_src
-
-** Keybindings - General.el
-For better and uniform keybinding. 
+* Keybindings - General.el
+For uniform keybinding. 
 In this block we load ~general~ and define bindings for generic commands e.g. ~find-file~.
 The commands provided by packages should be binded in the ~use-package~ block,
 thanks to the ~:general~ keyword.
-NOTE: We need to load ~general~ before everything else because we want to use is
-in ~use-package~ blocks.
+NOTE: We need to load ~general~ before everything else because we want to use
+for every keybinding and in ~use-package~ blocks.
 
 #+BEGIN_SRC emacs-lisp
   (use-package general
@@ -149,6 +135,22 @@ in ~use-package~ blocks.
       )
     )
 #+END_SRC
+
+* Emacs
+Here is configuration that concerns Emacs builtin options, ether changing the
+default options or installing packages that enhance some core Emacs features,
+like for example changing the help system with helpful package.
+
+** Measuring start-up
+So I know how many dreadful seconds it took.
+
+#+begin_src emacs-lisp
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (message "Emacs ready in %s with %d garbage collections."
+                     (emacs-init-time)
+                     gcs-done)))
+#+end_src
 
 ** Sane defaults
 
@@ -374,50 +376,79 @@ NOTE: I inserted the above quotes because the single double quotes were breaking
 in the rest of the file
 
 #+BEGIN_SRC emacs-lisp
-(use-package evil
-  :demand
-  :general
-  (lc/leader-keys
-    "wv" 'evil-window-vsplit
-    "ws" 'evil-window-split)
-  :init
-  (setq evil-want-integration t)
-  (setq evil-want-keybinding nil)
-  (setq evil-want-C-u-scroll t)
-  (setq evil-want-C-i-jump nil)
-  (setq evil-want-Y-yank-to-eol t)
-  (setq evil-respect-visual-line-mode t)
-  (setq evil-undo-system 'undo-fu)
-	(setq evil-search-module 'evil-search)  ;; enables gn
-  ;; move to window when splitting
-  (setq evil-split-window-below t)
-  (setq evil-vsplit-window-right t)
-  ;; (setq-local evil-scroll-count 0)
-  (setq evil-auto-indent nil)
-  :config
-  (evil-mode 1)
-  (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
-	(define-key evil-motion-state-map "_" 'evil-end-of-line)
-	(define-key evil-motion-state-map "0" 'evil-beginning-of-line)
-  (evil-set-initial-state 'messages-buffer-mode 'normal)
-  (evil-set-initial-state 'dashboard-mode 'normal)
-  ;; don't move cursor after ==
-  (defun lc/evil-dont-move-cursor (orig-fn &rest args)
-    (save-excursion (apply orig-fn args)))
-  (advice-add 'evil-indent :around #'lc/evil-dont-move-cursor)
-  )
+  (use-package evil
+    :init
+    (setq evil-want-C-i-jump t)
+    (setq evil-want-C-u-scroll t)
+    (setq evil-want-integration t)
+    (setq evil-want-keybinding nil)
+    (setq evil-want-Y-yank-to-eol t)
+    (setq evil-symbol-word-search t)
+    (setq evil-undo-system 'undo-tree)
+    (setq evil-respect-visual-line-mode t)
+    (setq evil-search-module 'evil-search)  ;; enables gn
+    ;; move to window when splitting
+    (setq evil-split-window-below t)
+    (setq evil-vsplit-window-right t)
+    ;; (setq-local evil-scroll-count 0)
+    (setq evil-auto-indent nil)
+    :config
+    (evil-mode 1)
+    (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
+    (define-key evil-motion-state-map "_" 'evil-end-of-line)
+    (define-key evil-motion-state-map "0" 'evil-beginning-of-line)
+    ;; (evil-set-initial-state 'messages-buffer-mode 'normal)
+    ;; (evil-set-initial-state 'dashboard-mode 'normal)
+    ;; don't move cursor after ==
+    (defun lc/evil-dont-move-cursor (orig-fn &rest args)
+      (save-excursion (apply orig-fn args)))
+    (advice-add 'evil-indent :around #'lc/evil-dont-move-cursor)
+  
+    ;; https://github.com/noctuid/evil-guide#whats-the-equivalent-of-nnoremap-n-nzz
+    (advice-add 'evil-search-next :after #'evil-scroll-line-to-center)
+    (advice-add 'evil-search-previous :after #'evil-scroll-line-to-center)
+  
+    ;; :q should kill the current buffer rather than quitting emacs entirely
+    (evil-ex-define-cmd "q" 'kill-this-buffer)
+    (evil-ex-define-cmd "wq" 'save-and-kill-this-buffer)
+    ;; Need to type out :quit to close emacs
+    (evil-ex-define-cmd "quit" 'kill-buffer-and-window)
+  
+    ;; Pretty collors
+    (setq evil-motion-state-cursor "#bb1111")
+    (setq evil-normal-state-cursor "#eeeeee")
+    (setq evil-emacs-state-cursor "#ee6622")
+    (setq evil-insert-state-cursor '(bar "#ff1547"))
+    )
 #+END_SRC
 
 *** evil-collection
 #+BEGIN_SRC emacs-lisp
-(use-package evil-collection
-  :after evil
-  :demand
-	:init
-	(setq evil-collection-magit-use-z-for-folds nil)
-  :config
-  (evil-collection-init))
+  (use-package evil-collection
+    :after evil
+      :init
+      (setq evil-collection-company-use-tng nil)
+      (setq evil-collection-magit-use-z-for-folds nil)
+    :config
+    (evil-collection-init))
 #+END_SRC
+
+*** evil-anzu
+Shows how many matches is in a search.
+
+#+begin_src emacs-lisp
+  (use-package evil-anzu
+    :after evil
+    :config
+    (global-anzu-mode))
+#+end_src
+
+*** COMMENT evil-commentary
+
+#+begin_src emacs-lisp
+  (use-package evil-commentary
+    :after (evil))
+#+end_src
 
 *** eval operator
 This section provides a custom eval operator, accessible with =gr=.
@@ -469,41 +500,39 @@ be passed to EVAL-FUNC as its rest arguments"
 
 *** evil-goggles
 #+BEGIN_SRC emacs-lisp
-(use-package evil-goggles
-  :after evil
-  :demand
-  :init
-  (setq evil-goggles-duration 0.05)
-  :config
-  (push '(evil-operator-eval
-          :face evil-goggles-yank-face
-          :switch evil-goggles-enable-yank
-          :advice evil-goggles--generic-async-advice)
-        evil-goggles--commands)
-  (evil-goggles-mode)
-  (evil-goggles-use-diff-faces)
-  )
+  (use-package evil-goggles
+    :after evil
+    :init
+    (setq evil-goggles-duration 0.1)
+    :config
+    (push '(evil-operator-eval
+            :face evil-goggles-yank-face
+            :switch evil-goggles-enable-yank
+            :advice evil-goggles--generic-async-advice)
+          evil-goggles--commands)
+    (evil-goggles-mode)
+    ;; (evil-goggles-use-diff-faces)
+    )
 #+END_SRC
 
 *** evil-snipe
 #+BEGIN_SRC emacs-lisp
-(use-package evil-snipe
-	:after evil
-	:demand
-	:config
-	(evil-snipe-mode +1)
-  (evil-snipe-override-mode +1))
+  (use-package evil-snipe
+    :after evil
+    :diminish evil-snipe-local-mode
+    :config
+    (setq evil-snipe-repeat-scope 'visible)
+    (evil-snipe-mode 1)
+    (evil-snipe-override-mode 1)
+    (push 'dired-mode evil-snipe-disabled-modes))
 #+END_SRC
 
-*** evil-nerd-commenter
-#+BEGIN_SRC emacs-lisp
-(use-package evil-nerd-commenter
-  :general
-  (general-nvmap
-    "gc" 'evilnc-comment-operator
-    "gC" 'evilnc-copy-and-comment-operator)
-  )
-#+END_SRC
+*** evil-exchange
+#+begin_src emacs-lisp
+  (use-package evil-exchange
+    :after evil
+    :config (evil-exchange-install))
+#+end_src
 
 *** evil-surround
 (
@@ -512,14 +541,16 @@ be passed to EVAL-FUNC as its rest arguments"
 )
 
 #+BEGIN_SRC emacs-lisp
-(use-package evil-surround
-  :general
-  (:states 'operator
-   "s" 'evil-surround-edit
-   "S" 'evil-Surround-edit)
-  (:states 'visual
-   "S" 'evil-surround-region
-   "gS" 'evil-Surround-region))
+  (use-package evil-surround
+    :config
+    (global-evil-surround-mode 1)
+    :general
+    (:states 'operator
+     "s" 'evil-surround-edit
+     "S" 'evil-Surround-edit)
+    (:states 'visual
+     "S" 'evil-surround-region
+     "gS" 'evil-Surround-region))
 #+END_SRC
 
 *** evil-indent-plus
@@ -530,7 +561,6 @@ To select a function in ~python~:
 #+begin_src emacs-lisp
 (use-package evil-indent-plus
 	:after evil
-	:demand
   :config
   (define-key evil-inner-text-objects-map "i" 'evil-indent-plus-i-indent)
   (define-key evil-outer-text-objects-map "i" 'evil-indent-plus-a-indent)
@@ -563,7 +593,7 @@ This package provides additional text objects for LISPs. For example:
   )
 #+end_src
 
-*** evil-iedit-state
+*** COMMENT evil-iedit-state
 Keybindings:
 - =TAB= :: toggle occurrence
 - =n= / =N= :: next/prev occurrence
@@ -579,24 +609,25 @@ Keybindings:
 		"s q" '(evil-iedit-state/quit-iedit-mode :wk "iedit quit")))
 #+end_src
 
-*** evil-mc
+*** undo-tree
 #+begin_src emacs-lisp
-(use-package evil-mc
-	:general
-	(general-vmap
-    "A" #'evil-mc-make-cursor-in-visual-selection-end
-    "I" #'evil-mc-make-cursor-in-visual-selection-beg)
-	(general-nmap
-		"Q" #'evil-mc-undo-all-cursors)
-	:config
-	(global-evil-mc-mode 1)
-	)
+    (use-package undo-tree
+      :after (evil)
+      :config (global-undo-tree-mode 1))
 #+end_src
 
 ** which-key
 #+BEGIN_SRC emacs-lisp
-(use-package which-key
-  :demand
+  (use-package which-key
+    :general
+    (lc/leader-keys
+      "?" 'which-key-show-top-level
+      )
+    :init
+    (setq which-key-idle-delay 0.5)
+    :config
+    (which-key-mode))
+#+END_SRC
   :general
   (lc/leader-keys
     "?" 'which-key-show-top-level
