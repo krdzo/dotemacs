@@ -977,3 +977,37 @@ Taken from DOOM
   ;; (setq corfu-cycle t)
   )
 #+end_src
+
+* UI
+** Font
+
+#+begin_src emacs-lisp
+  (set-face-attribute 'default nil :height 115)
+#+end_src
+
+** Themes
+
+#+begin_src emacs-lisp
+
+  ;; list of ok themes:
+  ;; doom-dark+
+  ;; doom-hena
+  ;; doom-snazy
+  ;; doom-dracula
+  ;; doom-Iosvkem
+  ;; doom-old-hope
+  ;; doom-palenight
+  ;; doom-city-lights
+  ;; dom-ocean-next
+
+  (use-package doom-themes
+    :config
+    (load-theme 'doom-snazzy t))
+#+end_src
+
+** Start-up maximized
+#+begin_src emacs-lisp
+  (when window-system
+    (add-to-list 'initial-frame-alist '(fullscreen . maximized)))
+#+end_src
+
