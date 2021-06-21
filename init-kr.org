@@ -1283,3 +1283,128 @@ Taken from DOOM:
               (org-element-property :end context))))))))
 #+end_src
 
+
+** Git
+*** Magit
+#+begin_src emacs-lisp
+  (use-package magit
+    :general
+    (kr/leader-keys
+      "g b" 'magit-blame
+      "g g" 'magit-status
+      "g G" 'magit-status-here
+      "g l" 'magit-log)
+    (general-nmap
+      :keymaps '(magit-status-mode-map
+                 magit-stash-mode-map
+                 magit-revision-mode-map
+                 magit-process-mode-map
+                 magit-diff-mode-map)
+      "TAB" #'magit-section-toggle
+      "<escape>" #'transient-quit-one)
+
+      :config
+      ;; Change magit diff face to something less flashy
+      (dolist (face '(magit-diff-added
+                      magit-diff-added-highlight
+                      magit-diff-removed
+                      magit-diff-removed-highlight))
+        (set-face-background face (face-attribute 'hl-line :background)))
+      (set-face-background 'magit-diff-context-highlight
+                           (face-attribute 'default :background))
+
+
+    :init
+    (setq git-commit-fill-column 72)
+    ;; (setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
+    ;; (setq magit-log-arguments '("--graph" "--decorate" "--color"))
+    ;; ;; (setq magit-log-margin (t "%Y-%m-%d %H:%M " magit-log-margin-width t 18))
+    ;; :config
+    ;; (evil-define-key* '(normal visual) magit-mode-map
+    ;;   "zz" #'evil-scroll-line-to-center)
+    )
+#+end_src
+*** Git-gutter
+#+begin_src emacs-lisp
+    (use-package git-gutter-fringe
+      :init (add-hook 'emacs-startup-hook #'global-git-gutter-mode)
+      :general
+      ('normal
+       "]g" 'git-gutter:next-hunk
+       "[g" 'git-gutter:previous-hunk))
+#+end_src
+
+*** git-timemachine
+#+begin_src emacs-lisp
+  (use-package git-timemachine
+    :hook (git-time-machine-mode . evil-normalize-keymaps)
+    :init (setq git-timemachine-show-minibuffer-details t)
+    :general
+    (kr/leader-keys "g t" 'git-timemachine-toggle)
+    (git-timemachine-mode-map
+     "C-k" 'git-timemachine-show-previous-revision
+     "C-j" 'git-timemachine-show-next-revision
+     "q" 'git-timemachine-quit))
+#+end_src
+
+*** hydra-smerge
+:PROPERTIES:
+:CUSTOM_ID: h:DADD41F3-F805-4E89-9EDB-B21350A81A19
+:END:
+#+begin_src emacs-lisp
+(use-package smerge-mode
+  :straight (:type built-in)
+  :after hydra
+  :general
+  (lc/leader-keys "g m" 'smerge-hydra/body)
+  :hook
+  (magit-diff-visit-file . (lambda ()
+                             (when smerge-mode
+                               (smerge-hydra/body))))
+  :init
+  (defhydra smerge-hydra (:hint nil
+                                :pre (smerge-mode 1)
+                                ;; Disable `smerge-mode' when quitting hydra if
+                                ;; no merge conflicts remain.
+                                :post (smerge-auto-leave))
+    "
+                                                    ╭────────┐
+  Movement   Keep           Diff              Other │ smerge │
+  ╭─────────────────────────────────────────────────┴────────╯
+     ^_g_^       [_b_] base       [_<_] upper/base    [_C_] Combine
+     ^_C-k_^     [_u_] upper      [_=_] upper/lower   [_r_] resolve
+     ^_k_ ↑^     [_l_] lower      [_>_] base/lower    [_R_] remove
+     ^_j_ ↓^     [_a_] all        [_H_] hightlight
+     ^_C-j_^     [_RET_] current  [_E_] ediff             ╭──────────
+     ^_G_^                                            │ [_q_] quit"
+    ("g" (progn (goto-char (point-min)) (smerge-next)))
+    ("G" (progn (goto-char (point-max)) (smerge-prev)))
+    ("C-j" smerge-next)
+    ("C-k" smerge-prev)
+    ("j" next-line)
+    ("k" previous-line)
+    ("b" smerge-keep-base)
+    ("u" smerge-keep-upper)
+    ("l" smerge-keep-lower)
+    ("a" smerge-keep-all)
+    ("RET" smerge-keep-current)
+    ("\C-m" smerge-keep-current)
+    ("<" smerge-diff-base-upper)
+    ("=" smerge-diff-upper-lower)
+    (">" smerge-diff-base-lower)
+    ("H" smerge-refine)
+    ("E" smerge-ediff)
+    ("C" smerge-combine-with-next)
+    ("r" smerge-resolve)
+    ("R" smerge-kill-current)
+    ("q" nil :color blue)))
+#+end_src
+
+** hydra
+:PROPERTIES:
+:CUSTOM_ID: h:6C6EA9DD-42EE-49CD-A7FC-5BE9FAB42F7F
+:END:
+#+begin_src emacs-lisp
+(use-package hydra)
+#+end_src
+
