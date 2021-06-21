@@ -163,15 +163,16 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
           sentence-end-double-space nil
           ring-bell-function 'ignore
           frame-resize-pixelwise t)
-  
+    (setq help-window-select t)
+
     ;; (setq user-full-name "Luca Cambiaghi"
     ;;       user-mail-address "luca.cambiaghi@me.com")
-  
+
     (setq read-process-output-max (* 1024 1024)) ;; 1mb
-  
+
     ;; always allow 'y' instead of 'yes'.
     (defalias 'yes-or-no-p 'y-or-n-p)
-  
+
     ;; default to utf-8 for all the things
     (set-charset-priority 'unicode)
     (setq locale-coding-system 'utf-8
@@ -182,11 +183,10 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
     (set-selection-coding-system 'utf-8)
     (prefer-coding-system 'utf-8)
     (setq default-process-coding-system '(utf-8-unix . utf-8-unix))
-  
+
     ;; write over selected text on input... like all modern editors do
     (delete-selection-mode t)
-  
-  
+
     ;; don't want ESC as a modifier
     (general-def "<escape>" 'keyboard-escape-quit)
     ;; prevent ESC from window quiting
@@ -194,49 +194,47 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
         (around keyboard-escape-quit-dont-close-windows activate)
       (let ((buffer-quit-function (lambda () ())))
         ad-do-it))
-  
+
     ;; Don't persist a custom file, this bites me more than it helps
-    (setq custom-file (make-temp-file "")) ; use a temp file as a placeholder
     (setq custom-safe-themes t)            ; mark all themes as safe, since we can't persist now
-    (setq enable-local-variables :all)     ; fix =defvar= warnings
-  
+    ;; (setq enable-local-variables :all)     ; fix =defvar= warnings
+
     ;; stop emacs from littering the file system with backup files
     ;; (setq make-backup-files nil
     ;;       auto-save-default nil
     ;;       create-lockfiles nil)
-  
+
     ;; follow symlinks 
     (setq vc-follow-symlinks t)
-  
+
     ;; don't show any extra window chrome
     (when (window-system)
       (tool-bar-mode -1)
       (toggle-scroll-bar -1))
-  
+
     ;; enable winner mode globally for undo/redo window layout changes
     ;; (winner-mode t)
-  
-    (show-paren-mode t)
-  
+
+
     ;; less noise when compiling elisp
     ;; (setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
     ;; (setq native-comp-async-report-warnings-errors nil)
     (setq load-prefer-newer t)
-  
+
     ;; use common convention for indentation by default
     (setq-default indent-tabs-mode t)
     (setq-default tab-width 2)
-  
+
     ;; Enable indentation+completion using the TAB key.
     ;; Completion is often bound to M-TAB.
     (setq tab-always-indent 'complete)
-  
+
     ;; Delete files to trash
     (setq delete-by-moving-to-trash t)
-  
+
     ;; Uniquify buffer names
     (setq-default uniquify-buffer-name-style 'forward)
-  
+
     ;; Better scrolling behaviour
     (setq-default
      hscroll-step 1
@@ -246,17 +244,17 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
      auto-window-vscroll nil
      mouse-wheel-scroll-amount '(1)
      scroll-conservatively most-positive-fixnum)
-  
+
     ;; Better interaction with clipboard
     (setq-default save-interprogram-paste-before-kill t)
-  
+
     (setq-default show-trailing-whitespace nil)
-  
+
     (setq-default fill-column 80)
-  
+
     ;; LSP recomendation
     (setq read-process-output-max (* 1024 1024))
-  
+
     ;; Some usefull builtin minor modes
     (save-place-mode 1)
     (blink-cursor-mode 0)
@@ -265,24 +263,11 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
     (global-subword-mode 1)
     (global-auto-revert-mode 1)
     (set-fringe-style '(10 . 4))
-  
+
     ;; Maybe gives some optimization
     (add-hook 'focus-out-hook #'garbage-collect)
     )
 #+END_SRC
-
-** recentf
-#+begin_src emacs-lisp
-  (use-package recentf
-    :straight (:type built-in)
-    :config
-    (recentf-mode t)
-    (setq recentf-max-saved-items 50)
-    (setq recentf-exclude `(,(expand-file-name "straight/build/" user-emacs-directory)
-                            ,(expand-file-name "eln-cache/" user-emacs-directory)
-                            ,(expand-file-name "etc/" user-emacs-directory)
-                            ,(expand-file-name "var/" user-emacs-directory))))
-#+end_src
 
 ** Garbage collector magic hack
 Used by DOOM to manage garbage collection
@@ -305,6 +290,14 @@ Used by DOOM to manage garbage collection
      [remap describe-key] 'helpful-key))
 #+END_SRC
 
+** elisp-demos
+#+begin_src emacs-lisp
+  (use-package elisp-demos
+    :after (helpful)
+    :config
+    (advice-add 'helpful-update :after #'elisp-demos-advice-helpful-update))
+#+end_src
+
 ** eldoc
 #+begin_src emacs-lisp
   (use-package eldoc
@@ -319,8 +312,25 @@ Used by DOOM to manage garbage collection
       (add-to-list 'recentf-exclude no-littering-var-directory)
       (add-to-list 'recentf-exclude no-littering-etc-directory))
     (setq auto-save-file-name-transforms
-          `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))
-          custom-file (no-littering-expand-etc-file-name "custom.el")))
+          `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
+    (setq custom-file (no-littering-expand-etc-file-name "custom.el")))
+#+end_src
+
+** recentf
+#+begin_src emacs-lisp
+
+  (use-package recentf
+    :straight (:type built-in)
+    :after no-littering
+    :demand t
+    :config
+    (recentf-mode 1)
+    (setq recentf-max-saved-items 50)
+    ;; (setq recentf-exclude `(,(expand-file-name "straight/build/" user-emacs-directory)
+    ;;                         ,(expand-file-name "eln-cache/" user-emacs-directory)
+    ;;                         ,(expand-file-name "etc/" user-emacs-directory)
+    ;;                         ,(expand-file-name "var/" user-emacs-directory)))
+    )
 #+end_src
 
 ** Configurating so-long.el 
@@ -394,6 +404,10 @@ in the rest of the file
 
 #+BEGIN_SRC emacs-lisp
   (use-package evil
+    :general
+    (motion
+     "<return>" nil
+     "RET" nil)
     :init
     (setq evil-want-C-i-jump t)
     (setq evil-want-C-u-scroll t)
@@ -408,7 +422,7 @@ in the rest of the file
     (setq evil-split-window-below t)
     (setq evil-vsplit-window-right t)
     ;; (setq-local evil-scroll-count 0)
-    (setq evil-auto-indent nil)
+    ;; (setq evil-auto-indent nil)
     :config
     (evil-mode 1)
     (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
@@ -420,17 +434,17 @@ in the rest of the file
     (defun lc/evil-dont-move-cursor (orig-fn &rest args)
       (save-excursion (apply orig-fn args)))
     (advice-add 'evil-indent :around #'lc/evil-dont-move-cursor)
-  
+
     ;; https://github.com/noctuid/evil-guide#whats-the-equivalent-of-nnoremap-n-nzz
     (advice-add 'evil-search-next :after #'evil-scroll-line-to-center)
     (advice-add 'evil-search-previous :after #'evil-scroll-line-to-center)
-  
+
     ;; :q should kill the current buffer rather than quitting emacs entirely
     (evil-ex-define-cmd "q" 'kill-this-buffer)
     (evil-ex-define-cmd "wq" 'save-and-kill-this-buffer)
     ;; Need to type out :quit to close emacs
     (evil-ex-define-cmd "quit" 'kill-buffer-and-window)
-  
+
     ;; Pretty collors
     (setq evil-motion-state-cursor "#bb1111")
     (setq evil-normal-state-cursor "#eeeeee")
@@ -460,11 +474,17 @@ Shows how many matches is in a search.
     (global-anzu-mode))
 #+end_src
 
-*** COMMENT evil-commentary
+*** evil-commentary
 
 #+begin_src emacs-lisp
   (use-package evil-commentary
-    :after (evil))
+    :after (evil)
+    :general
+    ('normal
+     "gy" 'evil-commentary-yank
+     "gc" 'evil-commentary)
+    :config
+    (evil-commentary-mode 1))
 #+end_src
 
 *** eval operator
@@ -536,7 +556,6 @@ be passed to EVAL-FUNC as its rest arguments"
 #+BEGIN_SRC emacs-lisp
   (use-package evil-snipe
     :after evil
-    :diminish evil-snipe-local-mode
     :config
     (setq evil-snipe-repeat-scope 'visible)
     (evil-snipe-mode 1)
@@ -576,38 +595,16 @@ To select a function in ~python~:
 - Select with =vik= 
 
 #+begin_src emacs-lisp
-(use-package evil-indent-plus
-	:after evil
-  :config
-  (define-key evil-inner-text-objects-map "i" 'evil-indent-plus-i-indent)
-  (define-key evil-outer-text-objects-map "i" 'evil-indent-plus-a-indent)
-	(define-key evil-inner-text-objects-map "k" 'evil-indent-plus-i-indent-up)
-	(define-key evil-outer-text-objects-map "k" 'evil-indent-plus-a-indent-up)
-	(define-key evil-inner-text-objects-map "j" 'evil-indent-plus-i-indent-up-down)
-	(define-key evil-outer-text-objects-map "j" 'evil-indent-plus-a-indent-up-down)
-	)
-#+end_src
-
-*** evil-cleverparens
-This package provides additional text objects for LISPs. For example:
-- Mark the outer form with =v a d=
-- Mark the current form with =v a f= (similar to the =b= text object)
-
-#+begin_src emacs-lisp
-(use-package evil-cleverparens
-  :hook
-  ((emacs-lisp-mode . evil-cleverparens-mode)
-   (clojure-mode . evil-cleverparens-mode))
-  :init
-  (setq evil-move-beyond-eol t
-        evil-cleverparens-use-additional-bindings nil
-        evil-cleverparens-use-s-and-S nil
-        ;; evil-cleverparens-swap-move-by-word-and-symbol t
-        ;; evil-cleverparens-use-regular-insert t
-        )
-  ;; :config
-  ;; (sp-local-pair 'emacs-lisp-mode "'" nil :actions nil)
-  )
+  (use-package evil-indent-plus
+    :after evil
+    :config
+    (define-key evil-inner-text-objects-map "i" 'evil-indent-plus-i-indent)
+    (define-key evil-outer-text-objects-map "i" 'evil-indent-plus-a-indent)
+    (define-key evil-inner-text-objects-map "k" 'evil-indent-plus-i-indent-up)
+    (define-key evil-outer-text-objects-map "k" 'evil-indent-plus-a-indent-up)
+    (define-key evil-inner-text-objects-map "j" 'evil-indent-plus-i-indent-up-down)
+    (define-key evil-outer-text-objects-map "j" 'evil-indent-plus-a-indent-up-down)
+    )
 #+end_src
 
 *** COMMENT evil-iedit-state
@@ -638,12 +635,11 @@ Keybindings:
   (use-package which-key
     :general
     (kr/leader-keys
-      "?" 'which-key-show-top-level
-      )
-    :init
-    (setq which-key-idle-delay 0.5)
+      "?" 'which-key-show-top-level)
+    :hook (after-init . which-key-mode)
     :config
-    (which-key-mode))
+    (setq which-key-idle-delay 0.5)
+    )
 #+END_SRC
 
 * Completion framework
