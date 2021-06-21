@@ -26,7 +26,7 @@ sure to declare the "base" package with the ~github~ recipe first.
   (setq straight-use-package-by-default t)
   (setq straight-vc-git-default-clone-depth 1)
   (setq straight-recipes-gnu-elpa-use-mirror t)
-  ;; (setq straight-check-for-modifications '(check-on-save find-when-checking))
+  (setq straight-check-for-modifications '(check-on-save find-when-checking))
   (defvar bootstrap-version)
   (let* ((straight-repo-dir
           (expand-file-name "straight/repos" user-emacs-directory))
@@ -46,6 +46,18 @@ sure to declare the "base" package with the ~github~ recipe first.
   ;; doing :sraight (:no-native-compile t)
   ;; (setq comp-deferred-compilation-black-list nil)
 #+end_src
+** COMMENT Enable use-package statistics
+If you'd like to see how many packages you've loaded, what stage of
+initialization they've reached, and how much aggregate time they've spent
+(roughly), you can enable ~use-package-compute-statistics~ after loading
+use-package but before any use-package forms, and then run the command M-x
+~use-package-report~ to see the results. The buffer displayed is a tabulated
+list. You can use S in a column to sort the rows based on it.
+
+#+BEGIN_SRC emacs-lisp
+  (setq use-package-compute-statistics t)
+  (global-set-key (kbd "C-x C-p") 'use-package-report)
+#+END_SRC
 
 * Keybindings - General.el
 For uniform keybinding. 
@@ -353,7 +365,7 @@ Function for reloading configuration
 #+begin_src emacs-lisp
   (defun kr/edit-config-org ()
     (interactive)
-    (find-file (expand-file-name config-org user-emacs-directory )))
+    (find-file (expand-file-name kr/config-org user-emacs-directory )))
   
   (defun kr/edit-config-init ()
     (interactive)
@@ -995,14 +1007,17 @@ Taken from DOOM
     (blackout 'evil-snipe-local-mode)
     (blackout 'evil-collection-unimpaired-mode)
     (blackout 'gcmh-mode)
-    (add-hook 'eldoc-mode-hook #'(lambda ()
-                                   (blackout 'eldoc-mode)))
-    (add-hook 'org-mode-hook #'(lambda ()
-                                 (blackout 'evil-org-mode)
-                                 (blackout 'org-indent-mode)))
-    (add-hook 'evil-cleverparens-mode-hook #'(lambda ()
-                                               (blackout 'evil-cleverparens-mode))))
+    (add-hook 'eldoc-mode-hook #'(lambda () (blackout 'eldoc-mode)))
+    (add-hook 'which-key-mode-hook #'(lambda () (blackout 'which-key-mode)))
+    (add-hook 'git-gutter-mode-hook #'(lambda () (blackout 'git-gutter-mode)))
+    (add-hook 'evil-cleverparens-mode-hook #'(lambda () (blackout 'evil-cleverparens-mode))))
+    (add-hook 'org-mode-hook #'(lambda () (blackout 'evil-org-mode) (blackout 'org-indent-mode)))
 
+
+  ;; (use-package rich-minority
+  ;; 	:config
+  ;; 	(setq rm-text-properties '(("\\` company\\'"  'face 'font-lock-warning-face))
+  ;; 	(setq rm-whitelist '(" company")))
 #+end_src
 
 * Org
@@ -1276,8 +1291,208 @@ Taken from DOOM:
               (org-element-property :end context))))))))
 #+end_src
 
+* Dired
+
+NOTE - dired enhancement packages: dired-postframe, dired-git, dired-filter, dired-narow
+
+** dired 
+#+begin_src emacs-lisp
+  (use-package dired
+    :straight (:type built-in)
+    :general
+    (normal
+     dired-mode-map
+     "gh" '(lambda () (interactive) (dired "~/")))
+    (kr/leader-keys
+      "fD" 'dired-jump)
+    :hook ((dired-mode . (lambda ()
+                           (unless (file-remote-p default-directory)
+                             (auto-revert-mode))))
+           (dired-mode . toggle-truncate-lines))
+    :config
+    (setq dired-dwim-target t)
+    (setq dired-isearch-filenames 'dwim)
+    (setq dired-recursive-copies 'always)
+    (setq dired-recursive-deletes 'always)
+    (setq dired-create-destination-dirs 'always)
+    (setq dired-listing-switches "-valh --group-directories-first")
+    :general
+    ('normal 'dired-mode-map
+             "C-M-j" 'dired-next-subdir
+             "C-M-k" 'dired-prev-subdir
+             "C-j" 'dired-next-marked-file
+             "C-k" 'dired-prev-marked-file
+             "DEL" 'dired-unmark-backward))
+#+end_src
+
+** dired-x
+#+begin_src emacs-lisp
+  (use-package dired-x
+    :straight (:type built-in)
+    :commands dired-jump
+    :config
+    ;; (setq dired-clean-confirm-killing-deleted-buffers nil)
+
+    ;; dired-x will help to remove buffers that were associated with deleted
+    ;; files/directories
+
+    ;; to not get y-or-no question for killing buffers when deliting files go here for
+    ;; inspiration on how to do it
+    ;; https://stackoverflow.com/questions/11546639/dired-x-how-to-set-kill-buffer-of-too-to-yes-without-confirmation
+    ;; https://emacs.stackexchange.com/questions/30676/how-to-always-kill-dired-buffer-when-deleting-a-folder
+    ;; https://www.reddit.com/r/emacs/comments/91xnv9/noob_delete_buffer_automatically_after_removing/
+    )
+#+end_src
+
+** dired-sidebar
+#+begin_src emacs-lisp
+  (use-package dired-sidebar
+    :commands (dired-sidebar-toggle-sidebar)
+    :config
+    (setq dired-sidebar-width 30)
+    :general
+    (kr/leader-keys
+     "fd" 'dired-sidebar-toggle-sidebar))
+#+end_src
+
+** all-the-icons-dired
+
+#+begin_src emacs-lisp
+  (use-package all-the-icons-dired
+    :if (display-graphic-p)
+    :hook (dired-mode . (lambda () (interactive)
+                        (unless (file-remote-p default-directory)
+                          (all-the-icons-dired-mode)))))
+#+end_src
+
+** dired-hacks
+
+*** COMMENT dired-k
+#+begin_src emacs-lisp
+  (use-package dired-k
+    :disabled
+    :hook
+    ((dired-initial-position . dired-k)
+     (dired-after-readin . dired-k-no-revert))
+    :config
+    (setq dired-k-style 'git)
+    (setq dired-k-human-readable t)
+    ;; so that dired-k plays nice with dired-subtree
+    (advice-add 'dired-subtree-insert :after 'dired-k-no-revert))
+#+end_src 
+ 
+*** dired-subtree
+#+begin_src emacs-lisp
+  (use-package dired-subtree
+    :after dired
+    :config
+    ;; so that dired icons work nicely with subtree
+    (advice-add 'dired-subtree-toggle :after #'(lambda ()
+                                                 (interactive)
+                                                 (call-interactively #'revert-buffer))))
+#+end_src
+
+*** dired-reinbow 
+#+begin_src emacs-lisp
+  (use-package dired-rainbow
+    :after dired
+    :config
+    (dired-rainbow-define-chmod directory "#6cb2eb" "d.*")
+    (dired-rainbow-define html "#eb5286" ("css" "less" "sass" "scss" "htm" "html" "jhtm" "mht" "eml" "mustache" "xhtml"))
+    (dired-rainbow-define xml "#f2d024" ("xml" "xsd" "xsl" "xslt" "wsdl" "bib" "json" "msg" "pgn" "rss" "yaml" "yml" "rdata"))
+    (dired-rainbow-define document "#9561e2" ("docm" "doc" "docx" "odb" "odt" "pdb" "pdf" "ps" "rtf" "djvu" "epub" "odp" "ppt" "pptx"))
+    (dired-rainbow-define markdown "#ffed4a" ("org" "etx" "info" "markdown" "md" "mkd" "nfo" "pod" "rst" "tex" "textfile" "txt"))
+    (dired-rainbow-define database "#6574cd" ("xlsx" "xls" "csv" "accdb" "db" "mdb" "sqlite" "nc"))
+    (dired-rainbow-define media "#de751f" ("mp3" "mp4" "MP3" "MP4" "avi" "mpeg" "mpg" "flv" "ogg" "mov" "mid" "midi" "wav" "aiff" "flac"))
+    (dired-rainbow-define image "#f66d9b" ("tiff" "tif" "cdr" "gif" "ico" "jpeg" "jpg" "png" "psd" "eps" "svg"))
+    (dired-rainbow-define log "#c17d11" ("log"))
+    (dired-rainbow-define shell "#f6993f" ("awk" "bash" "bat" "sed" "sh" "zsh" "vim"))
+    (dired-rainbow-define interpreted "#38c172" ("py" "ipynb" "rb" "pl" "t" "msql" "mysql" "pgsql" "sql" "r" "clj" "cljs" "scala" "js"))
+    (dired-rainbow-define compiled "#4dc0b5" ("asm" "cl" "lisp" "el" "c" "h" "c++" "h++" "hpp" "hxx" "m" "cc" "cs" "cp" "cpp" "go" "f" "for" "ftn" "f90" "f95" "f03" "f08" "s" "rs" "hi" "hs" "pyc" ".java"))
+    (dired-rainbow-define executable "#8cc4ff" ("exe" "msi"))
+    (dired-rainbow-define compressed "#51d88a" ("7z" "zip" "bz2" "tgz" "txz" "gz" "xz" "z" "Z" "jar" "war" "ear" "rar" "sar" "xpi" "apk" "xz" "tar"))
+    (dired-rainbow-define packaged "#faad63" ("deb" "rpm" "apk" "jad" "jar" "cab" "pak" "pk3" "vdf" "vpk" "bsp"))
+    (dired-rainbow-define encrypted "#ffed4a" ("gpg" "pgp" "asc" "bfe" "enc" "signature" "sig" "p12" "pem"))
+    (dired-rainbow-define fonts "#6cb2eb" ("afm" "fon" "fnt" "pfb" "pfm" "ttf" "otf"))
+    (dired-rainbow-define partition "#e3342f" ("dmg" "iso" "bin" "nrg" "qcow" "toast" "vcd" "vmdk" "bak"))
+    (dired-rainbow-define vc "#0074d9" ("git" "gitignore" "gitattributes" "gitmodules"))
+    (dired-rainbow-define-chmod executable-unix "#38c172" "-.*x.*"))
+#+end_src
+
 * Packages
 Here are packages that don't belong to any category.
+
+** hydra
+#+begin_src emacs-lisp
+  (use-package hydra
+    :defer t)
+#+end_src
+
+** yasnippet
+We use =C-TAB= to expand snippets instead of =TAB= .
+
+You can have ~#condition: 'auto~ for the snippet to auto-expand.
+
+See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9][here]] to share snippets across modes
+
+#+begin_src emacs-lisp
+  ;; ((defun lc/yas-try-expanding-auto-snippets ()
+  ;;    (when (and (boundp 'yas-minor-mode) yas-minor-mode)
+  ;;      (let ((yas-buffer-local-condition ''(require-snippet-condition . auto)))
+  ;;        (yas-expand))))
+  ;;  :config
+  ;;  (add-hook 'post-command-hook #'lc/yas-try-expanding-auto-snippets))
+
+  (use-package yasnippet
+    :general
+    ('insert
+     'yas-minor-mode-map
+     "C-TAB" 'yas-expand)
+    :hook (lsp-mode . yas-minor-mode)
+    :config
+    (yas-reload-all)
+    )
+
+  (use-package yasnippet-snippets
+    :defer t
+    :after yasnippet)
+
+#+end_src
+
+* Programing
+
+** LSP
+#+BEGIN_SRC emacs-lisp
+  (use-package lsp-mode
+    :commands
+    (lsp lsp-deferred)
+    :hook
+    ((lsp-mode . (lambda () (setq-local evil-lookup-func #'lsp-describe-thing-at-point)))
+     (lsp-mode . lsp-enable-which-key-integration)
+     (js-mode . lsp))
+    :general
+    (kr/local-leader-keys
+     :states 'normal
+     :keymaps 'lsp-mode-map
+     "i" '(:ignore t :which-key "import")
+     "i o" '(lsp-organize-imports :wk "optimize")
+     "l" '(:keymap lsp-command-map :wk "lsp")
+     "r" '(lsp-rename :wk "rename"))
+    ('normal
+     'lsp-mode-map
+     "gD" 'lsp-find-references)
+    :init
+    ;; (setq lsp-restart 'ignore)
+    ;; (setq lsp-eldoc-enable-hover nil)
+    ;; (setq lsp-enable-file-watchers nil)
+    ;; (setq lsp-signature-auto-activate nil)
+    ;; (setq lsp-modeline-diagnostics-enable nil)
+    ;; (setq lsp-keep-workspace-alive nil)
+    ;; (setq lsp-auto-execute-action nil)
+    ;; (setq lsp-before-save-edits nil)
+    ;; (setq lsp-diagnostics-provider :flymake)
+    )
+#+END_SRC
 
 ** Git
 *** Magit
@@ -1344,9 +1559,6 @@ Here are packages that don't belong to any category.
 #+end_src
 
 *** hydra-smerge
-:PROPERTIES:
-:CUSTOM_ID: h:DADD41F3-F805-4E89-9EDB-B21350A81A19
-:END:
 #+begin_src emacs-lisp
 (use-package smerge-mode
   :straight (:type built-in)
@@ -1396,46 +1608,16 @@ Here are packages that don't belong to any category.
     ("q" nil :color blue)))
 #+end_src
 
-** hydra
-:PROPERTIES:
-:CUSTOM_ID: h:6C6EA9DD-42EE-49CD-A7FC-5BE9FAB42F7F
-:END:
-#+begin_src emacs-lisp
-(use-package hydra)
-#+end_src
-
-** yasnippet
-We use =C-TAB= to expand snippets instead of =TAB= .
-
-You can have ~#condition: 'auto~ for the snippet to auto-expand.
-
-See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9][here]] to share snippets across modes
-
-#+begin_src emacs-lisp
-  ;; ((defun lc/yas-try-expanding-auto-snippets ()
-  ;;    (when (and (boundp 'yas-minor-mode) yas-minor-mode)
-  ;;      (let ((yas-buffer-local-condition ''(require-snippet-condition . auto)))
-  ;;        (yas-expand))))
-  ;;  :config
-  ;;  (add-hook 'post-command-hook #'lc/yas-try-expanding-auto-snippets))
-
-  (use-package yasnippet
-    :general
-    ('insert
-     'yas-minor-mode-map
-     "C-TAB" 'yas-expand)
-    :hook (lsp-mode . yas-minor-mode)
+** Tree-sitter
+#+BEGIN_SRC emacs-lisp
+  (use-package tree-sitter
+    :hook
+    (js-mode . tree-sitter-hl-mode)
+    (python-mod . tree-sitter-hl-mode)
     :config
-    (yas-reload-all)
-    )
+    (use-package tree-sitter-langs))
+#+END_SRC
 
-  (use-package yasnippet-snippets
-    :defer t
-    :after yasnippet)
-
-#+end_src
-
-* Programing
 ** Parentheses 
 #+begin_src emacs-lisp
   (show-paren-mode t)
@@ -1495,46 +1677,4 @@ You can use below block to print the value of ~electric-pair-pairs~
 #+begin_src emacs-lisp :tangle no
 (mapcar (lambda (elm) (char-to-string (car elm))) electric-pair-pairs)
 #+end_src
-** LSP
-#+BEGIN_SRC emacs-lisp
-  (use-package lsp-mode
-    :commands
-    (lsp lsp-deferred)
-    :hook
-    ((lsp-mode . (lambda () (setq-local evil-lookup-func #'lsp-describe-thing-at-point)))
-     (lsp-mode . lsp-enable-which-key-integration)
-     (js-mode . lsp))
-    :general
-    (kr/local-leader-keys
-     :states 'normal
-     :keymaps 'lsp-mode-map
-     "i" '(:ignore t :which-key "import")
-     "i o" '(lsp-organize-imports :wk "optimize")
-     "l" '(:keymap lsp-command-map :wk "lsp")
-     "r" '(lsp-rename :wk "rename"))
-    ('normal
-     'lsp-mode-map
-     "gD" 'lsp-find-references)
-    :init
-    ;; (setq lsp-restart 'ignore)
-    ;; (setq lsp-eldoc-enable-hover nil)
-    ;; (setq lsp-enable-file-watchers nil)
-    ;; (setq lsp-signature-auto-activate nil)
-    ;; (setq lsp-modeline-diagnostics-enable nil)
-    ;; (setq lsp-keep-workspace-alive nil)
-    ;; (setq lsp-auto-execute-action nil)
-    ;; (setq lsp-before-save-edits nil)
-    ;; (setq lsp-diagnostics-provider :flymake)
-    )
-#+END_SRC
-
-** Tree-sitter
-#+BEGIN_SRC emacs-lisp
-  (use-package tree-sitter
-    :init
-    (use-package tree-sitter-langs)
-    :hook
-    (js-mode . tree-sitter-hl-mode)
-    (python-mod . tree-sitter-hl-mode))
-#+END_SRC
 
