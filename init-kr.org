@@ -365,6 +365,36 @@ Function for reloading configuration
     "fei" 'kr/edit-config-init)
 #+end_src
 
+** Serbian
+I making a custom input method for Serbian language because all the other methods that exist are stupid. 
+[[https://satish.net.in/20160319/][Reference how to make custom input method]].
+
+#+begin_src emacs-lisp
+  (quail-define-package
+   "serbian-latin" "Serbian" "SR" nil
+   "Sensible Serbian keyboard layout."
+    nil t nil nil nil nil nil nil nil nil t)
+
+  (quail-define-rules
+   ("x" ?š)
+   ("X" ?Š)
+   ("w" ?č)
+   ("W" ?Č)
+   ("q" ?ć)
+   ("Q" ?Ć)
+   ("y" ?ž)
+   ("Y" ?Ž)
+   ("dj" ?đ)
+   ("Dj" ?Đ)
+   ("DJ" ?Đ))
+#+end_src
+This input method changes all English keys with Serbian.
+
+Set =serbian-latin= to default input method.
+#+begin_src emacs-lisp
+  (setq default-input-method "serbian-latin")
+#+end_src
+
 * Evil
 ** evil
 *** evil mode
