@@ -488,7 +488,7 @@ in the rest of the file
   (use-package evil-collection
     :after evil
       :init
-      (setq evil-collection-company-use-tng nil)
+      (setq evil-collection-company-use-tng t)
       (setq evil-collection-magit-use-z-for-folds nil)
     :config
     (evil-collection-init))
@@ -794,35 +794,6 @@ or a function across files in the project.
   )
 #+end_src
 
-** vertico
-This package is somehow needed to do ~consult-ripgrep~, otherwise I get an error.
-#+begin_src emacs-lisp
-  (use-package vertico
-      :straight (vertico :type git :host github :repo "minad/vertico")
-      :disabled
-      :demand
-    ;; :bind (:map vertico-map
-    ;;        ("C-j" . vertico-next)
-    ;;        ("C-k" . vertico-previous)
-    ;;        ("<escape>" . vertico-exit))
-    ;; :init
-    ;; (vertico-mode)
-      )
-  
-  ;; TODO: replace prescient with this?
-  ;; (use-package savehist
-  ;;   :init
-  ;;   (savehist-mode))
-  
-  ;; TODO: use this when selectrum has been replaced
-  ;; (use-package marginalia
-  ;;   :after vertico
-  ;;   :custom
-  ;;   (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
-  ;;   :init
-  ;;   (marginalia-mode))
-#+end_src
-
 ** dabbrev
 #+begin_src emacs-lisp
 (use-package dabbrev
@@ -831,56 +802,75 @@ This package is somehow needed to do ~consult-ripgrep~, otherwise I get an error
          ("C-M-/" . dabbrev-expand)))
 #+end_src
 
-** COMMENT company
+** company
 *** company-mode
-:PROPERTIES:
-:CUSTOM_ID: h:0A172DDA-7B18-46EF-87C6-33D12234AEEC
-:END:
 ~company-tng-mode~ (tab-n-go):
 - Select candidates with =C-j= / =C-k= or =TAB= / =S-TAB=
 - don't press =RET= to confirm
 
 #+BEGIN_SRC emacs-lisp
-(use-package company
-  ;; :demand
-  :hook ((after-init . global-company-mode)
-				 ;; (python-mode . (lambda () (setq-local company-backends '((company-capf :with company-files)))))
-				 )
-  :general
-  (company-mode-map
-	 :states 'insert
-   "TAB" 'company-indent-or-complete-common
-	 )
-  :init
-  (setq company-minimum-prefix-length 1)
-  (setq company-idle-delay nil)
-  (setq company-tooltip-align-annotations t)
-  (setq company-tooltip-maximum-width 50
-        company-tooltip-minimum-width 50)
-  (setq company-tooltip-limit 12)
-  ;; don't autocomplete when single candidate
-  (setq company-auto-complete nil)
-  (setq company-auto-complete-chars nil)
-  (setq company-dabbrev-code-other-buffers nil)
-  (setq company-dabbrev-ignore-case nil)
-  (setq company-dabbrev-downcase nil)
-  ;; manually configure tng
-  ;; (setq company-tng-auto-configure nil)
-  ;; (setq company-frontends '(company-tng-frontend
-  ;;                           company-pseudo-tooltip-frontend
-  ;;                           company-echo-metadata-frontend))
-  (setq company-backends '((company-capf company-keywords company-files :with company-yasnippet)))
-  ;; :custom-face
-  ;; (company-tooltip
-  ;;  ((t (:family "Fira Code"))))
-  :config
-  (global-company-mode)
-  (with-eval-after-load 'evil
-    (add-hook 'company-mode-hook #'evil-normalize-keymaps))
-  ;; needed in case we only have one candidate
-  (define-key company-active-map (kbd "C-j") 'company-select-next)
-  ;; (define-key company-mode-map [remap indent-for-tab-command] #'company-indent-or-complete-common)
-  )
+  ;; (use-package company
+  ;;   ;; :demand
+  ;;   :general
+  ;;   (company-mode-map
+  ;; 	 :states 'insert
+  ;;    "TAB" 'company-indent-or-complete-common
+  ;; 	 )
+  ;;   :init
+  ;;   (setq company-tooltip-align-annotations t)
+  ;;   (setq company-tooltip-maximum-width 50
+  ;;         company-tooltip-minimum-width 50)
+  ;;   )
+
+  (use-package company
+    :hook (after-init . global-company-mode)
+    :general
+    (general-imap
+      "<tab>" 'company-indent-or-complete-common
+      "TAB" 'company-indent-or-complete-common)
+    :init
+    (setq completion-styles '(basic partial-completion flex))
+
+    (setq company-dabbrev-downcase nil)
+    (setq company-dabbrev-ignore-case nil)
+    ;; (setq company-require-match nil)
+
+    (setq company-idle-delay 0)
+    (setq company-minimum-prefix-length 1)
+    (setq company-selection-wrap-around t)
+    (setq company-global-modes '(not help-mode
+                                     helpful-mode
+                                     gud-mode))
+
+    ;; (setq company-auto-complete nil)
+    ;; (setq company-auto-complete-chars nil)
+
+    (setq company-backends '((company-capf company-keywords company-files :with company-yasnippet)))
+
+    :config
+    (with-eval-after-load 'evil
+      (add-hook 'company-mode-hook #'evil-normalize-keymaps))
+    ;; needed in case we only have one candidate
+    (define-key company-active-map (kbd "C-j") 'company-select-next)
+
+
+    ;; icons with company
+    ;; (setq company-format-margin-function #'company-vscode-light-icons-margin)
+    )
+
+
+  ;; here just to remember some variables
+  ;; company-tooltip-align-annotations
+  ;; company-auto-commit
+  ;; company-search-filtering
+  ;; company-dabbrev-other-buffers
+  ;; company-abort-manual-when-too-short
+  ;; company-prescient-sort-length-enable
+
+
+  ;; korisne company funkcije
+  ;; company-show-location
+  ;; company-complete-commot-or-cycle
 #+END_SRC
 
 *** company prescient
@@ -958,34 +948,6 @@ Taken from DOOM
 #+begin_src emacs-lisp
 (use-package company-posframe
   :hook (company-mode . company-posframe-mode)
-  )
-#+end_src
-
-** COMMENT corfu
-#+begin_src emacs-lisp
-;; Configure corfu
-(use-package corfu
-  :straight (corfu :type git :host github :repo "minad/corfu")
-  :hook (after-init . corfu-global-mode)
-  :general
-  (corfu-map
-   :states 'insert
-   "C-g" 'corfu-abort
-   "C-j" 'corfu-next
-   "C-k" 'corfu-previous
-   )
-  ;; :hook ((prog-mode . corfu-mode)
-  ;;        (org-mode . corfu-mode))
-  ;; :config
-  ;; (add-to-list 'corfu--frame-parameters '(tab-bar-lines . 0))
-  ;; (defun lc/disable-tabs (orig-fn &rest args)
-  ;;   (progn (centaur-tabs-local-mode) (apply orig-fn args)))
-  ;; (defun lc/reenable-tabs (orig-fn &rest args)
-  ;;   (progn (centaur-tabs-local-mode -1) (apply orig-fn args)))
-  ;; (advice-add 'corfu--popup-show :around #'lc/disable-tabs)
-  ;; (advice-add 'corfu--popup-hide :around #'lc/reenable-tabs)
-  ;; Optionally enable cycling for `corfu-next' and `corfu-previous'.
-  ;; (setq corfu-cycle t)
   )
 #+end_src
 
