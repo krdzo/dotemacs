@@ -1299,6 +1299,69 @@ Taken from DOOM:
               (org-element-property :end context))))))))
 #+end_src
 
+* Programing
+** Parentheses 
+#+begin_src emacs-lisp
+  (show-paren-mode t)
+  (use-package rainbow-delimiters
+    :hook ((prog-mode comint-mode) . rainbow-delimiters-mode))
+#+end_src
+
+*** evil-cleverparens
+This package provides additional text objects for LISPs. For example:
+- Mark the outer form with =v a d=
+- Mark the current form with =v a f= (similar to the =b= text object)
+
+#+begin_src emacs-lisp
+  (use-package evil-cleverparens
+    :hook
+    ((emacs-lisp-mode . evil-cleverparens-mode)
+     (clojure-mode . evil-cleverparens-mode))
+    :init
+    (setq 
+          evil-cleverparens-use-additional-bindings nil
+          evil-cleverparens-use-s-and-S nil
+          ;; evil-cleverparens-swap-move-by-word-and-symbol t
+          ;; evil-cleverparens-use-regular-insert t
+          )
+    ;; :config
+    ;; (sp-local-pair 'emacs-lisp-mode "'" nil :actions nil)
+    )
+#+end_src
+
+
+
+*** Auto-pair parenthesis
+#+begin_src emacs-lisp
+  (use-package emacs
+    :hook
+    ((org-jupyter-mode . (lambda () (lc/add-local-electric-pairs '())))
+     (org-mode . (lambda () (lc/add-local-electric-pairs '((?= . ?=) (?~ . ?~))))))
+    :init
+    ;; auto-close parentheses
+    (electric-pair-mode +1)
+    (setq electric-pair-preserve-balance nil)
+    ;; mode-specific local-electric pairs
+    (defconst lc/default-electric-pairs electric-pair-pairs)
+    (defun lc/add-local-electric-pairs (pairs)
+      "Example usage: 
+      (add-hook 'jupyter-org-interaction-mode '(lambda () (set-local-electric-pairs '())))
+      "
+      (setq-local electric-pair-pairs (append lc/default-electric-pairs pairs))
+      (setq-local electric-pair-text-pairs electric-pair-pairs))
+  
+    ;; disable auto pairing for <  >
+    (add-function :before-until
+                  electric-pair-inhibit-predicate (lambda (c) (eq c ?<))))  ;; >
+#+end_src
+
+You can use below block to print the value of ~electric-pair-pairs~
+#+begin_src emacs-lisp :tangle no
+(mapcar (lambda (elm) (char-to-string (car elm))) electric-pair-pairs)
+#+end_src
+
+* Packages
+Here are packages that don't belong to any category.
 
 ** Git
 *** Magit
