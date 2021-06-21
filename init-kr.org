@@ -720,34 +720,19 @@ and the second filter to the completion-style filtering (?).
   + You can run ~embark-export-snapshot~ with =C-l S=
 
 #+BEGIN_SRC emacs-lisp
-(use-package embark
-  :general
-  (general-nmap "C-l" 'embark-act)
-  (selectrum-minibuffer-map
-   "C-l" #'embark-act
-   )
-  (:keymaps 'embark-file-map "o" 'find-file-other-window)	
-  :config
-  ;; For Selectrum users:
-  (defun current-candidate+category ()
-    (when selectrum-active-p
-      (cons (selectrum--get-meta 'category)
-            (selectrum-get-current-candidate))))
+  (use-package embark
+    :general
+    (general-nmap "C-l" 'embark-act)
+    (selectrum-minibuffer-map
+     "C-l" #'embark-act
+     )
+    (:keymaps 'embark-file-map "o" 'find-file-other-window)	
+    :config
+    ;; (defun refresh-selectrum ()
+    ;;   (setq selectrum--previous-input-string nil))
 
-  (add-hook 'embark-target-finders #'current-candidate+category)
-
-  (defun current-candidates+category ()
-    (when selectrum-active-p
-      (cons (selectrum--get-meta 'category)
-            (selectrum-get-current-candidates
-             ;; Pass relative file names for dired.
-             minibuffer-completing-file-name))))
-
-  (add-hook 'embark-candidate-collectors #'current-candidates+category)
-
-  ;; No unnecessary computation delay after injection.
-  (add-hook 'embark-setup-hook 'selectrum-set-selected-candidate)
-  )
+    ;; (add-hook 'embark-pre-action-hook #'refresh-selectrum)
+    )
 #+END_SRC
 
 ** embark-consult
