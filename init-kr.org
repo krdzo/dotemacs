@@ -1007,6 +1007,26 @@ Taken from DOOM
     (add-to-list 'initial-frame-alist '(fullscreen . maximized)))
 #+end_src
 
+** Blackout
+#+begin_src emacs-lisp
+  (use-package blackout
+    :config
+    (blackout 'subword-mode)
+    (blackout 'anzu-mode)
+    (blackout 'evil-goggles-mode)
+    (blackout 'undo-tree-mode)
+    (blackout 'evil-snipe-local-mode)
+    (blackout 'evil-collection-unimpaired-mode)
+    (blackout 'gcmh-mode)
+    (add-hook 'eldoc-mode-hook #'(lambda ()
+                                   (blackout 'eldoc-mode)))
+    (add-hook 'org-mode-hook #'(lambda ()
+                                 (blackout 'evil-org-mode)
+                                 (blackout 'org-indent-mode)))
+    (add-hook 'evil-cleverparens-mode-hook #'(lambda ()
+                                               (blackout 'evil-cleverparens-mode))))
+
+#+end_src
 
 * Org
 
