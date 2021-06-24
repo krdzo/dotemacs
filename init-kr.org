@@ -72,27 +72,27 @@ for every keybinding and in ~use-package~ blocks.
     :demand t
     :config
     (general-evil-setup)
-  
+
     ;; leaders for general
     (general-create-definer kr/leader-keys
       :states '(normal insert visual emacs)
       :keymaps 'override
       :prefix "SPC"
       :global-prefix "C-SPC")
-  
+
     (general-create-definer kr/local-leader-keys
       :states '(normal visual)
       :keymaps 'override
       :prefix ","
       :global-prefix "SPC m")
-  
-  
+
+
     (general-nmap "gD" '(xref-find-references :wk "references"))
-  
+
     (kr/leader-keys
       "<escape>" 'keyboard-escape-quit
-  
-  
+
+
       "b" '(:ignore t :which-key "buffer")
       "br" 'revert-buffer
       "bd" 'kill-current-buffer
@@ -103,8 +103,8 @@ for every keybinding and in ~use-package~ blocks.
       ;; "bs" '((lambda () (interactive)
       ;;          (pop-to-buffer "*scratch*"))
       ;;        :wk "scratch")
-  
-  
+
+
       "f" '(:ignore t :which-key "file")
       "ff" 'find-file
       "fs" 'save-buffer
@@ -112,11 +112,11 @@ for every keybinding and in ~use-package~ blocks.
       "fS" 'write-file
       ;; "fR" '(lc/rename-current-file :wk "rename")
       ;; "fD" '((lambda () (interactive) (delete-file (buffer-file-name))) :wk "delete")
-  
+
       "g" '(:ignore t :which-key "git")
       ;; keybindings defined in magit
-  
-  
+
+
       "t"  '(:ignore t :which-key "toggle")
       "td" '(toggle-debug-on-error :which-key "debug on error")
       "tl" '(display-line-numbers-mode :wk "line numbers")
@@ -124,9 +124,9 @@ for every keybinding and in ~use-package~ blocks.
       ;; "t +"	'(lc/increase-font-size :wk "+ font")
       ;; "t -"	'(lc/decrease-font-size :wk "- font")
       ;; "t 0"	'(lc/reset-font-size :wk "reset font")
-  
+
       "u" '(universal-argument :wk "universal")
-  
+
       "w" '(:ignore t :which-key "window")
       "wl" 'windmove-right
       "wh" 'windmove-left
@@ -1617,6 +1617,14 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     :config
     (use-package tree-sitter-langs))
 #+END_SRC
+
+** Project
+#+begin_src emacs-lisp
+  (use-package project
+    :general
+    (kr/leader-keys
+      "p" project-prefix-map))
+#+end_src
 
 ** Parentheses 
 #+begin_src emacs-lisp
