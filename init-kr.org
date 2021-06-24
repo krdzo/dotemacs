@@ -120,10 +120,10 @@ for every keybinding and in ~use-package~ blocks.
       "t"  '(:ignore t :which-key "toggle")
       "td" '(toggle-debug-on-error :which-key "debug on error")
       "tl" '(display-line-numbers-mode :wk "line numbers")
-      "tw" '((lambda () (interactive) (toggle-truncate-lines)) :wk "word wrap")
-      ;; "t +"	'(lc/increase-font-size :wk "+ font")
-      ;; "t -"	'(lc/decrease-font-size :wk "- font")
-      ;; "t 0"	'(lc/reset-font-size :wk "reset font")
+      "tw" '(toggle-truncate-lines :wk "word wrap")
+      ;; "t +" '(lc/increase-font-size :wk "+ font")
+      ;; "t -" '(lc/decrease-font-size :wk "- font")
+      ;; "t 0" '(lc/reset-font-size :wk "reset font")
 
       "u" '(universal-argument :wk "universal")
 
@@ -139,13 +139,11 @@ for every keybinding and in ~use-package~ blocks.
       "wD" 'kill-buffer-and-window
       ;; "wu" 'winner-undo
       ;; "wr" 'winner-redo
-      "wo" '(delete-other-windows :wk "maximize")
+      "wo" '(delete-other-windows :wk "maximize"))
 
-      )
-   ;; changing some emacs default bindings to something usefull
+    ;; changing some emacs default bindings to something usefull
     (general-def
-      "C-h l" 'find-library)
-    )
+      "C-h l" 'find-library))
 #+END_SRC
 
 * Emacs
@@ -272,7 +270,7 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
     (setq read-process-output-max (* 1024 1024))
 
     ;; Some usefull builtin minor modes
-    (save-place-mode 1)
+    ;; (save-place-mode 1)
     (blink-cursor-mode 0)
     (column-number-mode 1)
     (global-hl-line-mode 1)
@@ -347,6 +345,15 @@ Used by DOOM to manage garbage collection
     ;;                         ,(expand-file-name "etc/" user-emacs-directory)
     ;;                         ,(expand-file-name "var/" user-emacs-directory)))
     )
+#+end_src
+
+** save-place
+#+begin_src emacs-lisp
+  (use-package saveplace
+    :straight (:type built-in)
+    :after no-littering
+    :config
+    (save-place-mode 1)) 
 #+end_src
 
 ** Configurating so-long.el 
@@ -547,40 +554,38 @@ For example:
 - =grr= evals the line
 
 #+begin_src emacs-lisp
-(use-package evil
-  :config
-  (defcustom evil-extra-operator-eval-modes-alist
-    '(;; (emacs-lisp eval-region)
-      ;; (scheme-mode geiser-eval-region)
-      (clojure-mode cider-eval-region)
-			(jupyter-python jupyter-eval-region) ;; when executing in src block
-      (python-mode jupyter-eval-region) ;; when executing in org-src-edit mode
-      )
-    "Alist used to determine evil-operator-eval's behaviour.
-Each element of this alist should be of this form:
- (MAJOR-MODE EVAL-FUNC [ARGS...])
-MAJOR-MODE denotes the major mode of buffer. EVAL-FUNC should be a function
-with at least 2 arguments: the region beginning and the region end. ARGS will
-be passed to EVAL-FUNC as its rest arguments"
-    :type '(alist :key-type symbol)
-    :group 'evil-extra-operator)
+  (use-package evil
+    :config
+    (defcustom evil-extra-operator-eval-modes-alist
+      '(;; (emacs-lisp eval-region)
+        ;; (scheme-mode geiser-eval-region)
+        (clojure-mode cider-eval-region)
+        (jupyter-python jupyter-eval-region) ;; when executing in src block
+        (python-mode jupyter-eval-region)) ;; when executing in org-src-edit mode
 
-  (evil-define-operator evil-operator-eval (beg end)
-    "Evil operator for evaluating code."
-    :move-point nil
-    (interactive "<r>")
-    (let* ((mode (if (org-in-src-block-p) (intern (car (org-babel-get-src-block-info))) major-mode))
-					 (ele (assoc mode evil-extra-operator-eval-modes-alist))
-           (f-a (cdr-safe ele))
-           (func (car-safe f-a))
-           (args (cdr-safe f-a)))
-      (if (fboundp func)
-          (apply func beg end args)
-        (eval-region beg end t))))
-	
-  (define-key evil-motion-state-map "gr" 'evil-operator-eval)
-  
-  )
+      "Alist used to determine evil-operator-eval's behaviour.
+  Each element of this alist should be of this form:
+   (MAJOR-MODE EVAL-FUNC [ARGS...])
+  MAJOR-MODE denotes the major mode of buffer. EVAL-FUNC should be a function
+  with at least 2 arguments: the region beginning and the region end. ARGS will
+  be passed to EVAL-FUNC as its rest arguments"
+      :type '(alist :key-type symbol)
+      :group 'evil-extra-operator)
+
+    (evil-define-operator evil-operator-eval (beg end)
+      "Evil operator for evaluating code."
+      :move-point nil
+      (interactive "<r>")
+      (let* ((mode (if (org-in-src-block-p) (intern (car (org-babel-get-src-block-info))) major-mode))
+             (ele (assoc mode evil-extra-operator-eval-modes-alist))
+             (f-a (cdr-safe ele))
+             (func (car-safe f-a))
+             (args (cdr-safe f-a)))
+        (if (fboundp func)
+            (apply func beg end args)
+          (eval-region beg end t))))
+
+    (define-key evil-motion-state-map "gr" 'evil-operator-eval))
 
 #+end_src
 
@@ -672,11 +677,11 @@ Keybindings:
 - =V= :: toggle visibility of matches
   
 #+begin_src emacs-lisp
-(use-package evil-iedit-state
-  :general
-  (kr/leader-keys
-		"s e" '(evil-iedit-state/iedit-mode :wk "iedit")
-		"s q" '(evil-iedit-state/quit-iedit-mode :wk "iedit quit")))
+  (use-package evil-iedit-state
+    :general
+    (kr/leader-keys
+      "s e" '(evil-iedit-state/iedit-mode :wk "iedit")
+      "s q" '(evil-iedit-state/quit-iedit-mode :wk "iedit quit")))
 #+end_src
 
 *** undo-tree
@@ -760,7 +765,7 @@ and the second filter to the completion-style filtering (?).
       "s !" '(consult-flymake :wk "flymake"))
     :init
     (setq xref-show-xrefs-function #'consult-xref
-          xref-show-definitions-function #'consult-xref)	
+          xref-show-definitions-function #'consult-xref)
     ;; (setq consult-preview-key "C-l")
     ;; (setq consult-narrow-key ">")
     :config
@@ -782,7 +787,7 @@ and the second filter to the completion-style filtering (?).
     (selectrum-minibuffer-map
      "C-l" #'embark-act
      )
-    (:keymaps 'embark-file-map "o" 'find-file-other-window)	
+    (:keymaps 'embark-file-map "o" 'find-file-other-window)
     :config
     ;; (defun refresh-selectrum ()
     ;;   (setq selectrum--previous-input-string nil))
@@ -1025,14 +1030,16 @@ Taken from DOOM
     (add-hook 'eldoc-mode-hook #'(lambda () (blackout 'eldoc-mode)))
     (add-hook 'which-key-mode-hook #'(lambda () (blackout 'which-key-mode)))
     (add-hook 'git-gutter-mode-hook #'(lambda () (blackout 'git-gutter-mode)))
-    (add-hook 'evil-cleverparens-mode-hook #'(lambda () (blackout 'evil-cleverparens-mode))))
-    (add-hook 'org-mode-hook #'(lambda () (blackout 'evil-org-mode) (blackout 'org-indent-mode)))
+    (add-hook 'evil-commentary-mode-hook #'(lambda () (blackout 'evil-commentary-mode)))
+    (add-hook 'evil-cleverparens-mode-hook #'(lambda () (blackout 'evil-cleverparens-mode)))
+    (add-hook 'org-mode-hook #'(lambda () (blackout 'evil-org-mode) (blackout 'org-indent-mode))))
+
 
 
   ;; (use-package rich-minority
-  ;; 	:config
-  ;; 	(setq rm-text-properties '(("\\` company\\'"  'face 'font-lock-warning-face))
-  ;; 	(setq rm-whitelist '(" company")))
+  ;; :config
+  ;; (setq rm-text-properties '(("\\` company\\'"  'face 'font-lock-warning-face))
+  ;; (setq rm-whitelist '(" company"))))
 #+end_src
 
 * Org
@@ -1043,8 +1050,9 @@ Taken from DOOM
   (use-package org
     :general
     (normal
+     org-mode-map
       "gz" 'org-edit-special)
-  ;; https://github.com/noctuid/general.el#wrapping-evil-define-minor-mode-key
+    ;; https://github.com/noctuid/general.el#wrapping-evil-define-minor-mode-key
     (normal
      org-src-mode
      :definer 'minor-mode
@@ -1064,8 +1072,8 @@ Taken from DOOM
     (setq org-image-actual-width 700)
     (setq org-M-RET-may-split-line nil)
     (setq org-return-follows-link t)
-    (setq org-src-window-setup 'current-window)
-    )
+    (setq org-src-window-setup 'current-window))
+
 #+end_src
 
 ** evil-org
@@ -1097,6 +1105,12 @@ Taken from DOOM:
     ([remap evil-org-org-insert-heading-respect-content-below] . +org/insert-item-below) ;; "<C-return>" 
     ([remap evil-org-org-insert-todo-heading-respect-content-below] . +org/insert-item-above) ;; "<C-S-return>" 
     :general
+    ;; (insert
+    ;;  'evil-org-mode-map
+    ;;   "M-l" 'org-metaright
+    ;;   "M-h" 'org-metaleft
+    ;;   "M-j" 'org-metadown
+    ;;   "M-j" 'org-metaup)
     (general-nmap
       :keymaps 'org-mode-map :states 'normal
       "RET"   #'+org/dwim-at-point)
@@ -1631,7 +1645,8 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     :hook
     (js-mode . tree-sitter-hl-mode)
     (python-mode . tree-sitter-hl-mode)
-    (web-mode . tree-sitter-hl-mode)
+    ;; (web-mode . tree-sitter-hl-mode)
+    (css-mode . tree-sitter-hl-mode)
     :config
     (add-to-list 'tree-sitter-major-mode-language-alist '(web-mode . html))
     (use-package tree-sitter-langs))
@@ -1646,63 +1661,51 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 #+end_src
 
 ** Parentheses 
+
+*** Colors 
+Pretty colors for parens :)
 #+begin_src emacs-lisp
   (show-paren-mode t)
   (use-package rainbow-delimiters
+    :disabled
     :hook ((prog-mode comint-mode) . rainbow-delimiters-mode))
 #+end_src
 
-*** evil-cleverparens
-This package provides additional text objects for LISPs. For example:
-- Mark the outer form with =v a d=
-- Mark the current form with =v a f= (similar to the =b= text object)
-
+*** Smartparen
+Smart paren I'm using to pair characters like quotes.
 #+begin_src emacs-lisp
-  (use-package evil-cleverparens
-    :hook
-    ((emacs-lisp-mode . evil-cleverparens-mode)
-     (clojure-mode . evil-cleverparens-mode))
-    :init
-    (setq 
-          evil-cleverparens-use-additional-bindings nil
-          evil-cleverparens-use-s-and-S nil
-          ;; evil-cleverparens-swap-move-by-word-and-symbol t
-          ;; evil-cleverparens-use-regular-insert t
-          )
-    ;; :config
-    ;; (sp-local-pair 'emacs-lisp-mode "'" nil :actions nil)
-    )
+  (use-package smartparens
+    :config
+    ;;;; https://xenodium.com/emacs-smartparens-auto-indent/
+    (defun indent-between-pair (&rest _ignored)
+      (newline)
+      (indent-according-to-mode)
+      (forward-line -1)
+      (indent-according-to-mode))
+
+    (sp-local-pair 'prog-mode "{" nil :post-handlers '((indent-between-pair "RET")))
+    (sp-local-pair 'prog-mode "[" nil :post-handlers '((indent-between-pair "RET")))
+    (sp-local-pair 'prog-mode "(" nil :post-handlers '((indent-between-pair "RET")))
+    ;;;;
+
+
+    (dolist (char '("'" "`" "(" "[" "{"))
+      (sp-local-pair '(emacs-lisp-mode lisp-mode) char ""))
+    (smartparens-global-mode 1))
 #+end_src
 
-
-
-*** Auto-pair parenthesis
+*** Parinfer
+Parinfer is there for lisp editing.
 #+begin_src emacs-lisp
-  (use-package emacs
-    :hook
-    ((org-jupyter-mode . (lambda () (lc/add-local-electric-pairs '())))
-     (org-mode . (lambda () (lc/add-local-electric-pairs '((?= . ?=) (?~ . ?~))))))
-    :init
-    ;; auto-close parentheses
-    (electric-pair-mode +1)
-    (setq electric-pair-preserve-balance nil)
-    ;; mode-specific local-electric pairs
-    (defconst lc/default-electric-pairs electric-pair-pairs)
-    (defun lc/add-local-electric-pairs (pairs)
-      "Example usage: 
-      (add-hook 'jupyter-org-interaction-mode '(lambda () (set-local-electric-pairs '())))
-      "
-      (setq-local electric-pair-pairs (append lc/default-electric-pairs pairs))
-      (setq-local electric-pair-text-pairs electric-pair-pairs))
-  
-    ;; disable auto pairing for <  >
-    (add-function :before-until
-                  electric-pair-inhibit-predicate (lambda (c) (eq c ?<))))  ;; >
-#+end_src
+  ;; (defvar kr/modes-for-parinfer '
+  ;;   "Modes where parinfer should be enabled")
 
-You can use below block to print the value of ~electric-pair-pairs~
-#+begin_src emacs-lisp :tangle no
-(mapcar (lambda (elm) (char-to-string (car elm))) electric-pair-pairs)
+  (use-package parinfer-rust-mode
+    :init
+    (setq parinfer-rust-library-directory
+          (expand-file-name "./var/parinfer-rust/" user-emacs-directory))
+    :config
+    (general-add-hook '(emacs-lisp-mode-hook lisp-mode-hook) #'parinfer-rust-mode)) 
 #+end_src
 
 ** Line nubmer
