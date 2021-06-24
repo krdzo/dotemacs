@@ -236,8 +236,8 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
     (setq load-prefer-newer t)
 
     ;; use common convention for indentation by default
-    (setq-default indent-tabs-mode t)
-    (setq-default tab-width 2)
+    (setq-default indent-tabs-mode nil)
+    (setq-default tab-width 4)
 
     ;; Enable indentation+completion using the TAB key.
     ;; Completion is often bound to M-TAB.
@@ -507,7 +507,7 @@ in the rest of the file
   (use-package evil-collection
     :after evil
       :init
-      (setq evil-collection-company-use-tng t)
+      (setq evil-collection-company-use-tng nil) ;; for lsp tng must be nil
       (setq evil-collection-magit-use-z-for-folds nil)
     :config
     (evil-collection-init))
@@ -663,7 +663,7 @@ To select a function in ~python~:
     )
 #+end_src
 
-*** COMMENT evil-iedit-state
+*** evil-iedit-state
 Keybindings:
 - =TAB= :: toggle occurrence
 - =n= / =N= :: next/prev occurrence
@@ -848,7 +848,7 @@ or a function across files in the project.
   ;;         company-tooltip-minimum-width 50)
   ;;   )
 
-  (use-package company
+  (use-package company-mode
     :hook (after-init . global-company-mode)
     :general
     (general-imap company-active-map
@@ -1463,13 +1463,11 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     ('insert
      'yas-minor-mode-map
      "C-TAB" 'yas-expand)
-    :hook (lsp-mode . yas-minor-mode)
+    :commands yas-minor-mode
     :config
-    (yas-reload-all)
-    )
+    (yas-reload-all))
 
   (use-package yasnippet-snippets
-    :defer t
     :after yasnippet)
 
 #+end_src
@@ -1484,19 +1482,21 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     :hook
     ((lsp-mode . (lambda () (setq-local evil-lookup-func #'lsp-describe-thing-at-point)))
      (lsp-mode . lsp-enable-which-key-integration)
-     (js-mode . lsp))
+     (lsp-mode . yas-minor-mode))
     :general
     (kr/local-leader-keys
-     :states 'normal
-     :keymaps 'lsp-mode-map
-     "i" '(:ignore t :which-key "import")
-     "i o" '(lsp-organize-imports :wk "optimize")
-     "l" '(:keymap lsp-command-map :wk "lsp")
-     "r" '(lsp-rename :wk "rename"))
+      :states 'normal
+      :keymaps 'lsp-mode-map
+      "i" '(:ignore t :which-key "import")
+      "i o" '(lsp-organize-imports :wk "optimize")
+      "l" '(:keymap lsp-command-map :wk "lsp")
+      "r" '(lsp-rename :wk "rename"))
     ('normal
      'lsp-mode-map
      "gD" 'lsp-find-references)
     :init
+    (setq lsp-keymap-prefix "C-'")
+
     ;; (setq lsp-restart 'ignore)
     ;; (setq lsp-eldoc-enable-hover nil)
     ;; (setq lsp-enable-file-watchers nil)
@@ -1552,12 +1552,14 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 #+end_src
 *** Git-gutter
 #+begin_src emacs-lisp
-    (use-package git-gutter-fringe
-      :init (add-hook 'emacs-startup-hook #'global-git-gutter-mode)
-      :general
-      ('normal
-       "]g" 'git-gutter:next-hunk
-       "[g" 'git-gutter:previous-hunk))
+  (use-package git-gutter-fringe
+    :init (add-hook 'emacs-startup-hook #'global-git-gutter-mode)
+    :general
+    (kr/leader-keys
+      "gs" 'git-gutter:stage-hunk)
+    ('normal
+     "]g" 'git-gutter:next-hunk
+     "[g" 'git-gutter:previous-hunk))
 #+end_src
 
 *** git-timemachine
@@ -1701,5 +1703,50 @@ This package provides additional text objects for LISPs. For example:
 You can use below block to print the value of ~electric-pair-pairs~
 #+begin_src emacs-lisp :tangle no
 (mapcar (lambda (elm) (char-to-string (car elm))) electric-pair-pairs)
+#+end_src
+
+** Line nubmer
+#+begin_src emacs-lisp
+  (add-hook 'prog-mode-hook 'display-line-numbers-mode)
+#+end_src
+
+** Web
+
+*** web-mode
+
+#+begin_src emacs-lisp
+  (use-package web-mode
+    :mode "\\.html?\\'"
+    :hook
+    (web-mode . lsp)
+    :config
+    (setq web-mode-auto-close-style 1)
+    (setq web-mode-markup-indent-offset 2))
+#+end_src
+
+*** emmet-mode
+#+begin_src emacs-lisp
+  (use-package emmet-mode
+    :general
+    (emmet-mode-keymap
+     "<M-return>" 'emmet-expand-line
+     "M-h" 'emmet-prev-edit-point
+     "M-l" 'emmet-next-edit-point)
+    :hook
+    (web-mode . emmet-mode)
+    :config
+    (setq emmet-move-cursor-after-expanding t)
+    (setq emmet-move-cursor-between-quotes t))
+#+end_src
+
+*** css-mode
+#+begin_src emacs-lisp
+  (use-package css-mode
+    :straight (:type built-in)
+    :hook (css-mode . lsp))
+#+end_src
+
+* COMMENT probe
+#+begin_src emacs-lisp
 #+end_src
 
