@@ -140,9 +140,11 @@ for every keybinding and in ~use-package~ blocks.
       ;; "wu" 'winner-undo
       ;; "wr" 'winner-redo
       "wo" '(delete-other-windows :wk "maximize")
-  
-  
+
       )
+   ;; changing some emacs default bindings to something usefull
+    (general-def
+      "C-h l" 'find-library)
     )
 #+END_SRC
 
@@ -255,6 +257,8 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
      mouse-yank-at-point t
      auto-window-vscroll nil
      mouse-wheel-scroll-amount '(1)
+     mouse-wheel-tilt-scroll t
+     mouse-wheel-flip-direction t
      scroll-conservatively most-positive-fixnum)
 
     ;; Better interaction with clipboard
@@ -358,23 +362,24 @@ is there to prevent it from doing that.
     :hook (emacs-startup . global-so-long-mode))
 #+end_src
 
-** Open config
+** File registers
 
-Function for reloading configuration
+You can save files to registers. When you want to open a file from register press
+~~SPC fr~ and it will open the file that is bound to that register.
+#+begin_src emacs-lisp
+  (kr/leader-keys
+    "fr" 'jump-to-register)
+#+end_src
+
+*** Open config
 
 #+begin_src emacs-lisp
-  (defun kr/edit-config-org ()
-    (interactive)
-    (find-file (expand-file-name kr/config-org user-emacs-directory )))
-  
-  (defun kr/edit-config-init ()
-    (interactive)
-    (find-file (expand-file-name "init.el" user-emacs-directory)))
-  
-  
-  (kr/leader-keys
-    "fed" 'kr/edit-config-org
-    "fei" 'kr/edit-config-init)
+  (set-register ?c `(file . ,(expand-file-name kr/config-org user-emacs-directory)))
+  (set-register ?i `(file . ,(expand-file-name "init.el" user-emacs-directory)))
+#+end_src
+*** Personal
+#+begin_src emacs-lisp
+  (set-register ?t `(file . "~/Documents/from-home/terapija.org"))
 #+end_src
 
 ** Serbian
@@ -447,6 +452,8 @@ in the rest of the file
 #+BEGIN_SRC emacs-lisp
   (use-package evil
     :general
+    (kr/leader-keys
+      "th" 'evil-ex-nohighlight)
     (motion
      "<return>" nil
      "RET" nil)
@@ -575,6 +582,13 @@ be passed to EVAL-FUNC as its rest arguments"
   
   )
 
+#+end_src
+
+*** evil-matchit
+
+#+begin_src emacs-lisp
+  (use-package evil-matchit
+    :hook (prog-mode . evil-matchit-mode))
 #+end_src
 
 *** evil-goggles
@@ -814,7 +828,7 @@ or a function across files in the project.
          ("C-M-/" . dabbrev-expand)))
 #+end_src
 
-** company
+** Company
 *** company-mode
 ~company-tng-mode~ (tab-n-go):
 - Select candidates with =C-j= / =C-k= or =TAB= / =S-TAB=
@@ -837,7 +851,7 @@ or a function across files in the project.
   (use-package company
     :hook (after-init . global-company-mode)
     :general
-    (general-imap
+    (general-imap company-active-map
       "<tab>" 'company-indent-or-complete-common
       "TAB" 'company-indent-or-complete-common)
     :init
@@ -1006,6 +1020,7 @@ Taken from DOOM
     (blackout 'undo-tree-mode)
     (blackout 'evil-snipe-local-mode)
     (blackout 'evil-collection-unimpaired-mode)
+    (blackout 'evil-commentary-mode)
     (blackout 'gcmh-mode)
     (add-hook 'eldoc-mode-hook #'(lambda () (blackout 'eldoc-mode)))
     (add-hook 'which-key-mode-hook #'(lambda () (blackout 'which-key-mode)))
@@ -1560,52 +1575,52 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 
 *** hydra-smerge
 #+begin_src emacs-lisp
-(use-package smerge-mode
-  :straight (:type built-in)
-  :after hydra
-  :general
-  (lc/leader-keys "g m" 'smerge-hydra/body)
-  :hook
-  (magit-diff-visit-file . (lambda ()
-                             (when smerge-mode
-                               (smerge-hydra/body))))
-  :init
-  (defhydra smerge-hydra (:hint nil
-                                :pre (smerge-mode 1)
-                                ;; Disable `smerge-mode' when quitting hydra if
-                                ;; no merge conflicts remain.
-                                :post (smerge-auto-leave))
-    "
-                                                    ╭────────┐
-  Movement   Keep           Diff              Other │ smerge │
-  ╭─────────────────────────────────────────────────┴────────╯
-     ^_g_^       [_b_] base       [_<_] upper/base    [_C_] Combine
-     ^_C-k_^     [_u_] upper      [_=_] upper/lower   [_r_] resolve
-     ^_k_ ↑^     [_l_] lower      [_>_] base/lower    [_R_] remove
-     ^_j_ ↓^     [_a_] all        [_H_] hightlight
-     ^_C-j_^     [_RET_] current  [_E_] ediff             ╭──────────
-     ^_G_^                                            │ [_q_] quit"
-    ("g" (progn (goto-char (point-min)) (smerge-next)))
-    ("G" (progn (goto-char (point-max)) (smerge-prev)))
-    ("C-j" smerge-next)
-    ("C-k" smerge-prev)
-    ("j" next-line)
-    ("k" previous-line)
-    ("b" smerge-keep-base)
-    ("u" smerge-keep-upper)
-    ("l" smerge-keep-lower)
-    ("a" smerge-keep-all)
-    ("RET" smerge-keep-current)
-    ("\C-m" smerge-keep-current)
-    ("<" smerge-diff-base-upper)
-    ("=" smerge-diff-upper-lower)
-    (">" smerge-diff-base-lower)
-    ("H" smerge-refine)
-    ("E" smerge-ediff)
-    ("C" smerge-combine-with-next)
-    ("r" smerge-resolve)
-    ("R" smerge-kill-current)
-    ("q" nil :color blue)))
+  (use-package smerge-mode
+    :straight (:type built-in)
+    :after hydra
+    :general
+    (lc/leader-keys "g m" 'smerge-hydra/body)
+    :hook
+    (magit-diff-visit-file . (lambda ()
+                               (when smerge-mode
+                                 (smerge-hydra/body))))
+    :init
+    (defhydra smerge-hydra (:hint nil
+                                  :pre (smerge-mode 1)
+                                  ;; Disable `smerge-mode' when quitting hydra if
+                                  ;; no merge conflicts remain.
+                                  :post (smerge-auto-leave))
+      "
+                                                      ╭────────┐
+    Movement   Keep           Diff              Other │ smerge │
+    ╭─────────────────────────────────────────────────┴────────╯
+       ^_g_^       [_b_] base       [_<_] upper/base    [_C_] Combine
+       ^_C-k_^     [_u_] upper      [_=_] upper/lower   [_r_] resolve
+       ^_k_ ↑^     [_l_] lower      [_>_] base/lower    [_R_] remove
+       ^_j_ ↓^     [_a_] all        [_H_] hightlight
+       ^_C-j_^     [_RET_] current  [_E_] ediff             ╭──────────
+       ^_G_^                                            │ [_q_] quit"
+      ("g" (progn (goto-char (point-min)) (smerge-next)))
+      ("G" (progn (goto-char (point-max)) (smerge-prev)))
+      ("C-j" smerge-next)
+      ("C-k" smerge-prev)
+      ("j" next-line)
+      ("k" previous-line)
+      ("b" smerge-keep-base)
+      ("u" smerge-keep-upper)
+      ("l" smerge-keep-lower)
+      ("a" smerge-keep-all)
+      ("RET" smerge-keep-current)
+      ("\C-m" smerge-keep-current)
+      ("<" smerge-diff-base-upper)
+      ("=" smerge-diff-upper-lower)
+      (">" smerge-diff-base-lower)
+      ("H" smerge-refine)
+      ("E" smerge-ediff)
+      ("C" smerge-combine-with-next)
+      ("r" smerge-resolve)
+      ("R" smerge-kill-current)
+      ("q" nil :color blue)))
 #+end_src
 
 ** Tree-sitter
@@ -1613,8 +1628,10 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
   (use-package tree-sitter
     :hook
     (js-mode . tree-sitter-hl-mode)
-    (python-mod . tree-sitter-hl-mode)
+    (python-mode . tree-sitter-hl-mode)
+    (web-mode . tree-sitter-hl-mode)
     :config
+    (add-to-list 'tree-sitter-major-mode-language-alist '(web-mode . html))
     (use-package tree-sitter-langs))
 #+END_SRC
 
