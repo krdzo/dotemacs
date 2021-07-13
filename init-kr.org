@@ -982,6 +982,36 @@ Taken from DOOM
   )
 #+end_src
 
+** corfu
+:PROPERTIES:
+:CUSTOM_ID: h:A2B7EF59-9D10-4C12-98D1-9F569EF9BE38
+:END:
+#+begin_src emacs-lisp
+;; Configure corfu
+(use-package corfu
+  :straight
+  :general
+  (corfu-map
+   :states 'insert
+   "C-g" 'corfu-abort
+   "C-j" 'corfu-next
+   "C-k" 'corfu-previous
+   )
+  ;; :hook ((prog-mode . corfu-mode)
+  ;;        (org-mode . corfu-mode))
+  ;; :config
+  ;; (add-to-list 'corfu--frame-parameters '(tab-bar-lines . 0))
+  ;; (defun lc/disable-tabs (orig-fn &rest args)
+  ;;   (progn (centaur-tabs-local-mode) (apply orig-fn args)))
+  ;; (defun lc/reenable-tabs (orig-fn &rest args)
+  ;;   (progn (centaur-tabs-local-mode -1) (apply orig-fn args)))
+  ;; (advice-add 'corfu--popup-show :around #'lc/disable-tabs)
+  ;; (advice-add 'corfu--popup-hide :around #'lc/reenable-tabs)
+  ;; Optionally enable cycling for `corfu-next' and `corfu-previous'.
+  ;; (setq corfu-cycle t)
+  )
+#+end_src
+
 * UI
 ** Font
 
