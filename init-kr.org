@@ -42,6 +42,7 @@ sure to declare the "base" package with the ~github~ recipe first.
         "git -C " straight-repo-dir " checkout 2d407bc")))
     (load bootstrap-file nil 'nomessage))
   (straight-use-package 'use-package)
+  (setq use-package-compute-statistics t)
   ;; This is a variable that has been renamed but straight still refers when
   ;; doing :sraight (:no-native-compile t)
   ;; (setq comp-deferred-compilation-black-list nil)
@@ -426,7 +427,7 @@ Set =serbian-latin= to default input method.
   (use-package ispell
     :straight (:type built-in)
     :defer t
-    :config
+    :init
     (setq ispell-program-name "/usr/bin/aspell"))
 #+end_src
 
@@ -1563,7 +1564,8 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     :hook
     ((lsp-mode . (lambda () (setq-local evil-lookup-func #'lsp-describe-thing-at-point)))
      (lsp-mode . lsp-enable-which-key-integration)
-     (lsp-mode . yas-minor-mode))
+     (lsp-mode . yas-minor-mode)
+     (js-mode . lsp))
     :general
     (kr/local-leader-keys
       :states 'normal
@@ -1576,7 +1578,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
      'lsp-mode-map
      "gD" 'lsp-find-references)
     :init
-    (setq lsp-keymap-prefix "C-'")
+    (setq lsp-keymap-prefix "C-'"))
 
     ;; (setq lsp-restart 'ignore)
     ;; (setq lsp-eldoc-enable-hover nil)
@@ -1587,7 +1589,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     ;; (setq lsp-auto-execute-action nil)
     ;; (setq lsp-before-save-edits nil)
     ;; (setq lsp-diagnostics-provider :flymake)
-    )
+  
 #+END_SRC
 
 ** Git
@@ -1817,8 +1819,16 @@ Parinfer is there for lisp editing.
     :hook (css-mode . lsp))
 #+end_src
 
-* COMMENT probe
+*** web-selectors
 #+begin_src emacs-lisp
+  (use-package web-selectors
+    :straight (web-selectors :local-repo "web-selectors")
+    :defer t
+    :init
+    (add-hook 'css-mode-hook
+              '(lambda () (add-hook 'lsp-completion-mode-hook 'web-selectors-mode nil t)))
+    (add-hook 'web-mode-hook
+              '(lambda () (add-hook 'lsp-completion-mode-hook 'web-selectors-mode nil t))))
 #+end_src
 
 * load path PROBA
