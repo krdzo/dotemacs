@@ -264,7 +264,7 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 
     (setq-default show-trailing-whitespace nil)
 
-    (setq-default fill-column 80)
+    (setq-default fill-column 75)
 
     ;; LSP recomendation
     (setq read-process-output-max (* 1024 1024))
@@ -276,7 +276,7 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
     (global-hl-line-mode 1)
     (global-subword-mode 1)
     (global-auto-revert-mode 1)
-    (set-fringe-style '(10 . 4))
+    (set-fringe-style '(10 . 10))
 
     ;; Maybe gives some optimization
     (add-hook 'focus-out-hook #'garbage-collect)
@@ -327,7 +327,9 @@ Used by DOOM to manage garbage collection
       (add-to-list 'recentf-exclude no-littering-etc-directory))
     (setq auto-save-file-name-transforms
           `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
-    (setq custom-file (no-littering-expand-etc-file-name "custom.el")))
+    (setq custom-file (no-littering-expand-etc-file-name "custom.el"))
+    (load-file custom-file))
+
 #+end_src
 
 ** recentf
@@ -340,11 +342,10 @@ Used by DOOM to manage garbage collection
     :config
     (recentf-mode 1)
     (setq recentf-max-saved-items 50)
-    ;; (setq recentf-exclude `(,(expand-file-name "straight/build/" user-emacs-directory)
+    (setq recentf-exclude `(,(expand-file-name "straight/build/" user-emacs-directory))))
     ;;                         ,(expand-file-name "eln-cache/" user-emacs-directory)
     ;;                         ,(expand-file-name "etc/" user-emacs-directory)
     ;;                         ,(expand-file-name "var/" user-emacs-directory)))
-    )
 #+end_src
 
 ** save-place
@@ -389,7 +390,9 @@ You can save files to registers. When you want to open a file from register pres
   (set-register ?t `(file . "~/Documents/from-home/terapija.org"))
 #+end_src
 
-** Serbian
+** Writing Languages
+
+*** Serbian
 I making a custom input method for Serbian language because all the other methods that exist are stupid. 
 [[https://satish.net.in/20160319/][Reference how to make custom input method]].
 
@@ -417,6 +420,33 @@ This input method changes all English keys with Serbian.
 Set =serbian-latin= to default input method.
 #+begin_src emacs-lisp
   (setq default-input-method "serbian-latin")
+#+end_src
+*** Spelling
+#+begin_src emacs-lisp
+  (use-package ispell
+    :straight (:type built-in)
+    :defer t
+    :config
+    (setq ispell-program-name "/usr/bin/aspell"))
+#+end_src
+
+** Calendar
+
+#+begin_src emacs-lisp
+  (setq calendar-date-style 'european)
+  (setq calendar-week-start-day 1)
+#+end_src
+
+** Ediff
+#+begin_src emacs-lisp
+  (use-package ediff
+    :defer t
+    :straight (:type built-in)
+    :config
+    (winner-mode)
+    (add-hook 'ediff-after-quit-hook-internal 'winner-undo)
+    (general-setq ediff-window-setup-function 'ediff-setup-windows-plain)
+    (general-setq ediff-split-window-function 'split-window-horizontally))
 #+end_src
 
 * Evil
@@ -709,12 +739,17 @@ Keybindings:
   (use-package selectrum
     :demand
     :general
-    (selectrum-minibuffer-map "C-j" 'selectrum-next-candidate
-                              "C-k" 'selectrum-previous-candidate)
+    ("M-c" 'selectrum-repeat)
+    (selectrum-minibuffer-map
+     "C-r" 'evil-paste-from-register
+     "C-j" 'selectrum-next-candidate
+     "C-k" 'selectrum-previous-candidate
+     "M-j" 'next-history-element
+     "M-k" 'previous-history-element)
     :config
     (setq selectrum-count-style 'current/matches)
-    (selectrum-mode t)
-    )
+    (selectrum-mode t))
+
 #+END_SRC
 
 ** prescient
@@ -751,6 +786,7 @@ and the second filter to the completion-style filtering (?).
     :straight (consult :host github :repo "minad/consult" :branch "main")
     :commands (consult-ripgrep)
     :general
+    ([remap apropos-command] 'consult-apropos)
     (general-nmap
       :states '(normal insert)
       "C-p" 'consult-yank-pop)
@@ -769,10 +805,10 @@ and the second filter to the completion-style filtering (?).
     ;; (setq consult-preview-key "C-l")
     ;; (setq consult-narrow-key ">")
     :config
-    (setq consult-preview-key nil)
+    (setq consult-preview-key nil))
     ;; (autoload 'projectile-project-root "projectile")
     ;; (setq consult-project-root-function #'projectile-project-root)
-    )
+
 #+END_SRC
 
 ** embark
@@ -785,15 +821,16 @@ and the second filter to the completion-style filtering (?).
     :general
     (general-nmap "C-l" 'embark-act)
     (selectrum-minibuffer-map
-     "C-l" #'embark-act
-     )
-    (:keymaps 'embark-file-map "o" 'find-file-other-window)
-    :config
-    ;; (defun refresh-selectrum ()
-    ;;   (setq selectrum--previous-input-string nil))
+     "C-l" #'embark-act)
 
-    ;; (add-hook 'embark-pre-action-hook #'refresh-selectrum)
-    )
+    (:keymaps 'embark-file-map "o" 'find-file-other-window)
+    :config)
+  ;; (defun refresh-selectrum ()
+  ;;   (setq selectrum--previous-input-string nil))
+
+  ;; (add-hook 'embark-pre-action-hook #'refresh-selectrum)
+
+
 #+END_SRC
 
 ** embark-consult
@@ -1741,6 +1778,7 @@ Parinfer is there for lisp editing.
 ** Line nubmer
 #+begin_src emacs-lisp
   (add-hook 'prog-mode-hook 'display-line-numbers-mode)
+  (add-hook 'prog-mode-hook 'toggle-truncate-lines)
 #+end_src
 
 ** Web
@@ -1783,3 +1821,87 @@ Parinfer is there for lisp editing.
 #+begin_src emacs-lisp
 #+end_src
 
+* load path PROBA
+#+begin_src emacs-lisp
+#+end_src
+
+* COMMENT Notes from old config
+** Podsetnik za Info
+*** Korisne komande i promenive koje treba znati
+
++ ~(list-command-history)~ - izlistava istoriju komandi. Komande su izlistane
+  detaljno tj. sa svim argumentima itd.
++ =C-x <ESC> <ESC>= ~(repeat-complex-command)~ - daje mogućnost da ponoviš poslednju
+  komandu sa promenjenim ili istim argumentima.
++ ~(apropos-user-option)~ - Search for user-customizable variables.  With a prefix 
+  argument, search for non-customizable variables too.
++ ~(apropos-variable)~ - Search for variables.  With a prefix argument, search for
+  customizable variables only.
++ ~show-trailing-whitespace~ - promenjiva, ono sto ime kaže
+
+*** Preskoceno u Emacs Info manual-u
+- 11. 12. 13. 17. 22. sekcije Emacs info manual-a su preskočene
+- 28.1 tj. VC je letimično pročitan zato sto
+  koristim magit ali možda ima nesto pametno da se pročita.
+- 28.4.2 i 28.4.3 TAGS preskočen
+- 28.6 Emerge preskočen
+- 31. 32. 33. 34. preskočeni
+- 37. Document viewing preskočen
+- 38. do 47. preskočeno
+- 49.3.10. i 49.3.11. preskočeno
+
+
+*** Korisne Info strane da se opet procitaju
+16.4 O spellcheck-u
+26.2.3 imunu
+26.2.4 which-funciton-mode
+49.3.4 minibuffer keymap kad se bude customizovao minibufer
+
+*** Kako lakše raditi sa camelCase i snake_case
+Postavi global sub word
+(global-subword-mode 1)
+Sad se =w= komanda kao i sve ostale ponašaju drugačije tj prepoznaju reči u camelcase i razlikuju ih.
+
+vidiSadKakoSePonasaNaOvomPrimeru
+vidi_sad_kako_se_ponasa_na_ovom_primeru
+
+onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= opkolis ceo simbol, celu promenjivu
+
+- vidi /superword-mode/ Info emacs 26.11
+
+** Notes
+*** Korisni paketi koje treba pogledati
+- aweshell
+- sudo-edit
+- quickrun
+- crux
+- format-all
+- instant-rename-tag
+- epaint
+
+** Popper
+
+Poper is used to configure where a window will open.
+Configuration is not finished
+
+
+
+#+begin_src emacs-lisp
+  (use-package popper
+    :disabled
+    :general
+    ("C-`"    'popper-toggle-latest
+     "C-1"    'popper-cycle
+     "C-M-`"  'popper-toggle-type)
+    :ini
+    (setq popper-reference-buffers
+          '("\\*Messages\\*"
+            "Output\\*$"
+            "\\*.*eshell\\*$"
+            compilation-mode))
+    (setq popper-display-control nil)
+    (popper-mode +1)
+    :config
+    (setq popper-group-function nil))
+
+#+end_src
