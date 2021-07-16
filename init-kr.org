@@ -1801,7 +1801,35 @@ Parinfer is there for lisp editing.
   (add-hook 'prog-mode-hook 'toggle-truncate-lines)
 #+end_src
 
-** Web
+** CommonLisp
+
+Slime IDE for CommonLisp
+
+#+begin_src emacs-lisp
+  (defun kr/slime-describe-symbol ()
+    "Hack so that `slime-describe-symbol' works with `evil-lookup'"
+    (interactive)
+    (slime-describe-symbol (thing-at-point 'symbol t)))
+
+  (use-package slime
+    :defer t
+    :hook
+    (slime-mode . (lambda () (setq-local evil-lookup-func 'kr/slime-describe-symbol)))
+    (slime-repl-mode . (lambda () (setq-local evil-lookup-func 'kr/slime-describe-symbol)))
+    :init
+    (setq inferior-lisp-program "sbcl")
+    :config
+    (slime-setup '(slime-fancy slime-company))
+    (sp-local-pair '(slime-repl-mode) "'" ""))
+
+
+  (use-package slime-company
+    :after (slime company)
+    :config (setq slime-company-completion 'fuzzy
+                  slime-company-after-completion 'slime-company-just-one-space))
+#+end_src
+
+** web
 
 *** web-mode
 
