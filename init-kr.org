@@ -1868,7 +1868,7 @@ Slime IDE for CommonLisp
 *** web-selectors
 #+begin_src emacs-lisp
   (use-package web-selectors
-    :straight (web-selectors :local-repo "web-selectors")
+    :straight  (web-selectors :type git :host github :repo "krdzo/web-selectors")
     :defer t
     :init
     (add-hook 'css-mode-hook
