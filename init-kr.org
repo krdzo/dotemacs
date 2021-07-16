@@ -920,12 +920,12 @@ or a function across files in the project.
     (with-eval-after-load 'evil
       (add-hook 'company-mode-hook #'evil-normalize-keymaps))
     ;; needed in case we only have one candidate
-    (define-key company-active-map (kbd "C-j") 'company-select-next)
+    (define-key company-active-map (kbd "C-j") 'company-select-next))
 
 
     ;; icons with company
     ;; (setq company-format-margin-function #'company-vscode-light-icons-margin)
-    )
+
 
 
   ;; here just to remember some variables
@@ -1518,8 +1518,18 @@ NOTE - dired enhancement packages: dired-postframe, dired-git, dired-filter, dir
     (dired-rainbow-define-chmod executable-unix "#38c172" "-.*x.*"))
 #+end_src
 
-* Packages
+* No sort packages
 Here are packages that don't belong to any category.
+
+** ibuffer
+#+begin_src emacs-lisp
+  (use-package ibuffer
+    :straight (:type built-in)
+    :general
+    ([remap list-buffers] 'ibuffer)
+    (kr/leader-keys
+      "bB" 'ibuffer))
+#+end_src
 
 ** hydra
 #+begin_src emacs-lisp
