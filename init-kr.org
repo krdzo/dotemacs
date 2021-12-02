@@ -633,14 +633,14 @@ For example:
 
 #+end_src
 
-*** evil-matchit
+** evil-matchit
 
 #+begin_src emacs-lisp
   (use-package evil-matchit
     :hook (prog-mode . evil-matchit-mode))
 #+end_src
 
-*** evil-goggles
+** evil-goggles
 #+BEGIN_SRC emacs-lisp
   (use-package evil-goggles
     :after evil
@@ -657,47 +657,43 @@ For example:
     )
 #+END_SRC
 
-*** evil-snipe
+** evil-snipe
 #+BEGIN_SRC emacs-lisp
   (use-package evil-snipe
     :after evil
     :config
     (setq evil-snipe-repeat-scope 'visible)
-    (evil-snipe-mode 1)
+    ;; (evil-snipe-mode 1)
     (evil-snipe-override-mode 1)
     (push 'dired-mode evil-snipe-disabled-modes))
 #+END_SRC
 
-*** evil-exchange
+** evil-exchange
 #+begin_src emacs-lisp
   (use-package evil-exchange
     :after evil
     :config (evil-exchange-install))
 #+end_src
 
-*** evil-surround
+** evil-surround
 (
-- Use =S)= to surround something without spaces e.g. ~(sexp)~ 
+- Use =S)= to surround something without spaces e.g. ~(sexp)~
 - Use =S(= to surround something with spaces e.g. ~( sexp )~
 )
 
 #+BEGIN_SRC emacs-lisp
   (use-package evil-surround
-    :config
+    :init
     (global-evil-surround-mode 1)
     :general
-    (:states 'operator
-     "s" 'evil-surround-edit
-     "S" 'evil-Surround-edit)
-    (:states 'visual
-     "S" 'evil-surround-region
-     "gS" 'evil-Surround-region))
+    ('visual 'evil-surround-mode-map
+     "s" 'evil-surround-region))
 #+END_SRC
 
-*** evil-indent-plus
+** evil-indent-plus
 To select a function in ~python~:
 - Stand on a line in the body of the function (root, not an if)
-- Select with =vik= 
+- Select with =vik=
 
 #+begin_src emacs-lisp
   (use-package evil-indent-plus
@@ -712,14 +708,14 @@ To select a function in ~python~:
     )
 #+end_src
 
-*** evil-iedit-state
+** evil-iedit-state
 Keybindings:
 - =TAB= :: toggle occurrence
 - =n= / =N= :: next/prev occurrence
 - =F= :: restrict scope to function
 - =J= / =K= :: extend scope of match down/up
 - =V= :: toggle visibility of matches
-  
+
 #+begin_src emacs-lisp
   (use-package evil-iedit-state
     :general
@@ -728,14 +724,14 @@ Keybindings:
       "s q" '(evil-iedit-state/quit-iedit-mode :wk "iedit quit")))
 #+end_src
 
-*** undo-tree
+* undo-tree
 #+begin_src emacs-lisp
     (use-package undo-tree
-      :after (evil)
+
       :config (global-undo-tree-mode 1))
 #+end_src
 
-** which-key
+* which-key
 #+BEGIN_SRC emacs-lisp
   (use-package which-key
     :general
@@ -1084,9 +1080,21 @@ Taken from DOOM
   ;; doom-city-lights
   ;; dom-ocean-next
 
+  ;; (use-package base16-themes)
+  ;; dune
+  ;; heath
+  ;; brewer
+  ;; bright
+  ;; chalk
+  ;; google-dark
+
   (use-package doom-themes
     :config
-    (load-theme 'doom-snazzy t))
+    (load-theme 'doom-1337 t))
+
+  ;; global-hl-line-mode and region have the same color so i change it here
+  (set-face-attribute 'region nil :background "#501818")
+  (set-face-attribute 'highlight nil :background "#454545")
 #+end_src
 
 ** Start-up maximized
@@ -1111,8 +1119,9 @@ Taken from DOOM
     (add-hook 'which-key-mode-hook #'(lambda () (blackout 'which-key-mode)))
     (add-hook 'git-gutter-mode-hook #'(lambda () (blackout 'git-gutter-mode)))
     (add-hook 'evil-commentary-mode-hook #'(lambda () (blackout 'evil-commentary-mode)))
-    (add-hook 'evil-cleverparens-mode-hook #'(lambda () (blackout 'evil-cleverparens-mode)))
-    (add-hook 'org-mode-hook #'(lambda () (blackout 'evil-org-mode) (blackout 'org-indent-mode))))
+    (add-hook 'smartparens-mode-hook #'(lambda () (blackout 'smartparens-mode)))
+    (add-hook 'org-mode-hook #'(lambda () (blackout 'evil-org-mode) (blackout 'org-indent-mode)))
+    (add-hook 'yas-minor-mode-hook #'(lambda () (blackout 'yas-minor-mode))))
 
 
 
@@ -1172,7 +1181,7 @@ Taken from DOOM:
   (use-package evil-org-mode
     :straight (evil-org-mode :type git :host github :repo "hlissner/evil-org-mode")
     :hook ((org-mode . evil-org-mode)
-           (org-mode . (lambda () 
+           (org-mode . (lambda ()
                          (require 'evil-org)
                          (evil-normalize-keymaps)
                          (evil-org-set-key-theme '(navigation
@@ -1184,8 +1193,8 @@ Taken from DOOM:
                          (require 'evil-org-agenda)
                          (evil-org-agenda-set-keys))))
     :bind
-    ([remap evil-org-org-insert-heading-respect-content-below] . +org/insert-item-below) ;; "<C-return>" 
-    ([remap evil-org-org-insert-todo-heading-respect-content-below] . +org/insert-item-above) ;; "<C-S-return>" 
+    ([remap evil-org-org-insert-heading-respect-content-below] . +org/insert-item-below) ;; "<C-return>"
+    ([remap evil-org-org-insert-todo-heading-respect-content-below] . +org/insert-item-above) ;; "<C-S-return>"
     :general
     ;; (insert
     ;;  'evil-org-mode-map
@@ -1195,7 +1204,7 @@ Taken from DOOM:
     ;;   "M-j" 'org-metaup)
     ;; ###HACK### here I will bind <return> in org-mode-map inset of in evil-org-mode-map
     (general-nmap
-      :keymaps 'org-mode-map 
+      :keymaps 'org-mode-map
       "<return>"   #'+org/dwim-at-point)
     :config
     (setq evil-org-retain-visual-state-on-shift t)
@@ -1407,7 +1416,7 @@ Taken from DOOM:
 
 NOTE - dired enhancement packages: dired-postframe, dired-git, dired-filter, dired-narow
 
-** dired 
+** dired
 #+begin_src emacs-lisp
   (use-package dired
     :straight (:type built-in)
@@ -1456,7 +1465,7 @@ NOTE - dired enhancement packages: dired-postframe, dired-git, dired-filter, dir
     )
 #+end_src
 
-** dired-sidebar
+** COMMENT dired-sidebar
 #+begin_src emacs-lisp
   (use-package dired-sidebar
     :commands (dired-sidebar-toggle-sidebar)
@@ -1491,8 +1500,8 @@ NOTE - dired enhancement packages: dired-postframe, dired-git, dired-filter, dir
     (setq dired-k-human-readable t)
     ;; so that dired-k plays nice with dired-subtree
     (advice-add 'dired-subtree-insert :after 'dired-k-no-revert))
-#+end_src 
- 
+#+end_src
+
 *** dired-subtree
 #+begin_src emacs-lisp
   (use-package dired-subtree
@@ -1504,7 +1513,7 @@ NOTE - dired enhancement packages: dired-postframe, dired-git, dired-filter, dir
                                                  (call-interactively #'revert-buffer))))
 #+end_src
 
-*** dired-reinbow 
+*** dired-reinbow
 #+begin_src emacs-lisp
   (use-package dired-rainbow
     :after dired
@@ -1582,10 +1591,54 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 ** olivetti
 #+begin_src emacs-lisp
   (use-package olivetti
+    :general
+    (lc/leader-keys
+      "t o" '(olivetti-mode :wk "olivetti"))
+    :defer t
+    :config
+    (setq olivetti-body-width 90))
+#+end_src
+
+** perspective
+#+begin_src emacs-lisp
+  (use-package perspective
     :defer t)
 #+end_src
 
+** hl-todo
+#+begin_src emacs-lisp
+  (use-package hl-todo
+    :hook (prog-mode . hl-todo-mode)
+    :general
+    (normal
+     "[t" 'hl-todo-previous
+     "]t" 'hl-todo-next)
+    :config
+    (setq hl-todo-highlight-punctuation ":")
+    (setq hl-todo-keyword-faces
+        '(("TODO"   . "#FF4500")
+          ("FIXME"  . "#FF0000")
+          ("DEBUG"  . "#A020F0")
+          ("GOTCHA" . "#FF4500")
+          ("STUB"   . "#1E90FF"))))
+#+end_src
+
 * Programing
+
+** Hooks for prog mode
+#+begin_src emacs-lisp
+  (add-hook 'prog-mode-hook #'visual-line-mode)
+#+end_src
+
+** COMMENT Eglot
+#+begin_src emacs-lisp
+  (straight-use-package 'xref)
+  (straight-use-package 'eldoc)
+  (use-package eglot
+    :config
+    (add-to-list 'eglot-server-programs '((web-mode :language-id "html") . ("html-languageserver")))
+    (add-to-list 'eglot-server-programs '((web-mode :language-id "html") . ("tailwindcss-language-server"))))
+#+end_src
 
 ** LSP
 #+BEGIN_SRC emacs-lisp
