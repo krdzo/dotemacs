@@ -463,9 +463,8 @@ Set =serbian-latin= to default input method.
     (general-setq ediff-split-window-function 'split-window-horizontally))
 #+end_src
 
-* Evil
-** evil
-*** evil mode
+* COMMENT Evil
+** evil mode
 Best VIM reference: https://countvajhula.com/2021/01/21/vim-tip-of-the-day-a-series/
 
 Search tricks:
@@ -507,9 +506,11 @@ in the rest of the file
       "th" 'evil-ex-nohighlight)
     (motion
      "<return>" nil
-     "RET" nil)
-    :init
-    (setq evil-want-C-i-jump t)
+     "ret" nil)
+    (normal
+     "U" 'evil-invert-char)
+   :init
+    (setq evil-want-C-i-jump nil)
     (setq evil-want-C-u-scroll t)
     (setq evil-want-integration t)
     (setq evil-want-keybinding nil)
@@ -526,10 +527,9 @@ in the rest of the file
     :config
     (evil-mode 1)
     (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
-    (define-key evil-motion-state-map "_" 'evil-end-of-line)
-    (define-key evil-motion-state-map "0" 'evil-beginning-of-line)
-    ;; (evil-set-initial-state 'messages-buffer-mode 'normal)
-    ;; (evil-set-initial-state 'dashboard-mode 'normal)
+    (general-def normal
+      "q" nil
+      "Q" 'evil-record-macro)
     ;; don't move cursor after ==
     (defun lc/evil-dont-move-cursor (orig-fn &rest args)
       (save-excursion (apply orig-fn args)))
@@ -545,26 +545,26 @@ in the rest of the file
     ;; Need to type out :quit to close emacs
     (evil-ex-define-cmd "quit" 'kill-buffer-and-window)
 
-    ;; Pretty collors
+    ;; Pretty collors for point
     (setq evil-motion-state-cursor "#bb1111")
     (setq evil-normal-state-cursor "#eeeeee")
     (setq evil-emacs-state-cursor "#ee6622")
-    (setq evil-insert-state-cursor '(bar "#ff1547"))
-    )
+    (setq evil-insert-state-cursor '(bar "#ff1547")))
+
 #+END_SRC
 
-*** evil-collection
+** evil-collection
 #+BEGIN_SRC emacs-lisp
   (use-package evil-collection
     :after evil
-      :init
-      (setq evil-collection-company-use-tng nil) ;; for lsp tng must be nil
-      (setq evil-collection-magit-use-z-for-folds nil)
+    :init
+    (setq evil-collection-company-use-tng nil) ; for lsp tng must be nil
+    (setq evil-collection-magit-use-z-for-folds nil)
     :config
     (evil-collection-init))
 #+END_SRC
 
-*** evil-anzu
+** evil-anzu
 Shows how many matches is in a search.
 
 #+begin_src emacs-lisp
@@ -574,7 +574,7 @@ Shows how many matches is in a search.
     (global-anzu-mode))
 #+end_src
 
-*** evil-commentary
+** evil-commentary
 
 #+begin_src emacs-lisp
   (use-package evil-commentary
@@ -587,9 +587,9 @@ Shows how many matches is in a search.
     (evil-commentary-mode 1))
 #+end_src
 
-*** eval operator
+** eval operator
 This section provides a custom eval operator, accessible with =gr=.
-This gives you super powers when coupled with custom text objects (provided by  [[*evil-indent-plus][evil-indent-plus]]  and [[*evil-cleverparens][evil-cleverparens]] )
+This gives you super powers when coupled with custom text objects (provided by  [[*evil-indent-plus][evil-indent-plus]]  and evil-cleverparens )
 
 For example:
 - =grab= evals the form at point
@@ -2146,4 +2146,198 @@ Configuration is not finished
     :config
     (setq popper-group-function nil))
 
+#+end_src
+
+* CV
+#+begin_src emacs-lisp
+  (use-package ox-moderncv
+    :straight nil
+    :load-path "/home/ivan/git/org-cv/"
+    :init (require 'ox-moderncv))
+
+#+end_src
+
+* COMMENT Proba
+
+Ovde kad hocu nesto da probam/debagujem.
+
+#+begin_src emacs-lisp
+  ;; (use-package smartparens
+  ;;   :config
+  ;;   (require 'smartparens-config))
+
+  (use-package parinfer-rust-mode
+    :init
+    (setq parinfer-rust-library-directory
+          (expand-file-name "./var/parinfer-rust/" user-emacs-directory)))
+#+end_src
+
+* mewo proba
+#+begin_src emacs-lisp
+  (defun kr-meow-append ()
+    "Correct append to go to insert mode after point."
+    (unless (= (line-end-position) (point))
+        (forward-char 1)))
+  (advice-add 'meow-append :after #'kr-meow-append)
+
+  (defun kr-meow-insert-exit ()
+    "Change `meow-insert-exit' to exit before point like evil/vim."
+    (unless (= (line-beginning-position) (point))
+      (backward-char 1)))
+  ;; (advice-add 'meow-insert-exit :after #'ispravi-meow-insert-exit)
+
+
+  (defun kr-na-pocetak-linije ()
+    "Go to beginning of the line and enter intsert mode"
+    (interactive)
+    (back-to-indentation)
+    (meow-insert))
+
+  (defun kr-na-kraj-linije ()
+    "Go to end of the line and go to insert state"
+    (interactive)
+    (end-of-visual-line)
+    (meow-append))
+
+  (defun kr-meow-save-line ()
+    (interactive)
+    (save-excursion
+      (call-interactively #'meow-line)
+      (call-interactively #'meow-save)))
+
+  (defun meow-setup ()
+    "My meow setup thats similar to evil/vim"
+    (meow-motion-overwrite-define-key
+     '("j" . meow-next)
+     '("k" . meow-prev))
+    (meow-leader-define-key
+     ;; SPC j/k will run the original command in MOTION state.
+     '("j" . "H-j")
+     '("k" . "H-k")
+     '("g" . nil)
+     '("gg" . magit-status)
+     ;; Use SPC (0-9) for digit arguments.
+     '("1" . meow-digit-argument)
+     '("2" . meow-digit-argument)
+     '("3" . meow-digit-argument)
+     '("4" . meow-digit-argument)
+     '("5" . meow-digit-argument)
+     '("6" . meow-digit-argument)
+     '("7" . meow-digit-argument)
+     '("8" . meow-digit-argument)
+     '("9" . meow-digit-argument)
+     '("0" . meow-digit-argument)
+     '("?" . meow-cheatsheet)
+     '("/" . meow-keypad-describe-key))
+    (meow-normal-define-key
+     '("A" . kr-na-kraj-linije)
+     '("I" . kr-na-pocetak-linije)
+
+     '("0" . meow-expand-0)
+     '("9" . meow-expand-9)
+     '("8" . meow-expand-8)
+     '("7" . meow-expand-7)
+     '("6" . meow-expand-6)
+     '("5" . meow-expand-5)
+     '("4" . meow-expand-4)
+     '("3" . meow-expand-3)
+     '("2" . meow-expand-2)
+     '("1" . meow-expand-1)
+     '("-" . negative-argument)
+     '("[" . meow-beginning-of-thing)
+     '("]" . meow-end-of-thing)
+
+     '("q" . meow-cancel-selection)
+     '("u" . meow-undo)
+     '("U" . meow-undo-in-selection)
+     '("y" . meow-save)
+     '("Y" . kr-meow-save-line)
+
+     '("p" . meow-yank)
+     '("i" . meow-insert)
+     '("a" . meow-append)
+
+     '("j" . meow-next)
+     '("k" . meow-prev)
+     '("h" . meow-left)
+     '("l" . meow-right)
+
+     '("J" . meow-next-expand)
+     '("K" . meow-prev-expand)
+     '("H" . meow-left-expand)
+     '("L" . meow-right-expand)
+     '("c" . meow-change)
+     '("o" . meow-open-below)
+     '("O" . meow-open-above)
+     '("x" . kr-meow-delete-or-kill-on-selection)
+     '("X" . meow-backward-delete)
+     '("w" . meow-mark-word)
+     '("W" . meow-mark-symbol)
+     '("n" . meow-search)
+     '("D" . meow-kill-whole-line)
+     '("d" . meow-kill)
+     '("/" . meow-visit)
+
+     '("e" . meow-next-word)
+     '("E" . meow-next-symbol)
+     '(";" . meow-reverse)
+     '("," . meow-inner-of-thing)
+     '("." . meow-bounds-of-thing)
+     '("[" . meow-beginning-of-thing)
+     '("]" . meow-end-of-thing)
+     '("b" . meow-back-word)
+     '("B" . meow-back-symbol)
+     '("V" . meow-line)
+
+
+     '("gg" . beginning-of-buffer)
+     '("G" . end-of-buffer)))
+
+  (defun kr-meow-delete-or-kill-on-selection ()
+    "If selection is active then call `meow-kill' insted `meow-delete'"
+    (interactive)
+    (if meow--selection
+        (call-interactively #'meow-kill)
+      (call-interactively  #'meow-delete)))
+
+  ;; (defun meow-setup ()
+  ;;   (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
+  ;;   (meow-normal-define-key
+  ;;    '("f" . meow-find)
+  ;;    '("G" . meow-grab)
+  ;;    '("m" . meow-join)
+  ;;    '("o" . meow-block)
+  ;;    '("O" . meow-to-block)
+  ;;    '("q" . meow-quit)
+  ;;    '("Q" . meow-goto-line)
+  ;;    '("r" . meow-replace)
+  ;;    '("R" . meow-swap-grab)
+  ;;    '("t" . meow-till)
+  ;;    '("v" . meow-visit)
+  ;;    '("w" . meow-mark-word)
+  ;;    '("W" . meow-mark-symbol)
+  ;;    '("x" . meow-line)
+  ;;    '("X" . meow-goto-line)
+  ;;    '("y" . meow-save)
+  ;;    '("Y" . meow-sync-grab)
+  ;;    '("z" . meow-pop-selection)
+  ;;    '("'" . repeat)
+  ;;    '("<escape>" . mode-line-other-buffer)))
+
+  (use-package meow
+    :init
+    :config
+    (setq meow-keypad-ctrl-meta-prefix ?a)
+    (setq meow-mode-state-list (delete '(help-mode . normal) meow-mode-state-list))
+    (add-to-list 'meow-char-thing-table '(?\( . round))
+    (meow-setup)
+    (meow-global-mode 1))
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+  (setq mark-ring nil)
+  (car mark-ring)
+  (goto-char (car mark-ring))
+  (meow-normal-define-key
+   '("%" . evilmi-jump-items))
 #+end_src
