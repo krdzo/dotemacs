@@ -303,6 +303,7 @@ Used by DOOM to manage garbage collection
 #+end_src
 
 ** helpful
+
 #+BEGIN_SRC emacs-lisp
   (use-package helpful
     :after evil
@@ -2162,8 +2163,6 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
      ;; SPC j/k will run the original command in MOTION state.
      '("j" . "H-j")
      '("k" . "H-k")
-     '("g" . nil)
-     '("gg" . magit-status)
      ;; Use SPC (0-9) for digit arguments.
      '("1" . meow-digit-argument)
      '("2" . meow-digit-argument)
@@ -2275,12 +2274,37 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
   (use-package meow
     :init
     :config
-    (setq meow-keypad-ctrl-meta-prefix ?a)
     (setq meow-mode-state-list (delete '(help-mode . normal) meow-mode-state-list))
     (add-to-list 'meow-char-thing-table '(?\( . round))
     (meow-setup)
     (meow-global-mode 1))
 #+end_src
+
+Binding for meow with genearl.el
+
+#+begin_src emacs-lisp
+
+  (general-create-definer kr-define-meow-leader-keys
+    :keymaps 'meow-leader-keymap)
+
+  ;; buffer
+  (kr-define-meow-leader-keys
+    "bd" 'kill-current-buffer
+    "br" 'revert-buffer
+    "bb" 'consult-buffer
+    "bs" '((lambda () (interactive)
+             (switch-to-buffer "*scratch*"))
+           :wk "scratch"))
+
+  ;; window
+  (kr-define-meow-leader-keys
+    "wd" 'delete-window
+    "ws" 'split-window-below
+    "wv" 'split-window-right)
+
+#+end_src
+
+** meow palyground
 
 #+begin_src emacs-lisp :tangle no
   (setq mark-ring nil)
