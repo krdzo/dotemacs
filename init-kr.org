@@ -307,15 +307,14 @@ Used by DOOM to manage garbage collection
 #+BEGIN_SRC emacs-lisp
   (use-package helpful
     :after evil
-    :init
-    (setq evil-lookup-func #'helpful-at-point)
     :config
     (add-hook 'helpful-mode-hook 'visual-line-mode)
     :general
     ([remap describe-function] 'helpful-callable
      [remap describe-command] 'helpful-command
      [remap describe-variable] 'helpful-variable
-     [remap describe-key] 'helpful-key))
+     [remap describe-key] 'helpful-key
+     "C-x M-k" 'helpful-at-point))
 #+END_SRC
 
 ** elisp-demos
@@ -1637,8 +1636,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     :commands
     (lsp lsp-deferred)
     :hook
-    ((lsp-mode . (lambda () (setq-local evil-lookup-func #'lsp-describe-thing-at-point)))
-     (lsp-mode . lsp-enable-which-key-integration)
+    ((lsp-mode . lsp-enable-which-key-integration)
      (lsp-mode . evil-normalize-keymaps)
      (c-mode . lsp)
      (js-mode . lsp)
@@ -1662,6 +1660,9 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     :init
     (setq lsp-keymap-prefix "C-c l")
     :config
+    (general-def
+      :keymaps 'local
+      "C-x M-k" 'lsp-describe-thing-at-point)
     (setq lsp-lens-enable t))
 
     ;; (setq lsp-restart 'ignore)
@@ -2236,7 +2237,7 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
      '("B" . meow-back-symbol)
      '("V" . meow-line)
 
-
+     '("M-h" . "C-x M-k")
      '("gg" . beginning-of-buffer)
      '("G" . end-of-buffer)))
 
