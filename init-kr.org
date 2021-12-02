@@ -4,7 +4,7 @@
 
 
 * Introduction
-This config is primarily inspired from [[phttps://www.lucacambiaghi.com/vanilla-emacs/readme.html#h:16B948EA-5375-44DE-ACD7-3664D4A9CE5F][here]] and most of this is directly taken from there.
+This config is primarily inspired from [[https://www.lucacambiaghi.com/vanilla-emacs/readme.html#h:16B948EA-5375-44DE-ACD7-3664D4A9CE5F][here]] and most of this is directly taken from there.
 
 * Bootstrap straight.el
 
@@ -13,7 +13,7 @@ I'm using straight in combination with use-package for package management.
 Some rules/conventions:
 - Prefer ~:init~ to ~:custom~. Prefer multiple ~setq~ expressions to one.
 - Default to ~:defer t~, use ~:demand~ to force loading
-- When packages do not require installation e.g. ~dired~, we need ~:straight (:type built-in)~ 
+- When packages do not require installation e.g. ~dired~, we need ~:straight (:type built-in)~
 - If you specify ~:commands~, they will be autoloaded and the package will be loaded when the commands are first executed
     + If you use ~:general~ and bind commands to keys it will automatically load the package on first invokation
 
@@ -22,6 +22,7 @@ block but that package is used as a dependency is used in a previous
 ~use-package~ block with a ~melpa~ recipe, you will get a warning. Just make
 sure to declare the "base" package with the ~github~ recipe first.
 
+NOTE: for ~straight-cache-autoloads~ you must run ~straight-prune-build~ ocaisonaly so that you keep you straight config clean.
 #+begin_src emacs-lisp
   (setq straight-use-package-by-default t)
   (setq straight-vc-git-default-clone-depth 1)
@@ -60,8 +61,8 @@ list. You can use S in a column to sort the rows based on it.
   (global-set-key (kbd "C-x C-p") 'use-package-report)
 #+END_SRC
 
-* Keybindings - General.el
-For uniform keybinding. 
+* General.el
+For uniform keybinding.
 In this block we load ~general~ and define bindings for generic commands e.g. ~find-file~.
 The commands provided by packages should be binded in the ~use-package~ block,
 thanks to the ~:general~ keyword.
@@ -217,7 +218,7 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
     ;;       auto-save-default nil
     ;;       create-lockfiles nil)
 
-    ;; follow symlinks 
+    ;; follow symlinks
     (setq vc-follow-symlinks t)
 
     ;; don't show any extra window chrome
@@ -281,16 +282,25 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 
     ;; Maybe gives some optimization
     (add-hook 'focus-out-hook #'garbage-collect)
-    )
+
+    ;; delete whitespace
+    (add-hook 'before-save-hook #'whitespace-cleanup))
+
 #+END_SRC
 
 ** Garbage collector magic hack
 Used by DOOM to manage garbage collection
 #+BEGIN_SRC emacs-lisp
-(use-package gcmh
-  :config
-  (gcmh-mode 1))
+  (use-package gcmh
+    :config
+    (gcmh-mode 1)
+    (setq gcmh-idle-delay 5))
 #+END_SRC
+
+** help
+#+begin_src emacs-lisp
+  (add-hook 'help-mode-hook 'visual-line-mode)
+#+end_src
 
 ** helpful
 #+BEGIN_SRC emacs-lisp
@@ -298,6 +308,8 @@ Used by DOOM to manage garbage collection
     :after evil
     :init
     (setq evil-lookup-func #'helpful-at-point)
+    :config
+    (add-hook 'helpful-mode-hook 'visual-line-mode)
     :general
     ([remap describe-function] 'helpful-callable
      [remap describe-command] 'helpful-command
@@ -355,10 +367,10 @@ Used by DOOM to manage garbage collection
     :straight (:type built-in)
     :after no-littering
     :config
-    (save-place-mode 1)) 
+    (save-place-mode 1))
 #+end_src
 
-** Configurating so-long.el 
+** Configurating so-long.el
 When emacs load files with long lines it can block or crash so this minor mode
 is there to prevent it from doing that.
 
@@ -394,7 +406,7 @@ You can save files to registers. When you want to open a file from register pres
 ** Writing Languages
 
 *** Serbian
-I making a custom input method for Serbian language because all the other methods that exist are stupid. 
+I making a custom input method for Serbian language because all the other methods that exist are stupid.
 [[https://satish.net.in/20160319/][Reference how to make custom input method]].
 
 #+begin_src emacs-lisp
@@ -461,27 +473,27 @@ Search tricks:
 - Use the =gn= noun to, for example, change next match with =cgn=
 
 Some interesting vim nouns:
-- =_= :: first character in the line (synonym to =^=)
-- =g_= :: last character on the line (synonym to =$=)
-  
+- =_= : first character in the line (synonym to =^=)
+- =g_= : last character on the line (synonym to =$=)
+
 Marks:
-- =ma= :: mark a position in buffer and save it to register ~a~
-- ='a= :: go to mark ~a~
-- =mA= :: mark position and filename                              [
-- =]'= :: go to next mark
-- =''= :: go back to previous mark (kept track automatically)
-- =g;= :: go to previous change location
-  + =gi= :: go back to insert mode where you left off
-- =C-o= :: jump (out) to previous position (useful after =gd=)
-- =C-i= :: jump (in) to previous position
+- =ma= : mark a position in buffer and save it to register ~a~
+- ='a= : go to mark ~a~
+- =mA= : mark position and filename                              [
+- =]'= : go to next mark
+- =''= : go back to previous mark (kept track automatically)
+- =g;= : go to previous change location
+  + =gi= : go back to insert mode where you left off
+- =C-o= : jump (out) to previous position (useful after =gd=)
+- =C-i= : jump (in) to previous position
 
 Macros:
-- =qq= :: record macro ~q~
-- =@q= :: execute macro ~q~
+- =QQ= : record macro ~Q~
+- =@Q= : execute macro ~Q~
 
 Registers:
-- ="ayio= :: save object in register ~a~                              "
-- ="ap= :: paste object in register ~a~                                "
+- ="ayio= : save object in register ~a~                              "
+- ="ap= : paste object in register ~a~                                "
   + Macros are saved in registers so you can simply ="qp= and paste your macro!!          "
 
 NOTE: I inserted the above quotes because the single double quotes were breaking my VIM object detection
@@ -759,7 +771,7 @@ Keybindings:
     :after selectrum
     :config
     (prescient-persist-mode 1))
-  
+
   (use-package selectrum-prescient
     :after (prescient selectrum)
     :config
@@ -797,7 +809,7 @@ and the second filter to the completion-style filtering (?).
       "s s" 'consult-line
       "s p" '(consult-ripgrep :wk "ripgrep project")
       "b b" 'consult-buffer
-      ;; TODO consult mark
+      ;; TODO: consult mark
       ;; "f r" 'consult-recent-file
       "s !" '(consult-flymake :wk "flymake"))
     :init
@@ -844,7 +856,7 @@ and the second filter to the completion-style filtering (?).
   ;; auto-updating embark collect buffer
   ;; :hook
   ;; (embark-collect-mode . embark-consult-preview-minor-mode)
-	)
+    )
 #+end_src
 
 ** wgrep
@@ -882,9 +894,9 @@ or a function across files in the project.
   ;;   ;; :demand
   ;;   :general
   ;;   (company-mode-map
-  ;; 	 :states 'insert
+  ;;     :states 'insert
   ;;    "TAB" 'company-indent-or-complete-common
-  ;; 	 )
+  ;;     )
   ;;   :init
   ;;   (setq company-tooltip-align-annotations t)
   ;;   (setq company-tooltip-maximum-width 50
@@ -970,7 +982,7 @@ Taken from DOOM
                 ((symbolp sym) 'Text)
                 (t . nil)))))
     (advice-add #'company-box-icons--elisp :override #'my-company-box-icons--elisp))
-  
+
   (declare-function all-the-icons-faicon 'all-the-icons)
   (declare-function all-the-icons-material 'all-the-icons)
   (declare-function all-the-icons-octicon 'all-the-icons)
@@ -1060,7 +1072,6 @@ Taken from DOOM
 ** Themes
 
 #+begin_src emacs-lisp
-
   ;; list of ok themes:
   ;; doom-dark+
   ;; doom-hena
@@ -1116,6 +1127,7 @@ Taken from DOOM
 
 #+begin_src emacs-lisp
   (use-package org
+    :straight nil
     :general
     (normal
      org-mode-map
@@ -1518,7 +1530,7 @@ NOTE - dired enhancement packages: dired-postframe, dired-git, dired-filter, dir
     (dired-rainbow-define-chmod executable-unix "#38c172" "-.*x.*"))
 #+end_src
 
-* No sort packages
+* Uncategorized packages
 Here are packages that don't belong to any category.
 
 ** ibuffer
@@ -1607,7 +1619,6 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     ;; (setq lsp-auto-execute-action nil)
     ;; (setq lsp-before-save-edits nil)
     ;; (setq lsp-diagnostics-provider :flymake)
-  
 #+END_SRC
 
 ** Git
@@ -1734,6 +1745,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     (python-mode . tree-sitter-hl-mode)
     ;; (web-mode . tree-sitter-hl-mode)
     (css-mode . tree-sitter-hl-mode)
+    (go-mode . tree-sitter-hl-mode)
     :config
     (add-to-list 'tree-sitter-major-mode-language-alist '(web-mode . html))
     (use-package tree-sitter-langs))
@@ -1902,7 +1914,7 @@ Slime IDE for CommonLisp
   detaljno tj. sa svim argumentima itd.
 + =C-x <ESC> <ESC>= ~(repeat-complex-command)~ - daje mogućnost da ponoviš poslednju
   komandu sa promenjenim ili istim argumentima.
-+ ~(apropos-user-option)~ - Search for user-customizable variables.  With a prefix 
++ ~(apropos-user-option)~ - Search for user-customizable variables.  With a prefix
   argument, search for non-customizable variables too.
 + ~(apropos-variable)~ - Search for variables.  With a prefix argument, search for
   customizable variables only.
@@ -1952,7 +1964,6 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
 
 Poper is used to configure where a window will open.
 Configuration is not finished
-
 
 
 #+begin_src emacs-lisp
