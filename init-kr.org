@@ -1995,38 +1995,9 @@ Evil object for html attributes:
 
 *** common Lisp
 
-
 Seting ~sbcl~ to be default interpreter for lisp.
 #+begin_src emacs-lisp
   (setq inferior-lisp-program "sbcl")
-#+end_src
-
-Slime IDE for CommonLisp.
-#+begin_src emacs-lisp :tangle no
-  (defun kr/slime-describe-symbol ()
-    "Hack so that `slime-describe-symbol' works with `evil-lookup'"
-    (interactive)
-    (slime-describe-symbol (thing-at-point 'symbol t)))
-
-  (use-package slime
-    :defer t
-    :general
-    (slime-repl-mode-map
-      "M-k" 'slime-repl-previous-input
-      "M-j" 'slime-repl-next-input)
-    :hook
-    (slime-mode . (lambda () (setq-local evil-lookup-func 'kr/slime-describe-symbol)))
-    (slime-repl-mode . (lambda () (setq-local evil-lookup-func 'kr/slime-describe-symbol)))
-    :init
-    :config
-    (slime-setup '(slime-fancy slime-quicklisp slime-asdf slime-company))
-    (sp-local-pair '(slime-repl-mode) "'" ""))
-
-
-  (use-package slime-company
-    :after (slime company)
-    :config (setq slime-company-completion 'fuzzy))
-
 #+end_src
 
 Sly the better SLIME.
