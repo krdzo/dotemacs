@@ -1630,16 +1630,6 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
   (add-hook 'prog-mode-hook #'visual-line-mode)
 #+end_src
 
-** COMMENT Eglot
-#+begin_src emacs-lisp
-  (straight-use-package 'xref)
-  (straight-use-package 'eldoc)
-  (use-package eglot
-    :config
-    (add-to-list 'eglot-server-programs '((web-mode :language-id "html") . ("html-languageserver")))
-    (add-to-list 'eglot-server-programs '((web-mode :language-id "html") . ("tailwindcss-language-server"))))
-#+end_src
-
 ** LSP
 #+BEGIN_SRC emacs-lisp
   (use-package lsp-mode
@@ -2093,7 +2083,6 @@ Sly the better SLIME.
 - 38. do 47. preskočeno
 - 49.3.10. i 49.3.11. preskočeno
 
-
 *** Korisne Info strane da se opet procitaju
 16.4 O spellcheck-u
 26.2.3 imunu
@@ -2122,54 +2111,13 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
 - instant-rename-tag
 - epaint
 
-** Popper
-
-Poper is used to configure where a window will open.
-Configuration is not finished
-
-
-#+begin_src emacs-lisp
-  (use-package popper
-    :disabled
-    :general
-    ("C-`"    'popper-toggle-latest
-     "C-1"    'popper-cycle
-     "C-M-`"  'popper-toggle-type)
-    :ini
-    (setq popper-reference-buffers
-          '("\\*Messages\\*"
-            "Output\\*$"
-            "\\*.*eshell\\*$"
-            compilation-mode))
-    (setq popper-display-control nil)
-    (popper-mode +1)
-    :config
-    (setq popper-group-function nil))
-
-#+end_src
-
-* CV
+* COMMENT CV
 #+begin_src emacs-lisp
   (use-package ox-moderncv
     :straight nil
     :load-path "/home/ivan/git/org-cv/"
     :init (require 'ox-moderncv))
 
-#+end_src
-
-* COMMENT Proba
-
-Ovde kad hocu nesto da probam/debagujem.
-
-#+begin_src emacs-lisp
-  ;; (use-package smartparens
-  ;;   :config
-  ;;   (require 'smartparens-config))
-
-  (use-package parinfer-rust-mode
-    :init
-    (setq parinfer-rust-library-directory
-          (expand-file-name "./var/parinfer-rust/" user-emacs-directory)))
 #+end_src
 
 * mewo proba
