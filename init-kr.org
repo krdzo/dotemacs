@@ -341,7 +341,8 @@ Used by DOOM to manage garbage collection
     (setq auto-save-file-name-transforms
           `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
     (setq custom-file (no-littering-expand-etc-file-name "custom.el"))
-    (load-file custom-file))
+    (when (file-exists-p custom-file)
+      (load-file custom-file)))
 
 #+end_src
 
