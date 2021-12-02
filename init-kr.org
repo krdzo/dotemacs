@@ -1869,6 +1869,19 @@ Slime IDE for CommonLisp
 #+begin_src emacs-lisp
   (use-package web-selectors
     :straight  (web-selectors :type git :host github :repo "krdzo/web-selectors")
+
+** Languages
+
+*** Python
+#+begin_src emacs-lisp
+  (use-package lsp-pyright
+    :defer
+    :ensure t
+    :hook (python-mode . (lambda ()
+                           (require 'lsp-pyright)
+                           (lsp))))  ; or lsp-deferred
+#+end_src
+
     :defer t
     :init
     (add-hook 'css-mode-hook
