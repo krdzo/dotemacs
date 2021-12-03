@@ -2,7 +2,6 @@
 #+author: Krdzo
 #+startup: fold
 
-
 * Introduction
 This config is primarily inspired from [[https://www.lucacambiaghi.com/vanilla-emacs/readme.html#h:16B948EA-5375-44DE-ACD7-3664D4A9CE5F][here]] and most of this is directly taken from there.
 
@@ -887,25 +886,8 @@ or a function across files in the project.
 - don't press =RET= to confirm
 
 #+BEGIN_SRC emacs-lisp
-  ;; (use-package company
-  ;;   ;; :demand
-  ;;   :general
-  ;;   (company-mode-map
-  ;;     :states 'insert
-  ;;    "TAB" 'company-indent-or-complete-common
-  ;;     )
-  ;;   :init
-  ;;   (setq company-tooltip-align-annotations t)
-  ;;   (setq company-tooltip-maximum-width 50
-  ;;         company-tooltip-minimum-width 50)
-  ;;   )
-
   (use-package company-mode
     :hook (after-init . global-company-mode)
-    :general
-    (general-imap company-active-map
-      "<tab>" 'company-indent-or-complete-common
-      "TAB" 'company-indent-or-complete-common)
     :init
     (setq completion-styles '(basic partial-completion flex))
 
@@ -920,35 +902,11 @@ or a function across files in the project.
                                      helpful-mode
                                      gud-mode))
 
-    ;; (setq company-auto-complete nil)
-    ;; (setq company-auto-complete-chars nil)
-
-    (setq company-backends '((company-capf company-keywords company-files :with company-yasnippet)))
-
-    :config
-    (with-eval-after-load 'evil
-      (add-hook 'company-mode-hook #'evil-normalize-keymaps))
-    ;; needed in case we only have one candidate
-    (define-key company-active-map (kbd "C-j") 'company-select-next))
-
+    (setq company-backends '((company-capf company-keywords company-files :with company-yasnippet))))
 
     ;; icons with company
     ;; (setq company-format-margin-function #'company-vscode-light-icons-margin)
 
-
-
-  ;; here just to remember some variables
-  ;; company-tooltip-align-annotations
-  ;; company-auto-commit
-  ;; company-search-filtering
-  ;; company-dabbrev-other-buffers
-  ;; company-abort-manual-when-too-short
-  ;; company-prescient-sort-length-enable
-
-
-  ;; korisne company funkcije
-  ;; company-show-location
-  ;; company-complete-commot-or-cycle
 #+END_SRC
 
 *** company prescient
@@ -2106,7 +2064,6 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
     (unless (= (line-beginning-position) (point))
       (backward-char 1)))
   ;; (advice-add 'meow-insert-exit :after #'ispravi-meow-insert-exit)
-
 
   (defun kr-na-pocetak-linije ()
     "Go to beginning of the line and enter intsert mode"
