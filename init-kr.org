@@ -384,20 +384,13 @@ is there to prevent it from doing that.
 #+end_src
 
 ** File registers
-
-You can save files to registers. When you want to open a file from register press
-~~SPC fr~ and it will open the file that is bound to that register.
-#+begin_src emacs-lisp
-  (kr/leader-keys
-    "fr" 'jump-to-register)
-#+end_src
-
 *** Open config
 
 #+begin_src emacs-lisp
   (set-register ?c `(file . ,(expand-file-name kr/config-org user-emacs-directory)))
   (set-register ?i `(file . ,(expand-file-name "init.el" user-emacs-directory)))
 #+end_src
+
 *** Personal
 #+begin_src emacs-lisp
   (set-register ?t `(file . "~/Documents/from-home/terapija.org"))
@@ -2209,13 +2202,17 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
     (meow-global-mode 1))
 #+end_src
 
-Binding for meow with genearl.el
-
+** General meow definders
 #+begin_src emacs-lisp
-
   (general-create-definer kr-define-meow-leader-keys
     :keymaps 'meow-leader-keymap)
+  (general-create-definer kr-define-meow-normal-keys
+    :keymaps 'meow-normal-state-keymap)
+#+end_src
 
+** SPC normal meow
+
+#+begin_src emacs-lisp
   ;; buffer
   (kr-define-meow-leader-keys
     "bd" 'kill-current-buffer
@@ -2229,11 +2226,44 @@ Binding for meow with genearl.el
   (kr-define-meow-leader-keys
     "wd" 'delete-window
     "ws" 'split-window-below
+    "ww" 'other-window
+    "wo" 'delete-other-windows
     "wv" 'split-window-right)
+
+  ;; register
+  (kr-define-meow-leader-keys
+    "fr" 'jump-to-register)
+#+end_src
+
+** (g) menu options
+
+#+begin_src emacs-lisp
+  (kr-define-meow-normal-keys
+    "gf" 'find-file-at-point)
+#+end_src
+
+** company meow bindings
+
+#+begin_src emacs-lisp
+  (general-def company-active-map
+    "C-j" 'company-select-next-or-abort
+    "C-k" 'company-select-previous-or-abort
+    "M-h" 'company-show-doc-buffer)
+#+end_src
+
+** [ and ] modification for meow
+#+begin_src emacs-lisp
+  (kr-define-meow-normal-keys
+    "[" (general-key-dispatch 'meow-beginning-of-thing
+          "t" 'hl-todo-previous
+          "g" 'git-gutter:previous-hunk)
+    "]" (general-key-dispatch 'meow-end-of-thing
+          "t" 'hl-todo-next
+          "g" 'git-gutter:next-hunk))
 
 #+end_src
 
-** meow palyground
+** COMMENT meow palyground
 
 #+begin_src emacs-lisp :tangle no
   (setq mark-ring nil)
@@ -2241,4 +2271,7 @@ Binding for meow with genearl.el
   (goto-char (car mark-ring))
   (meow-normal-define-key
    '("%" . evilmi-jump-items))
+
+  (meow-normal-define-key
+   '("[t" .))
 #+end_src
