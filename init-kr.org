@@ -2045,9 +2045,10 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
 #+end_src
 
 * mewo proba
+** Meow
 #+begin_src emacs-lisp
   (defun kr-meow-append ()
-    "Correct append to go to insert mode after point."
+    "Make `meow-append' behavior similar to evil-append."
     (unless (= (line-end-position) (point))
         (forward-char 1)))
   (advice-add 'meow-append :after #'kr-meow-append)
@@ -2157,6 +2158,8 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
      '("b" . meow-back-word)
      '("B" . meow-back-symbol)
      '("V" . meow-line)
+     '("f" . meow-find)
+     '("t". meow-till)
 
      '("M-h" . "C-x M-k")
      '("gg" . beginning-of-buffer)
@@ -2172,7 +2175,7 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
   ;; (defun meow-setup ()
   ;;   (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
   ;;   (meow-normal-define-key
-  ;;    '("f" . meow-find)
+
   ;;    '("G" . meow-grab)
   ;;    '("m" . meow-join)
   ;;    '("o" . meow-block)
@@ -2181,8 +2184,8 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
   ;;    '("Q" . meow-goto-line)
   ;;    '("r" . meow-replace)
   ;;    '("R" . meow-swap-grab)
-  ;;    '("t" . meow-till)
-  ;;    '("v" . meow-visit)
+
+
   ;;    '("w" . meow-mark-word)
   ;;    '("W" . meow-mark-symbol)
   ;;    '("x" . meow-line)
@@ -2197,7 +2200,18 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
     :init
     :config
     (setq meow-mode-state-list (delete '(help-mode . normal) meow-mode-state-list))
-    (add-to-list 'meow-char-thing-table '(?\( . round))
+    (setq meow-char-thing-table '((?\( . round)
+                                  (?\[ . square)
+                                  (?\{ . curly)
+                                  (?s . string)
+                                  (?W . symbol)
+                                  (?b . buffer)
+                                  (?p . paragraph)
+                                  (?w . word)
+                                  (?l . line)
+                                  (?d . defun)
+                                  (?x . extend)
+                                  (?i . indent)))
     (meow-setup)
     (meow-global-mode 1))
 #+end_src
