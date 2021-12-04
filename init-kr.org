@@ -76,23 +76,12 @@ for every keybinding and in ~use-package~ blocks.
 
     ;; leaders for general
     (general-create-definer kr/leader-keys
-      :states '(normal insert visual emacs)
-      :keymaps 'override
-      :prefix "SPC"
-      :global-prefix "C-SPC")
-
-    (general-create-definer kr/local-leader-keys
       :states '(normal visual)
       :keymaps 'override
-      :prefix ","
-      :global-prefix "SPC m")
+      :prefix "SPC")
 
-
-    (general-nmap "gD" '(xref-find-references :wk "references"))
-
-    (kr/leader-keys
+   (kr/leader-keys
       "<escape>" 'keyboard-escape-quit
-
 
       "b" '(:ignore t :which-key "buffer")
       "br" 'revert-buffer
@@ -100,31 +89,17 @@ for every keybinding and in ~use-package~ blocks.
       "bs" '((lambda () (interactive)
                (switch-to-buffer "*scratch*"))
              :wk "scratch")
-      ;; maybe better option for *scratch*
-      ;; "bs" '((lambda () (interactive)
-      ;;          (pop-to-buffer "*scratch*"))
-      ;;        :wk "scratch")
-
 
       "f" '(:ignore t :which-key "file")
       "ff" 'find-file
       "fs" 'save-buffer
       "fD" 'dired-jump
       "fS" 'write-file
-      ;; "fR" '(lc/rename-current-file :wk "rename")
-      ;; "fD" '((lambda () (interactive) (delete-file (buffer-file-name))) :wk "delete")
-
-      "g" '(:ignore t :which-key "git")
-      ;; keybindings defined in magit
-
 
       "t"  '(:ignore t :which-key "toggle")
       "td" '(toggle-debug-on-error :which-key "debug on error")
       "tl" '(display-line-numbers-mode :wk "line numbers")
       "tw" '(toggle-truncate-lines :wk "word wrap")
-      ;; "t +" '(lc/increase-font-size :wk "+ font")
-      ;; "t -" '(lc/decrease-font-size :wk "- font")
-      ;; "t 0" '(lc/reset-font-size :wk "reset font")
 
       "u" '(universal-argument :wk "universal")
 
@@ -497,8 +472,7 @@ in the rest of the file
     (kr/leader-keys
       "th" 'evil-ex-nohighlight)
     (motion
-     "<return>" nil
-     "ret" nil)
+     "<return>" nil)
     (normal
      "U" 'evil-invert-char)
    :init
@@ -789,25 +763,20 @@ and the second filter to the completion-style filtering (?).
     :commands (consult-ripgrep)
     :general
     ([remap apropos-command] 'consult-apropos)
-    (general-nmap
-      :states '(normal insert)
-      "C-p" 'consult-yank-pop)
-    (kr/leader-keys
-      "s i" '(consult-isearch :wk "isearch")
-      "s o" '(consult-outline :which-key "outline")
-      "s s" 'consult-line
-      "s p" '(consult-ripgrep :wk "ripgrep project")
-      "b b" 'consult-buffer
-      ;; TODO: consult mark
-      ;; "f r" 'consult-recent-file
-      "s !" '(consult-flymake :wk "flymake"))
+   (kr/leader-keys
+     "s i" '(consult-isearch :wk "isearch")
+     "s o" '(consult-outline :which-key "outline")
+     "s s" 'consult-line
+     "s p" '(consult-ripgrep :wk "ripgrep project")
+     "b b" 'consult-buffer
+     ;; TODO: consult mark
+     ;; "f r" 'consult-recent-file
+     "s !" '(consult-flymake :wk "flymake")
     :init
     (setq xref-show-xrefs-function #'consult-xref
           xref-show-definitions-function #'consult-xref)
-    ;; (setq consult-preview-key "C-l")
-    ;; (setq consult-narrow-key ">")
     :config
-    (setq consult-preview-key nil))
+    (setq consult-preview-key nil)))
     ;; (autoload 'projectile-project-root "projectile")
     ;; (setq consult-project-root-function #'projectile-project-root)
 
@@ -821,7 +790,6 @@ and the second filter to the completion-style filtering (?).
 #+BEGIN_SRC emacs-lisp
   (use-package embark
     :general
-    (general-nmap "C-l" 'embark-act)
     (selectrum-minibuffer-map
      "C-l" #'embark-act)
 
@@ -1089,16 +1057,6 @@ Taken from DOOM
 #+begin_src emacs-lisp
   (use-package org
     :straight nil
-    :general
-    (normal
-     org-mode-map
-      "gz" 'org-edit-special)
-    ;; https://github.com/noctuid/general.el#wrapping-evil-define-minor-mode-key
-    (normal
-     org-src-mode
-     :definer 'minor-mode
-     "gz" 'org-edit-src-exit
-     "gq" 'org-edit-src-abort)
     :config
     (require 'org-tempo)
     (add-to-list 'org-modules 'org-tempo t)
@@ -1146,17 +1104,10 @@ Taken from DOOM:
     :bind
     ([remap evil-org-org-insert-heading-respect-content-below] . +org/insert-item-below) ;; "<C-return>"
     ([remap evil-org-org-insert-todo-heading-respect-content-below] . +org/insert-item-above) ;; "<C-S-return>"
-    :general
-    ;; (insert
-    ;;  'evil-org-mode-map
-    ;;   "M-l" 'org-metaright
-    ;;   "M-h" 'org-metaleft
-    ;;   "M-j" 'org-metadown
-    ;;   "M-j" 'org-metaup)
-    ;; ###HACK### here I will bind <return> in org-mode-map inset of in evil-org-mode-map
-    (general-nmap
-      :keymaps 'org-mode-map
-      "<return>"   #'+org/dwim-at-point)
+    ;; (general-nmap
+    ;;   :keymaps 'org-mode-map
+    ;;   "<return>"   #'+org/dwim-at-point)
+    ;; this neest to be ported to meow normal mode ;;;;
     :config
     (setq evil-org-retain-visual-state-on-shift t)
     :init
@@ -1371,12 +1322,6 @@ NOTE - dired enhancement packages: dired-postframe, dired-git, dired-filter, dir
 #+begin_src emacs-lisp
   (use-package dired
     :straight (:type built-in)
-    :general
-    (normal
-     dired-mode-map
-     "gh" '(lambda () (interactive) (dired "~/")))
-    (kr/leader-keys
-      "fD" 'dired-jump)
     :hook ((dired-mode . (lambda ()
                            (unless (file-remote-p default-directory)
                              (auto-revert-mode))))
@@ -1387,15 +1332,8 @@ NOTE - dired enhancement packages: dired-postframe, dired-git, dired-filter, dir
     (setq dired-recursive-copies 'always)
     (setq dired-recursive-deletes 'always)
     (setq dired-create-destination-dirs 'always)
-    (setq dired-listing-switches "-valh --group-directories-first")
-    :general
-    ('normal 'dired-mode-map
-             "C-M-j" 'dired-next-subdir
-             "C-M-k" 'dired-prev-subdir
-             "C-j" 'dired-next-marked-file
-             "C-k" 'dired-prev-marked-file
-             "DEL" 'dired-unmark-backward))
-#+end_src
+    (setq dired-listing-switches "-valh --group-directories-first"))
+ #+end_src
 
 ** dired-x
 #+begin_src emacs-lisp
@@ -1560,10 +1498,6 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 #+begin_src emacs-lisp
   (use-package hl-todo
     :hook (prog-mode . hl-todo-mode)
-    :general
-    (normal
-     "[t" 'hl-todo-previous
-     "]t" 'hl-todo-next)
     :config
     (setq hl-todo-highlight-punctuation ":")
     (setq hl-todo-keyword-faces
@@ -1595,16 +1529,6 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
      (web-mode . lsp)
      (css-mode . lsp)
      (lsp-mode . yas-minor-mode))
-    :general
-    ((insert normal)
-     "M-s" 'lsp-signature-activate)
-    (kr/local-leader-keys
-      :states 'normal
-      :keymaps 'lsp-mode-map
-      "i" '(:ignore t :which-key "import")
-      "i o" '(lsp-organize-imports :wk "optimize")
-      "l" (general-simulate-key "C-c l" :which-key "lsp")
-      "r" '(lsp-rename :wk "rename"))
     ('normal
      'lsp-mode-map
      "gD" 'lsp-find-references)
@@ -1637,16 +1561,6 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
       "g g" 'magit-status
       "g G" 'magit-status-here
       "g l" 'magit-log)
-    (general-nmap
-      :keymaps '(magit-status-mode-map
-                 magit-log-mode-map
-                 magit-stash-mode-map
-                 magit-revision-mode-map
-                 magit-process-mode-map
-                 magit-diff-mode-map)
-      "TAB" #'magit-section-toggle
-      "<escape>" #'transient-quit-one)
-
     :config
     ;; Change magit diff face to something less flashy
     (dolist (face '(magit-diff-added
@@ -1675,10 +1589,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     :init (add-hook 'emacs-startup-hook #'global-git-gutter-mode)
     :general
     (kr/leader-keys
-      "gs" 'git-gutter:stage-hunk)
-    ('normal
-     "]g" 'git-gutter:next-hunk
-     "[g" 'git-gutter:previous-hunk))
+      "gs" 'git-gutter:stage-hunk))
 #+end_src
 
 *** git-timemachine
@@ -2041,10 +1952,16 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
     :straight nil
     :load-path "/home/ivan/git/org-cv/"
     :init (require 'ox-moderncv))
-
 #+end_src
 
 * mewo proba
+** privremena sekcija
+#+begin_src emacs-lisp
+(general-def 'global
+  "M-h" "C-x M-k")
+#+end_src
+
+
 ** Meow
 #+begin_src emacs-lisp
   (defun kr-meow-append ()
@@ -2176,7 +2093,6 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
   ;;   (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
   ;;   (meow-normal-define-key
 
-  ;;    '("G" . meow-grab)
   ;;    '("m" . meow-join)
   ;;    '("o" . meow-block)
   ;;    '("O" . meow-to-block)
@@ -2201,13 +2117,13 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
     :config
     (setq meow-mode-state-list (delete '(help-mode . normal) meow-mode-state-list))
     (setq meow-char-thing-table '((?\( . round)
+                                  (?r . round)
                                   (?\[ . square)
                                   (?\{ . curly)
                                   (?s . string)
                                   (?W . symbol)
                                   (?b . buffer)
                                   (?p . paragraph)
-                                  (?w . word)
                                   (?l . line)
                                   (?d . defun)
                                   (?x . extend)
@@ -2224,7 +2140,9 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
     :keymaps 'meow-normal-state-keymap)
 #+end_src
 
-** SPC normal meow
+** meow leader keys with general
+
+This is impractical and should be all in ~meow-setup~ but for now it is here.
 
 #+begin_src emacs-lisp
   ;; buffer
@@ -2241,12 +2159,16 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
     "wd" 'delete-window
     "ws" 'split-window-below
     "ww" 'other-window
+    "wW" 'window-swap-states
     "wo" 'delete-other-windows
     "wv" 'split-window-right)
 
   ;; register
   (kr-define-meow-leader-keys
     "fr" 'jump-to-register)
+
+  (kr-define-meow-leader-keys
+    "i" 'consult-imenu)
 #+end_src
 
 ** (g) menu options
@@ -2269,9 +2191,11 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
 #+begin_src emacs-lisp
   (kr-define-meow-normal-keys
     "[" (general-key-dispatch 'meow-beginning-of-thing
+          :timeout 0.5
           "t" 'hl-todo-previous
           "g" 'git-gutter:previous-hunk)
     "]" (general-key-dispatch 'meow-end-of-thing
+          :timeout 0.5
           "t" 'hl-todo-next
           "g" 'git-gutter:next-hunk))
 
