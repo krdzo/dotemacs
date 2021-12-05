@@ -57,7 +57,7 @@ list. You can use S in a column to sort the rows based on it.
 
 #+BEGIN_SRC emacs-lisp
   (setq use-package-compute-statistics t)
-  (global-set-key (kbd "C-x C-p") 'use-package-report)
+  (global-set-key (kbd "C-x M-q") 'use-package-report)
 #+END_SRC
 
 * General.el
@@ -118,8 +118,8 @@ for every keybinding and in ~use-package~ blocks.
       "wo" '(delete-other-windows :wk "maximize"))
 
     ;; changing some emacs default bindings to something usefull
-    (general-def
-      "C-h l" 'find-library))
+   (general-def
+     "C-h l" 'find-library))
 #+END_SRC
 
 * Emacs
@@ -693,7 +693,6 @@ Keybindings:
 * undo-tree
 #+begin_src emacs-lisp
     (use-package undo-tree
-
       :config (global-undo-tree-mode 1))
 #+end_src
 
@@ -701,12 +700,9 @@ Keybindings:
 #+BEGIN_SRC emacs-lisp
   (use-package which-key
     :general
-    (kr/leader-keys
-      "?" 'which-key-show-top-level)
     :hook (after-init . which-key-mode)
     :config
-    (setq which-key-idle-delay 0.5)
-    )
+    (setq which-key-idle-delay 0.5))
 #+END_SRC
 
 * Completion framework
@@ -763,20 +759,11 @@ and the second filter to the completion-style filtering (?).
     :commands (consult-ripgrep)
     :general
     ([remap apropos-command] 'consult-apropos)
-   (kr/leader-keys
-     "s i" '(consult-isearch :wk "isearch")
-     "s o" '(consult-outline :which-key "outline")
-     "s s" 'consult-line
-     "s p" '(consult-ripgrep :wk "ripgrep project")
-     "b b" 'consult-buffer
-     ;; TODO: consult mark
-     ;; "f r" 'consult-recent-file
-     "s !" '(consult-flymake :wk "flymake")
     :init
     (setq xref-show-xrefs-function #'consult-xref
           xref-show-definitions-function #'consult-xref)
     :config
-    (setq consult-preview-key nil)))
+    (setq consult-preview-key nil))
     ;; (autoload 'projectile-project-root "projectile")
     ;; (setq consult-project-root-function #'projectile-project-root)
 
@@ -792,28 +779,20 @@ and the second filter to the completion-style filtering (?).
     :general
     (selectrum-minibuffer-map
      "C-l" #'embark-act)
-
-    (:keymaps 'embark-file-map "o" 'find-file-other-window)
-    :config)
-  ;; (defun refresh-selectrum ()
-  ;;   (setq selectrum--previous-input-string nil))
-
-  ;; (add-hook 'embark-pre-action-hook #'refresh-selectrum)
-
-
+    (:keymaps 'embark-file-map "o" 'find-file-other-window))
 #+END_SRC
 
 ** embark-consult
 #+begin_src emacs-lisp
-(use-package embark-consult
-  :straight (embark-consult :type git :host github :repo "oantolin/embark" :files ("embark-consult.el"))
-  :after (embark consult)
-  ;; :demand t ; only necessary if you have the hook below
-  ;; if you want to have consult previews as you move around an
-  ;; auto-updating embark collect buffer
-  ;; :hook
-  ;; (embark-collect-mode . embark-consult-preview-minor-mode)
-    )
+  (use-package embark-consult
+    :straight (embark-consult :type git :host github :repo "oantolin/embark" :files ("embark-consult.el"))
+    :after (embark consult))
+    ;; :demand t ; only necessary if you have the hook below
+    ;; if you want to have consult previews as you move around an
+    ;; auto-updating embark collect buffer
+    ;; :hook
+    ;; (embark-collect-mode . embark-consult-preview-minor-mode)
+
 #+end_src
 
 ** wgrep
@@ -823,13 +802,12 @@ This is extremely powerful for refactorings such as changing the name of a class
 or a function across files in the project.
 
 #+begin_src emacs-lisp
-(use-package wgrep
-  :general
-  (grep-mode-map "W" 'wgrep-change-to-wgrep-mode)
-  :init
-  (setq wgrep-auto-save-buffer t)
-  (setq wgrep-change-readonly-file t)
-  )
+  (use-package wgrep
+    :general
+    (grep-mode-map "W" 'wgrep-change-to-wgrep-mode)
+    :init
+    (setq wgrep-auto-save-buffer t)
+    (setq wgrep-change-readonly-file t))
 #+end_src
 
 ** dabbrev
@@ -949,33 +927,29 @@ Taken from DOOM
 #+end_src
 
 ** corfu
-:PROPERTIES:
-:CUSTOM_ID: h:A2B7EF59-9D10-4C12-98D1-9F569EF9BE38
-:END:
 #+begin_src emacs-lisp
-;; Configure corfu
-(use-package corfu
-  :straight
-  :general
-  (corfu-map
-   :states 'insert
-   "C-g" 'corfu-abort
-   "C-j" 'corfu-next
-   "C-k" 'corfu-previous
-   )
-  ;; :hook ((prog-mode . corfu-mode)
-  ;;        (org-mode . corfu-mode))
-  ;; :config
-  ;; (add-to-list 'corfu--frame-parameters '(tab-bar-lines . 0))
-  ;; (defun lc/disable-tabs (orig-fn &rest args)
-  ;;   (progn (centaur-tabs-local-mode) (apply orig-fn args)))
-  ;; (defun lc/reenable-tabs (orig-fn &rest args)
-  ;;   (progn (centaur-tabs-local-mode -1) (apply orig-fn args)))
-  ;; (advice-add 'corfu--popup-show :around #'lc/disable-tabs)
-  ;; (advice-add 'corfu--popup-hide :around #'lc/reenable-tabs)
-  ;; Optionally enable cycling for `corfu-next' and `corfu-previous'.
-  ;; (setq corfu-cycle t)
-  )
+  ;; Configure corfu
+  (use-package corfu
+    :general
+    (corfu-map
+     :states 'insert
+     "C-g" 'corfu-abort
+     "C-j" 'corfu-next
+     "C-k" 'corfu-previous))
+
+    ;; :hook ((prog-mode . corfu-mode)
+    ;;        (org-mode . corfu-mode))
+    ;; :config
+    ;; (add-to-list 'corfu--frame-parameters '(tab-bar-lines . 0))
+    ;; (defun lc/disable-tabs (orig-fn &rest args)
+    ;;   (progn (centaur-tabs-local-mode) (apply orig-fn args)))
+    ;; (defun lc/reenable-tabs (orig-fn &rest args)
+    ;;   (progn (centaur-tabs-local-mode -1) (apply orig-fn args)))
+    ;; (advice-add 'corfu--popup-show :around #'lc/disable-tabs)
+    ;; (advice-add 'corfu--popup-hide :around #'lc/reenable-tabs)
+    ;; Optionally enable cycling for `corfu-next' and `corfu-previous'.
+    ;; (setq corfu-cycle t)
+
 #+end_src
 
 * UI
@@ -1437,9 +1411,7 @@ Here are packages that don't belong to any category.
   (use-package ibuffer
     :straight (:type built-in)
     :general
-    ([remap list-buffers] 'ibuffer)
-    (kr/leader-keys
-      "bB" 'ibuffer))
+    ([remap list-buffers] 'ibuffer))
 #+end_src
 
 ** hydra
@@ -1464,11 +1436,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
   ;;  (add-hook 'post-command-hook #'lc/yas-try-expanding-auto-snippets))
 
   (use-package yasnippet
-    :general
-    ('insert
-     'yas-minor-mode-map
-     "C-TAB" 'yas-expand)
-    :commands yas-minor-mode
+   :commands yas-minor-mode
     :config
     (yas-reload-all))
 
@@ -1480,9 +1448,6 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 ** olivetti
 #+begin_src emacs-lisp
   (use-package olivetti
-    :general
-    (lc/leader-keys
-      "t o" '(olivetti-mode :wk "olivetti"))
     :defer t
     :config
     (setq olivetti-body-width 90))
@@ -1727,11 +1692,10 @@ Parinfer is there for lisp editing.
     (general-add-hook '(emacs-lisp-mode-hook lisp-mode-hook) #'parinfer-rust-mode))
 #+end_src
 
-** Treemacs
+** COMMENT Treemacs
 #+begin_src emacs-lisp
   (use-package treemacs
     :config
-    (kr/leader-keys "fd" 'treemacs)
     (use-package treemacs-evil))
 
   (use-package lsp-treemacs
@@ -1889,8 +1853,10 @@ Sly the better SLIME.
 
 *** rust
 #+begin_src emacs-lisp
-  (use-package rust-mode)
-  (use-package cargo)
+  (use-package rust-mode
+    :defer)
+  (use-package cargo
+    :hook (rust-mode . cargo-minor-mode))
 #+end_src
 
 * COMMENT Notes from old config
