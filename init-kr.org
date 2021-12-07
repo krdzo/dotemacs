@@ -1833,9 +1833,10 @@ Sly the better SLIME.
   (use-package sly
     :defer t
     :config
+    (add-hook 'sly-popup-buffer-mode-hook #'(lambda () (meow-normal-mode -1)))
+    (general-def sly-mode-map
+      "C-x M-k" 'sly-describe-symbol)
     (setq sly-contribs '(sly-fancy sly-mrepl)))
-
-
 #+end_src
 
 *** JavaScript
