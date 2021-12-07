@@ -249,7 +249,6 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
     ;; (save-place-mode 1)
     (blink-cursor-mode 0)
     (column-number-mode 1)
-    (global-hl-line-mode 1)
     (global-subword-mode 1)
     (global-auto-revert-mode 1)
     (set-fringe-style '(10 . 10))
@@ -987,6 +986,7 @@ Taken from DOOM
 
   ;; global-hl-line-mode and region have the same color so i change it here
   (set-face-attribute 'region nil :background "#292929")
+  (set-face-attribute 'secondary-selection nil :background "#701818")
   (set-face-attribute 'highlight nil :background "#454545")
 #+end_src
 
