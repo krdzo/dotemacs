@@ -1300,6 +1300,8 @@ NOTE - dired enhancement packages: dired-postframe, dired-git, dired-filter, dir
                            (unless (file-remote-p default-directory)
                              (auto-revert-mode))))
            (dired-mode . toggle-truncate-lines))
+    :general
+    ("C-x j" 'dired-jump)
     :config
     (setq dired-dwim-target t)
     (setq dired-isearch-filenames 'dwim)
