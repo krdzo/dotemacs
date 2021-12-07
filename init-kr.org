@@ -1775,11 +1775,11 @@ Evil object for html attributes:
 *** emmet-mode
 #+begin_src emacs-lisp
   (use-package emmet-mode
-    :general
-    (emmet-mode-keymap
-     "<M-return>" 'emmet-expand-line
-     "M-h" 'emmet-prev-edit-point
-     "M-l" 'emmet-next-edit-point)
+    ;; :general
+    ;; (emmet-mode-keymap
+    ;;  "<M-return>" 'emmet-expand-line
+    ;;  "M-h" 'emmet-prev-edit-point
+    ;;  "M-l" 'emmet-next-edit-point)
     :hook
     (web-mode . emmet-mode)
     :config
