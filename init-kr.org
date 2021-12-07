@@ -2095,6 +2095,7 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
                                   (?l . line)
                                   (?d . defun)
                                   (?x . extend)
+                                  (?. . sentence)
                                   (?i . indent)))
     (meow-setup)
     (meow-global-mode 1))
