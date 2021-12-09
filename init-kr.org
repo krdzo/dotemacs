@@ -2000,10 +2000,8 @@ Help for everything at point
       '("H" . meow-left-expand)
       '("L" . meow-right-expand)
       '("c" . meow-change)
-      '("o" . meow-open-below)
-      '("O" . meow-open-above)
-      '("x" . meow-delete)
-      '("X" . meow-backward-delete)
+      '("X" . meow-delete)
+      '("x" . meow-backward-delete)
       '("w" . meow-mark-word)
       '("W" . meow-mark-symbol)
       '("n" . meow-search)
@@ -2027,8 +2025,15 @@ Help for everything at point
       '("r" . meow-replace)
       '("R" . meow-swap-grab)
       '("m" . meow-join)
-      '("I" . meow-block)
 
+      '("o" . meow-block)
+      '("<return>" . meow-open-below)
+      '("S-<return>" . meow-open-above)
+
+
+      '("I" . meow-inner-of-thing)
+      '("A" . meow-bounds-of-thing)
+      '("C-r" . undo-tree-redo)
       ;; help at point
       '("M-h" . "C-x M-k")))
 
