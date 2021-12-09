@@ -1539,7 +1539,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
                          (face-attribute 'default :background))
 
     ;; open magit buffer on whole window
-    (setq magit-display-buffer-function #'magit-display-buffer-fullframe-status-v1)
+    ;; (setq magit-display-buffer-function #'magit-display-buffer-fullframe-status-v1)
     :init
     (setq git-commit-fill-column 72))
     ;; (setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
@@ -2174,6 +2174,7 @@ This is impractical and should be all in ~meow-setup~ but for now it is here.
     "i" 'consult-imenu)
 
   (kr-define-meow-leader-keys
+    "v" 'magit-status
     "p" project-prefix-map)
 #+end_src
 
