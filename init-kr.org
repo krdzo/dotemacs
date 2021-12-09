@@ -2052,6 +2052,8 @@ Help for everything at point
                                   (?\[ . square)
                                   (?\{ . curly)
                                   (?s . string)
+                                  (?\" . string)
+                                  (?\' . string)
                                   (?W . symbol)
                                   (?b . buffer)
                                   (?p . paragraph)
