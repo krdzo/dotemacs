@@ -1932,57 +1932,8 @@ Help for everything at point
 #+end_src
 
 ** Meow
+
 #+begin_src emacs-lisp
-   ;; (defun kr-meow-append ()
-   ;;  "Make `meow-append' behavior similar to evil-append."
-   ;;  (unless (and (not meow--selection) (= (line-end-position) (point)))
-   ;;    (forward-char 1)))
-   ;; (advice-add 'meow-append :before #'kr-meow-append)
-   ;; (advice-remove 'meow-append #'kr-meow-append)
-
-   ;;;;;;;;;;;;;;;
-   (defun kr-meow-maybe-digit (fun n)
-     "One more advice so that I can get digit arguments if there is no
-   selection active and expand selestion if the selection is active."
-     (if meow--selection
-         (funcall fun n)
-       (call-interactively #'digit-argument)))
-   (advice-add 'meow-expand :around #'kr-meow-maybe-digit)
-   ;;;;;;;;;;;;;;;
-
-   (defun kr-meow-space-kill (_)
-     "Delete space after a word is deleted, and not leave two spaces behind."
-     (when (= (char-after) (string-to-char " "))
-       (meow-delete)))
-  ;; (advice-add 'meow-kill :after #'kr-meow-space-kill)
-  ;; (advice-remove 'meow-kill #'kr-meow-space-kill)
-
-   (setq meow-use-cursor-position-hack nil)
-
-   (defun kr-meow-insert-exit ()
-     "Change `meow-insert-exit' to exit before point like evil/vim."
-     (unless (= (line-beginning-position) (point))
-       (backward-char 1)))
-   ;; (advice-add 'meow-insert-exit :after #'ispravi-meow-insert-exit)
-
-   (defun kr-na-pocetak-linije ()
-     "Go to beginning of the line and enter intsert mode"
-     (interactive)
-     (back-to-indentation)
-     (meow-insert))
-
-   (defun kr-na-kraj-linije ()
-     "Go to end of the line and go to insert state"
-     (interactive)
-     (end-of-visual-line)
-     (meow-append))
-
-   (defun kr-meow-save-line ()
-     (interactive)
-     (save-excursion
-       (call-interactively #'meow-line)
-       (call-interactively #'meow-save)))
-
   (defun meow-setup ()
      "My meow setup thats similar to evil/vim"
      (meow-motion-overwrite-define-key
@@ -2111,6 +2062,69 @@ Help for everything at point
                                   (?i . indent)))
     (meow-setup)
     (meow-global-mode 1))
+#+end_src
+
+** config for extending meow
+
+Funciton and advices for making meow behave like I like it.
+
+#+begin_src emacs-lisp
+  ;; (defun kr-meow-append ()
+  ;;  "Make `meow-append' behavior similar to evil-append."
+  ;;  (unless (and (not mark-active) (= (line-end-position) (point)))
+  ;;    (forward-char 1)))
+  ;; (advice-add 'meow-append :before #'kr-meow-append)
+  ;; (advice-remove 'meow-append #'kr-meow-append)
+
+   ;;;;;;;;;;;;;;;
+  (defun kr-meow-maybe-digit (fun n)
+    "One more advice so that I can get digit arguments if there is no
+   selection active and expand selestion if the selection is active."
+    (if mark-active
+        (funcall fun n)
+      (call-interactively #'digit-argument)))
+  (advice-add 'meow-expand :around #'kr-meow-maybe-digit)
+   ;;;;;;;;;;;;;;;
+
+  (defun kr-meow-space-kill (_)
+    "Delete space after a word is deleted, and not leave two spaces behind."
+    (when (= (char-after) (string-to-char " "))
+      (meow-delete)))
+  ;; (advice-add 'meow-kill :after #'kr-meow-space-kill)
+  ;; (advice-remove 'meow-kill #'kr-meow-space-kill)
+
+  (setq meow-use-cursor-position-hack nil)
+
+  (defun kr-meow-insert-exit ()
+    "Change `meow-insert-exit' to exit before point like evil/vim."
+    (unless (= (line-beginning-position) (point))
+      (backward-char 1)))
+  ;; (advice-add 'meow-insert-exit :after #'ispravi-meow-insert-exit)
+
+  (defun kr-na-pocetak-linije ()
+    "Go to beginning of the line and enter intsert mode"
+    (interactive)
+    (back-to-indentation)
+    (meow-insert))
+
+  (defun kr-na-kraj-linije ()
+    "Go to end of the line and go to insert state"
+    (interactive)
+    (end-of-visual-line)
+    (meow-append))
+
+  (defun kr-meow-save-line ()
+    (interactive)
+    (save-excursion
+      (call-interactively #'meow-line)
+      (call-interactively #'meow-save)))
+
+  (defun ubaci-minus-umesto-reverse-ako-nema-selekcije (fun)
+    "Attemt to reverse command when there is no selection."
+    (if mark-active
+        (funcall fun)
+      (negative-argument 1)))
+  (advice-add 'meow-reverse :around #'ubaci-minus-umesto-reverse-ako-nema-selekcije)
 #+end_src
 
 ** General meow definders
