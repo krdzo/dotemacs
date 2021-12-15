@@ -1690,16 +1690,6 @@ Parinfer is there for lisp editing.
     (general-add-hook '(emacs-lisp-mode-hook lisp-mode-hook) #'parinfer-rust-mode))
 #+end_src
 
-** COMMENT Treemacs
-#+begin_src emacs-lisp
-  (use-package treemacs
-    :config
-    (use-package treemacs-evil))
-
-  (use-package lsp-treemacs
-    :after (lsp treemacs))
-#+end_src
-
 ** Line nubmer
 #+begin_src emacs-lisp
   (add-hook 'prog-mode-hook 'display-line-numbers-mode)
