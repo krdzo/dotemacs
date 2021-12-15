@@ -345,6 +345,7 @@ Set =serbian-latin= to default input method.
 #+begin_src emacs-lisp
   (setq default-input-method "serbian-latin")
 #+end_src
+
 *** Spelling
 #+begin_src emacs-lisp
   (use-package ispell
@@ -473,16 +474,6 @@ in the rest of the file
     (evil-collection-init))
 #+END_SRC
 
-** evil-anzu
-Shows how many matches is in a search.
-
-#+begin_src emacs-lisp
-  (use-package evil-anzu
-    :after evil
-    :config
-    (global-anzu-mode))
-#+end_src
-
 ** evil-commentary
 
 #+begin_src emacs-lisp
@@ -496,75 +487,12 @@ Shows how many matches is in a search.
     (evil-commentary-mode 1))
 #+end_src
 
-** eval operator
-This section provides a custom eval operator, accessible with =gr=.
-This gives you super powers when coupled with custom text objects (provided by  [[*evil-indent-plus][evil-indent-plus]]  and evil-cleverparens )
-
-For example:
-- =grab= evals the form at point
-- =grad= evals the top-level form (e.g. use-package blocks or functions)
-- =grak= evals the function in ~python~
-- =grr= evals the line
-
-#+begin_src emacs-lisp
-  (use-package evil
-    :config
-    (defcustom evil-extra-operator-eval-modes-alist
-      '(;; (emacs-lisp eval-region)
-        ;; (scheme-mode geiser-eval-region)
-        (clojure-mode cider-eval-region)
-        (jupyter-python jupyter-eval-region) ;; when executing in src block
-        (python-mode jupyter-eval-region)) ;; when executing in org-src-edit mode
-
-      "Alist used to determine evil-operator-eval's behaviour.
-  Each element of this alist should be of this form:
-   (MAJOR-MODE EVAL-FUNC [ARGS...])
-  MAJOR-MODE denotes the major mode of buffer. EVAL-FUNC should be a function
-  with at least 2 arguments: the region beginning and the region end. ARGS will
-  be passed to EVAL-FUNC as its rest arguments"
-      :type '(alist :key-type symbol)
-      :group 'evil-extra-operator)
-
-    (evil-define-operator evil-operator-eval (beg end)
-      "Evil operator for evaluating code."
-      :move-point nil
-      (interactive "<r>")
-      (let* ((mode (if (org-in-src-block-p) (intern (car (org-babel-get-src-block-info))) major-mode))
-             (ele (assoc mode evil-extra-operator-eval-modes-alist))
-             (f-a (cdr-safe ele))
-             (func (car-safe f-a))
-             (args (cdr-safe f-a)))
-        (if (fboundp func)
-            (apply func beg end args)
-          (eval-region beg end t))))
-
-    (define-key evil-motion-state-map "gr" 'evil-operator-eval))
-
-#+end_src
-
 ** evil-matchit
 
 #+begin_src emacs-lisp
   (use-package evil-matchit
     :hook (prog-mode . evil-matchit-mode))
 #+end_src
-
-** evil-goggles
-#+BEGIN_SRC emacs-lisp
-  (use-package evil-goggles
-    :after evil
-    :init
-    (setq evil-goggles-duration 0.1)
-    :config
-    (push '(evil-operator-eval
-            :face evil-goggles-yank-face
-            :switch evil-goggles-enable-yank
-            :advice evil-goggles--generic-async-advice)
-          evil-goggles--commands)
-    (evil-goggles-mode)
-    ;; (evil-goggles-use-diff-faces)
-    )
-#+END_SRC
 
 ** evil-snipe
 #+BEGIN_SRC emacs-lisp
@@ -576,13 +504,6 @@ For example:
     (evil-snipe-override-mode 1)
     (push 'dired-mode evil-snipe-disabled-modes))
 #+END_SRC
-
-** evil-exchange
-#+begin_src emacs-lisp
-  (use-package evil-exchange
-    :after evil
-    :config (evil-exchange-install))
-#+end_src
 
 ** evil-surround
 (
@@ -599,54 +520,11 @@ For example:
      "s" 'evil-surround-region))
 #+END_SRC
 
-** evil-indent-plus
-To select a function in ~python~:
-- Stand on a line in the body of the function (root, not an if)
-- Select with =vik=
-
-#+begin_src emacs-lisp
-  (use-package evil-indent-plus
-    :after evil
-    :config
-    (define-key evil-inner-text-objects-map "i" 'evil-indent-plus-i-indent)
-    (define-key evil-outer-text-objects-map "i" 'evil-indent-plus-a-indent)
-    (define-key evil-inner-text-objects-map "k" 'evil-indent-plus-i-indent-up)
-    (define-key evil-outer-text-objects-map "k" 'evil-indent-plus-a-indent-up)
-    (define-key evil-inner-text-objects-map "j" 'evil-indent-plus-i-indent-up-down)
-    (define-key evil-outer-text-objects-map "j" 'evil-indent-plus-a-indent-up-down)
-    )
-#+end_src
-
-** evil-iedit-state
-Keybindings:
-- =TAB= :: toggle occurrence
-- =n= / =N= :: next/prev occurrence
-- =F= :: restrict scope to function
-- =J= / =K= :: extend scope of match down/up
-- =V= :: toggle visibility of matches
-
-#+begin_src emacs-lisp
-  (use-package evil-iedit-state
-    :general
-    (kr/leader-keys
-      "s e" '(evil-iedit-state/iedit-mode :wk "iedit")
-      "s q" '(evil-iedit-state/quit-iedit-mode :wk "iedit quit")))
-#+end_src
-
 * undo-tree
 #+begin_src emacs-lisp
     (use-package undo-tree
       :config (global-undo-tree-mode 1))
 #+end_src
-
-* which-key
-#+BEGIN_SRC emacs-lisp
-  (use-package which-key
-    :general
-    :hook (after-init . which-key-mode)
-    :config
-    (setq which-key-idle-delay 0.5))
-#+END_SRC
 
 * Completion framework
 ** selectrum
@@ -991,245 +869,6 @@ Taken from DOOM
     (setq org-return-follows-link t)
     (setq org-src-window-setup 'current-window))
 
-#+end_src
-
-** evil-org
-#+NOTE: Something is not working right with this configuration. For now I will hack it together. See ###HACK### in source code.
-
-Taken from DOOM:
-- nice ~+org/insert-item-below~ and ~+org/dwim-at-point~ functions
-- ~evil~ bindings for ~org-agenda~
-- text objects:
-  + use ~vie~ to select everything inside a src block
-  + use ~vir~ to select everything inside a heading
-  + use ==ie= to format
-
-#+begin_src emacs-lisp
-  (use-package evil-org-mode
-    :straight (evil-org-mode :type git :host github :repo "hlissner/evil-org-mode")
-    :hook ((org-mode . evil-org-mode)
-           (org-mode . (lambda ()
-                         (require 'evil-org)
-                         (evil-normalize-keymaps)
-                         (evil-org-set-key-theme '(navigation
-                                                   return
-                                                   insert
-                                                   textobjects
-                                                   additional
-                                                   calendar))
-                         (require 'evil-org-agenda)
-                         (evil-org-agenda-set-keys))))
-    :bind
-    ([remap evil-org-org-insert-heading-respect-content-below] . +org/insert-item-below) ;; "<C-return>"
-    ([remap evil-org-org-insert-todo-heading-respect-content-below] . +org/insert-item-above) ;; "<C-S-return>"
-    ;; (general-nmap
-    ;;   :keymaps 'org-mode-map
-    ;;   "<return>"   #'+org/dwim-at-point)
-    ;; this neest to be ported to meow normal mode ;;;;
-    :config
-    (setq evil-org-retain-visual-state-on-shift t)
-    :init
-    (defun +org--insert-item (direction)
-      (let ((context (org-element-lineage
-                      (org-element-context)
-                      '(table table-row headline inlinetask item plain-list)
-                      t)))
-        (pcase (org-element-type context)
-          ;; Add a new list item (carrying over checkboxes if necessary)
-          ((or `item `plain-list)
-           ;; Position determines where org-insert-todo-heading and org-insert-item
-           ;; insert the new list item.
-           (if (eq direction 'above)
-               (org-beginning-of-item)
-             (org-end-of-item)
-             (backward-char))
-           (org-insert-item (org-element-property :checkbox context))
-           ;; Handle edge case where current item is empty and bottom of list is
-           ;; flush against a new heading.
-           (when (and (eq direction 'below)
-                      (eq (org-element-property :contents-begin context)
-                          (org-element-property :contents-end context)))
-             (org-end-of-item)
-             (org-end-of-line)))
-
-          ;; Add a new table row
-          ((or `table `table-row)
-           (pcase direction
-             ('below (save-excursion (org-table-insert-row t))
-                     (org-table-next-row))
-             ('above (save-excursion (org-shiftmetadown))
-                     (+org/table-previous-row))))
-
-          ;; Otherwise, add a new heading, carrying over any todo state, if
-          ;; necessary.
-          (_
-           (let ((level (or (org-current-level) 1)))
-             ;; I intentionally avoid `org-insert-heading' and the like because they
-             ;; impose unpredictable whitespace rules depending on the cursor
-             ;; position. It's simpler to express this command's responsibility at a
-             ;; lower level than work around all the quirks in org's API.
-             (pcase direction
-               (`below
-                (let (org-insert-heading-respect-content)
-                  (goto-char (line-end-position))
-                  (org-end-of-subtree)
-                  (insert "\n" (make-string level ?*) " ")))
-               (`above
-                (org-back-to-heading)
-                (insert (make-string level ?*) " ")
-                (save-excursion (insert "\n"))))
-             (when-let* ((todo-keyword (org-element-property :todo-keyword context))
-                         (todo-type    (org-element-property :todo-type context)))
-               (org-todo
-                (cond ((eq todo-type 'done)
-                       ;; Doesn't make sense to create more "DONE" headings
-                       (car (+org-get-todo-keywords-for todo-keyword)))
-                      (todo-keyword)
-                      ('todo)))))))
-
-        (when (org-invisible-p)
-          (org-show-hidden-entry))
-        (when (and (bound-and-true-p evil-local-mode)
-                   (not (evil-emacs-state-p)))
-          (evil-insert 1))))
-
-    (defun +org/insert-item-below (count)
-      "Inserts a new heading, table cell or item below the current one."
-      (interactive "p")
-      (dotimes (_ count) (+org--insert-item 'below)))
-
-    (defun +org/insert-item-above (count)
-      "Inserts a new heading, table cell or item above the current one."
-      (interactive "p")
-      (dotimes (_ count) (+org--insert-item 'above)))
-
-    (defun +org/dwim-at-point (&optional arg)
-      "Do-what-I-mean at point.
-        If on a:
-        - checkbox list item or todo heading: toggle it.
-        - clock: update its time.
-        - headline: cycle ARCHIVE subtrees, toggle latex fragments and inline images in
-          subtree; update statistics cookies/checkboxes and ToCs.
-        - footnote reference: jump to the footnote's definition
-        - footnote definition: jump to the first reference of this footnote
-        - table-row or a TBLFM: recalculate the table's formulas
-        - table-cell: clear it and go into insert mode. If this is a formula cell,
-          recaluclate it instead.
-        - babel-call: execute the source block
-        - statistics-cookie: update it.
-        - latex fragment: toggle it.
-        - link: follow it
-        - otherwise, refresh all inline images in current tree."
-      (interactive "P")
-      (let* ((context (org-element-context))
-             (type (org-element-type context)))
-        ;; skip over unimportant contexts
-        (while (and context (memq type '(verbatim code bold italic underline strike-through subscript superscript)))
-          (setq context (org-element-property :parent context)
-                type (org-element-type context)))
-        (pcase type
-          (`headline
-           (cond ((memq (bound-and-true-p org-goto-map)
-                        (current-active-maps))
-                  (org-goto-ret))
-                 ((and (fboundp 'toc-org-insert-toc)
-                       (member "TOC" (org-get-tags)))
-                  (toc-org-insert-toc)
-                  (message "Updating table of contents"))
-                 ((string= "ARCHIVE" (car-safe (org-get-tags)))
-                  (org-force-cycle-archived))
-                 ((or (org-element-property :todo-type context)
-                      (org-element-property :scheduled context))
-                  (org-todo
-                   (if (eq (org-element-property :todo-type context) 'done)
-                       (or (car (+org-get-todo-keywords-for (org-element-property :todo-keyword context)))
-                           'todo)
-                     'done))))
-           ;; Update any metadata or inline previews in this subtree
-           (org-update-checkbox-count)
-           (org-update-parent-todo-statistics)
-           (when (and (fboundp 'toc-org-insert-toc)
-                      (member "TOC" (org-get-tags)))
-             (toc-org-insert-toc)
-             (message "Updating table of contents"))
-           (let* ((beg (if (org-before-first-heading-p)
-                           (line-beginning-position)
-                         (save-excursion (org-back-to-heading) (point))))
-                  (end (if (org-before-first-heading-p)
-                           (line-end-position)
-                         (save-excursion (org-end-of-subtree) (point))))
-                  (overlays (ignore-errors (overlays-in beg end)))
-                  (latex-overlays
-                   (cl-find-if (lambda (o) (eq (overlay-get o 'org-overlay-type) 'org-latex-overlay))
-                               overlays))
-                  (image-overlays
-                   (cl-find-if (lambda (o) (overlay-get o 'org-image-overlay))
-                               overlays)))
-             ;; (+org--toggle-inline-images-in-subtree beg end)
-             (if (or image-overlays latex-overlays)
-                 (org-clear-latex-preview beg end)
-               (org--latex-preview-region beg end))))
-
-          (`clock (org-clock-update-time-maybe))
-
-          (`footnote-reference
-           (org-footnote-goto-definition (org-element-property :label context)))
-
-          (`footnote-definition
-           (org-footnote-goto-previous-reference (org-element-property :label context)))
-
-          ((or `planning `timestamp)
-           (org-follow-timestamp-link))
-
-          ((or `table `table-row)
-           (if (org-at-TBLFM-p)
-               (org-table-calc-current-TBLFM)
-             (ignore-errors
-               (save-excursion
-                 (goto-char (org-element-property :contents-begin context))
-                 (org-call-with-arg 'org-table-recalculate (or arg t))))))
-
-          (`table-cell
-           (org-table-blank-field)
-           (org-table-recalculate arg)
-           (when (and (string-empty-p (string-trim (org-table-get-field)))
-                      (bound-and-true-p evil-local-mode))
-             (evil-change-state 'insert)))
-
-          (`babel-call
-           (org-babel-lob-execute-maybe))
-
-          (`statistics-cookie
-           (save-excursion (org-update-statistics-cookies arg)))
-
-          ((or `src-block `inline-src-block)
-           (org-babel-execute-src-block arg))
-
-          ((or `latex-fragment `latex-environment)
-           (org-latex-preview arg))
-
-          (`link
-           (let* ((lineage (org-element-lineage context '(link) t))
-                  (path (org-element-property :path lineage)))
-             (if (or (equal (org-element-property :type lineage) "img")
-                     (and path (image-type-from-file-name path)))
-                 (+org--toggle-inline-images-in-subtree
-                  (org-element-property :begin lineage)
-                  (org-element-property :end lineage))
-               (org-open-at-point arg))))
-
-          ((guard (org-element-property :checkbox (org-element-lineage context '(item) t)))
-           (let ((match (and (org-at-item-checkbox-p) (match-string 1))))
-             (org-toggle-checkbox (if (equal match "[ ]") '(16)))))
-
-          (_
-           (if (or (org-in-regexp org-ts-regexp-both nil t)
-                   (org-in-regexp org-tsr-regexp-both nil  t)
-                   (org-in-regexp org-link-any-re nil t))
-               (call-interactively #'org-open-at-point)
-             (+org--toggle-inline-images-in-subtree
-              (org-element-property :begin context)
-              (org-element-property :end context))))))))
 #+end_src
 
 * Dired
