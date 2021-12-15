@@ -128,14 +128,6 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
     ;; write over selected text on input... like all modern editors do
     (delete-selection-mode t)
 
-    ;; don't want ESC as a modifier
-    (general-def "<escape>" 'keyboard-escape-quit)
-    ;; prevent ESC from window quiting
-    (defadvice keyboard-escape-quit
-        (around keyboard-escape-quit-dont-close-windows activate)
-      (let ((buffer-quit-function (lambda () ())))
-        ad-do-it))
-
     ;; Don't persist a custom file, this bites me more than it helps
     (setq custom-safe-themes t)            ; mark all themes as safe, since we can't persist now
     ;; (setq enable-local-variables :all)     ; fix =defvar= warnings
@@ -2053,7 +2045,9 @@ Funciton and advices for making meow behave like I like it.
   (advice-add 'meow-reverse :around #'ubaci-minus-umesto-reverse-ako-nema-selekcije)
 #+end_src
 
-** General meow definders
+** meow leader keys with general
+
+This is impractical and should be all in ~meow-setup~ but for now it is here.
 #+begin_src emacs-lisp
   (general-create-definer kr-define-meow-leader-keys
     :keymaps 'meow-leader-keymap)
@@ -2061,9 +2055,6 @@ Funciton and advices for making meow behave like I like it.
     :keymaps 'meow-normal-state-keymap)
 #+end_src
 
-** meow leader keys with general
-
-This is impractical and should be all in ~meow-setup~ but for now it is here.
 
 #+begin_src emacs-lisp
   ;; buffer
@@ -2143,7 +2134,15 @@ For example because I use ~dired~ that is bound to =C-x d= more often then ~list
     "C-x C-d" 'dired)
 #+end_src
 
-** help at point everywhere
+** Other bindings
+*** ESC bindings
+#+begin_src emacs-lisp
+  (general-emacs-define-key
+      '(meow-motion-state-keymap meow-normal-state-keymap)
+    "<escape>" 'keyboard-quit)
+#+end_src
+
+*** Help bindings
 =C-x M-k= will be the "help key" and it will always be bound to help-at-point function most appropriate for current mode.
 #+begin_src emacs-lisp
   (defvar kr-help-key "C-x M-k"
@@ -2166,6 +2165,7 @@ Here change help for different modes.
   (general-define-key :keymaps 'sly-mode-map
    kr-help-key 'sly-describe-symbol)
 #+end_src
+
 
 ** COMMENT meow palyground
 
