@@ -1530,7 +1530,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
                     magit-diff-added-highlight
                     magit-diff-removed
                     magit-diff-removed-highlight))
-      (set-face-background face (face-attribute 'hl-line :background)))
+      (set-face-background face (face-attribute 'magit-diff-context-highlight :background)))
     (set-face-background 'magit-diff-context-highlight
                          (face-attribute 'default :background))
 
