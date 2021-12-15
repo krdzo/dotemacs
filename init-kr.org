@@ -314,7 +314,7 @@ is there to prevent it from doing that.
   (set-register ?t `(file . "~/Documents/from-home/terapija.org"))
 #+end_src
 
-** Writing Languages
+** Written Languages
 
 *** Serbian
 I making a custom input method for Serbian language because all the other methods that exist are stupid.
@@ -662,9 +662,12 @@ or a function across files in the project.
                                      helpful-mode
                                      gud-mode))
 
-    (setq company-backends '((company-capf company-keywords company-files :with company-yasnippet))))
-
-    ;; icons with company
+    (setq company-backends '((company-capf company-keywords company-files :with company-yasnippet)))
+    (general-def company-active-map
+     "C-j" 'company-select-next-or-abort
+     "C-k" 'company-select-previous-or-abort
+     "M-h" 'company-show-doc-buffer))
+     ;; icons with company
     ;; (setq company-format-margin-function #'company-vscode-light-icons-margin)
 
 #+END_SRC
@@ -846,9 +849,16 @@ Taken from DOOM
   ;; (setq rm-whitelist '(" company"))))
 #+end_src
 
-* Org
+** which-key
+#+BEGIN_SRC emacs-lisp
+  (use-package which-key
+    :general
+    :hook (after-init . which-key-mode)
+    :config
+    (setq which-key-idle-delay 0.5))
+#+END_SRC
 
-** Org
+* Org
 
 #+begin_src emacs-lisp
   (use-package org
@@ -1739,16 +1749,8 @@ This is impractical and should be all in ~meow-setup~ but for now it is here.
 
 #+begin_src emacs-lisp
   (kr-define-meow-normal-keys
+    "gc" 'recompile
     "gf" 'find-file-at-point)
-#+end_src
-
-** company meow bindings
-
-#+begin_src emacs-lisp
-  (general-def company-active-map
-    "C-j" 'company-select-next-or-abort
-    "C-k" 'company-select-previous-or-abort
-    "M-h" 'company-show-doc-buffer)
 #+end_src
 
 ** [ and ] modification for meow
