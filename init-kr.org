@@ -42,7 +42,6 @@ NOTE: for ~straight-cache-autoloads~ you must run ~straight-prune-build~ ocaison
         "git -C " straight-repo-dir " checkout 2d407bc")))
     (load bootstrap-file nil 'nomessage))
   (straight-use-package 'use-package)
-  (setq use-package-compute-statistics t)
   ;; This is a variable that has been renamed but straight still refers when
   ;; doing :sraight (:no-native-compile t)
   ;; (setq comp-deferred-compilation-black-list nil)
@@ -1496,9 +1495,6 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
      (web-mode . lsp)
      (css-mode . lsp)
      (lsp-mode . yas-minor-mode))
-    ('normal
-     'lsp-mode-map
-     "gD" 'lsp-find-references)
     :init
     (setq lsp-keymap-prefix "C-c l")
     :config
