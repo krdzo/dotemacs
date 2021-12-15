@@ -2170,6 +2170,10 @@ This is impractical and should be all in ~meow-setup~ but for now it is here.
   (kr-define-meow-leader-keys
     "v" 'magit-status
     "p" project-prefix-map)
+
+  (kr-define-meow-normal-keys
+    "{" 'backward-paragraph
+    "}" 'forward-paragraph)
 #+end_src
 
 ** (g) menu options
