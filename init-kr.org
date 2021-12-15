@@ -1709,25 +1709,32 @@ For formating code with ~prettier~ or ~black~.
 
 *** Dart
 #+begin_src emacs-lisp
-  (use-package dart-mode)
+  (defun kr-set-comile-command ()
+    (setq-local
+     compile-command
+     (concat "dart "
+             (when buffer-file-name
+               buffer-file-name))))
+
+  (use-package dart-mode
+    :config
+    (add-hook 'dart-mode-hook #'kr-set-comile-command)
+    (setq lsp-dart-sdk-dir "~/.flutter/bin/cache/dart-sdk"))
+#+end_src
+
+*** lsp-dart
+#+begin_src emacs-lisp
+  ;; (use-package flycheck)
+
+  (use-package lsp-dart
+    :hook (dart-mode . lsp)
+    :config
+    (setq lsp-signature-auto-activate nil))
 #+end_src
 
 *** Hover
 #+begin_src emacs-lisp
   (use-package hover)
-#+end_src
-
-*** lsp-dart
-#+begin_src emacs-lisp
-  ;; required by lsp-dart
-  (use-package flycheck)
-
-  (use-package lsp-dart
-    :after (lsp dart)
-    :hook
-    (dart-mode . lsp)
-    :config
-    (setq lsp-signature-auto-activate nil))
 #+end_src
 
 ** web
