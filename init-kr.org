@@ -1797,6 +1797,7 @@ Evil object for html attributes:
   (use-package lsp-tailwindcss
     :after lsp-mode
     :init
+    (add-hook 'before-save-hook 'lsp-tailwindcss-rustywind-before-save)
     (setq lsp-tailwindcss-major-modes '(rjsx-mode web-mode html-mode typescript-mode))
     (setq lsp-tailwindcss-add-on-mode t)
     (setq lsp-tailwindcss-emmet-completions t))
@@ -2198,7 +2199,6 @@ This is impractical and should be all in ~meow-setup~ but for now it is here.
           :timeout 0.5
           "t" 'hl-todo-next
           "g" 'git-gutter:next-hunk))
-
 #+end_src
 
 ** Emacs binding for meow keypad
