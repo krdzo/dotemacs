@@ -41,6 +41,7 @@ NOTE: for ~straight-cache-autoloads~ you must run ~straight-prune-build~ ocaison
         "https://github.com/raxod502/straight.el.git && "
         "git -C " straight-repo-dir " checkout 2d407bc")))
     (load bootstrap-file nil 'nomessage))
+  ;; install use-package
   (straight-use-package 'use-package)
   ;; This is a variable that has been renamed but straight still refers when
   ;; doing :sraight (:no-native-compile t)
@@ -285,8 +286,7 @@ Used by DOOM to manage garbage collection
     ([remap describe-function] 'helpful-callable
      [remap describe-command] 'helpful-command
      [remap describe-variable] 'helpful-variable
-     [remap describe-key] 'helpful-key
-     "C-x M-k" 'helpful-at-point))
+     [remap describe-key] 'helpful-key))
 #+END_SRC
 
 ** elisp-demos
@@ -1498,9 +1498,6 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     :init
     (setq lsp-keymap-prefix "C-c l")
     :config
-    (general-def
-      :keymaps 'local
-      "C-x M-k" 'lsp-describe-thing-at-point)
     (setq lsp-lens-enable t))
 
     ;; (setq lsp-restart 'ignore)
@@ -1828,8 +1825,6 @@ Sly the better SLIME.
     :defer t
     :config
     (add-hook 'sly-popup-buffer-mode-hook #'(lambda () (meow-normal-mode -1)))
-    (general-def sly-mode-map
-      "C-x M-k" 'sly-describe-symbol)
     (setq sly-contribs '(sly-fancy sly-mrepl)))
 #+end_src
 
@@ -1918,12 +1913,6 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
 #+end_src
 
 * mewo proba
-** privremena sekcija
-Help for everything at point
-#+begin_src emacs-lisp
-(general-def 'global
-  "M-h" "C-x M-k")
-#+end_src
 
 ** Meow
 
@@ -1935,14 +1924,13 @@ Help for everything at point
       '("k" . meow-prev)
       '("h" . meow-left)
       '("l" . meow-right)
-      '("/" . meow-visit)
-      '("M-h" . "C-x M-k"))
+      '("/" . meow-visit))
      (meow-leader-define-key
       ;; SPC j/k will run the original command in MOTION state.
       '("j" . "H-j")
       '("k" . "H-k")
-      '("H" . "H-h")
-      '("L" . "H-l")
+      '("h" . "H-h")
+      '("l" . "H-l")
       '("/" . "H-/")
       ;; Use SPC (0-9) for digit arguments.
       '("1" . meow-digit-argument)
@@ -2027,9 +2015,8 @@ Help for everything at point
 
       '("I" . meow-inner-of-thing)
       '("A" . meow-bounds-of-thing)
-      '("C-r" . undo-tree-redo)
+      '("C-r" . undo-tree-redo)))
       ;; help at point
-      '("M-h" . "C-x M-k")))
 
 
    ;;    '("m" . meow-join)
@@ -2242,4 +2229,42 @@ How to make new things for ~meow-*-of-thing~ functions.
 
   (meow-normal-define-key
    '("[t" .))
+#+end_src
+
+** help at point everywhere
+=C-x M-k= will be the "help key" and it will always be bound to help-at-point function most appropriate for current mode.
+#+begin_src emacs-lisp
+  (defvar kr-help-key "C-x M-k"
+    "Key chord that I use for help under point.")
+
+  ;; set meow to point to `help-key'
+  (general-define-key
+   :keymaps '(meow-normal-state-keymap meow-motion-state-keymap)
+   "M-h" kr-help-key)
+#+end_src
+
+Here change help for different modes.
+#+begin_src emacs-lisp
+  ;; set Globally `help-key' to helpful
+  (general-define-key kr-help-key 'helpful-at-point)
+
+  ;; set `help-key' in specific states
+  (general-define-key :keymaps 'lsp-mode-map
+   kr-help-key 'lsp-describe-thing-at-point)
+  (general-define-key :keymaps 'sly-mode-map
+   kr-help-key 'sly-describe-symbol)
+#+end_src
+
+* COMMENT read-only-buffer keybinding
+
+#+begin_src emacs-lisp
+  (defun kr-read-only-binidngs ()
+    (when buffer-read-only
+      (make-local-variable 'meow-motion-state-keymap)
+      (general-def 'meow-motion-state-keymap
+        "r" 'kr-test)))
+
+  (add-hook 'special-mode-hook 'kr-read-only-binidngs)
+  (add-hook 'Info-mode 'kr-read-only-binidngs)
+
 #+end_src
