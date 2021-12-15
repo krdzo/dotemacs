@@ -70,56 +70,9 @@ for every keybinding and in ~use-package~ blocks.
 
 #+BEGIN_SRC emacs-lisp
   (use-package general
-    :demand t
-    :config
-    (general-evil-setup)
-
-    ;; leaders for general
-    (general-create-definer kr/leader-keys
-      :states '(normal visual)
-      :keymaps 'override
-      :prefix "SPC")
-
-   (kr/leader-keys
-      "<escape>" 'keyboard-escape-quit
-
-      "b" '(:ignore t :which-key "buffer")
-      "br" 'revert-buffer
-      "bd" 'kill-current-buffer
-      "bs" '((lambda () (interactive)
-               (switch-to-buffer "*scratch*"))
-             :wk "scratch")
-
-      "f" '(:ignore t :which-key "file")
-      "ff" 'find-file
-      "fs" 'save-buffer
-      "fD" 'dired-jump
-      "fS" 'write-file
-
-      "t"  '(:ignore t :which-key "toggle")
-      "td" '(toggle-debug-on-error :which-key "debug on error")
-      "tl" '(display-line-numbers-mode :wk "line numbers")
-      "tw" '(toggle-truncate-lines :wk "word wrap")
-
-      "u" '(universal-argument :wk "universal")
-
-      "w" '(:ignore t :which-key "window")
-      "wl" 'windmove-right
-      "wh" 'windmove-left
-      "wk" 'windmove-up
-      "wj" 'windmove-down
-      "wd" 'delete-window
-      "wv" 'evil-window-vsplit
-      "ws" 'evil-window-split
-      "w=" 'balance-windows-area
-      "wD" 'kill-buffer-and-window
-      ;; "wu" 'winner-undo
-      ;; "wr" 'winner-redo
-      "wo" '(delete-other-windows :wk "maximize"))
-
-    ;; changing some emacs default bindings to something usefull
-   (general-def
-     "C-h l" 'find-library))
+    :demand t)
+  (general-def
+    "C-h l" 'find-library)
 #+END_SRC
 
 * Emacs
@@ -1334,10 +1287,8 @@ NOTE - dired enhancement packages: dired-postframe, dired-git, dired-filter, dir
   (use-package dired-sidebar
     :commands (dired-sidebar-toggle-sidebar)
     :config
-    (setq dired-sidebar-width 30)
-    :general
-    (kr/leader-keys
-     "fd" 'dired-sidebar-toggle-sidebar))
+    (setq dired-sidebar-width 30))
+
 #+end_src
 
 ** all-the-icons-dired
@@ -1515,12 +1466,6 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 *** Magit
 #+begin_src emacs-lisp
   (use-package magit
-    :general
-    (kr/leader-keys
-      "g b" 'magit-blame
-      "g g" 'magit-status
-      "g G" 'magit-status-here
-      "g l" 'magit-log)
     :config
     ;; Change magit diff face to something less flashy
     (dolist (face '(magit-diff-added
@@ -1546,10 +1491,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 *** Git-gutter
 #+begin_src emacs-lisp
   (use-package git-gutter-fringe
-    :init (add-hook 'emacs-startup-hook #'global-git-gutter-mode)
-    :general
-    (kr/leader-keys
-      "gs" 'git-gutter:stage-hunk))
+    :init (add-hook 'emacs-startup-hook #'global-git-gutter-mode))
 #+end_src
 
 *** git-timemachine
@@ -1558,7 +1500,6 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     :hook (git-time-machine-mode . evil-normalize-keymaps)
     :init (setq git-timemachine-show-minibuffer-details t)
     :general
-    (kr/leader-keys "g t" 'git-timemachine-toggle)
     (git-timemachine-mode-map
      "C-k" 'git-timemachine-show-previous-revision
      "C-j" 'git-timemachine-show-next-revision
@@ -1631,10 +1572,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 
 ** Project
 #+begin_src emacs-lisp
-  (use-package project
-    :general
-    (kr/leader-keys
-      "p" project-prefix-map))
+  (use-package project)
 #+end_src
 
 ** Parentheses
@@ -2161,6 +2099,10 @@ This is impractical and should be all in ~meow-setup~ but for now it is here.
   (kr-define-meow-normal-keys
     "{" 'backward-paragraph
     "}" 'forward-paragraph)
+  ;; "t"  '(:ignore t :which-key "toggle")
+  ;;       "td" '(toggle-debug-on-error :which-key "debug on error")
+  ;;       "tl" '(display-line-numbers-mode :wk "line numbers")
+  ;;       "tw" '(toggle-truncate-lines :wk "word wrap")
 #+end_src
 
 ** (g) menu options
@@ -2201,36 +2143,6 @@ For example because I use ~dired~ that is bound to =C-x d= more often then ~list
     "C-x C-d" 'dired)
 #+end_src
 
-** COMMENT meow thing experimentation
-
-How to make new things for ~meow-*-of-thing~ functions.
-
-#+begin_src emacs-lisp
-  (defvar kr-meow-filename-thing-funcitons
-    (filename
-     ((lambda () (bounds-of-thing-at-point 'filename))
-      . (lambda () (let ((fbnd (bounds-of-thing-at-point 'filename)))
-                     (cons (1- (car fbnd))
-                           (1+ (cdr fbnd)))))))
-    "This value goes to `meow--thing-registry' so that it can find filename
-  under point with `meow-inner-of-thing' and releated functions.")
-  ;; also this must be added to make filename thing selection work)
-  (add-to-list 'meow-char-thing-table '(?f . filename))
-#+end_src
-
-** COMMENT meow palyground
-
-#+begin_src emacs-lisp :tangle no
-  (setq mark-ring nil)
-  (car mark-ring)
-  (goto-char (car mark-ring))
-  (meow-normal-define-key
-   '("%" . evilmi-jump-items))
-
-  (meow-normal-define-key
-   '("[t" .))
-#+end_src
-
 ** help at point everywhere
 =C-x M-k= will be the "help key" and it will always be bound to help-at-point function most appropriate for current mode.
 #+begin_src emacs-lisp
@@ -2253,6 +2165,36 @@ Here change help for different modes.
    kr-help-key 'lsp-describe-thing-at-point)
   (general-define-key :keymaps 'sly-mode-map
    kr-help-key 'sly-describe-symbol)
+#+end_src
+
+** COMMENT meow palyground
+
+#+begin_src emacs-lisp :tangle no
+  (setq mark-ring nil)
+  (car mark-ring)
+  (goto-char (car mark-ring))
+  (meow-normal-define-key
+   '("%" . evilmi-jump-items))
+
+  (meow-normal-define-key
+   '("[t" .))
+#+end_src
+
+** COMMENT meow thing experimentation
+
+How to make new things for ~meow-*-of-thing~ functions.
+
+#+begin_src emacs-lisp
+  (defvar kr-meow-filename-thing-funcitons
+    (filename
+     ((lambda () (bounds-of-thing-at-point 'filename))
+      . (lambda () (let ((fbnd (bounds-of-thing-at-point 'filename)))
+                     (cons (1- (car fbnd))
+                           (1+ (cdr fbnd)))))))
+    "This value goes to `meow--thing-registry' so that it can find filename
+  under point with `meow-inner-of-thing' and releated functions.")
+  ;; also this must be added to make filename thing selection work)
+  (add-to-list 'meow-char-thing-table '(?f . filename))
 #+end_src
 
 * COMMENT read-only-buffer keybinding
