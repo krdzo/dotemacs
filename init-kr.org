@@ -273,10 +273,10 @@ Used by DOOM to manage garbage collection
     :config
     (recentf-mode 1)
     (setq recentf-max-saved-items 50)
-    (setq recentf-exclude `(,(expand-file-name "straight/build/" user-emacs-directory))))
-    ;;                         ,(expand-file-name "eln-cache/" user-emacs-directory)
+    (setq recentf-exclude `(,(expand-file-name "straight/build/" user-emacs-directory)
+                            ,(expand-file-name "eln-cache/" user-emacs-directory))))
     ;;                         ,(expand-file-name "etc/" user-emacs-directory)
-    ;;                         ,(expand-file-name "var/" user-emacs-directory)))
+    ;;                         ,(expand-file-name "var/" user-emacs-directory)
 #+end_src
 
 ** save-place
@@ -468,7 +468,6 @@ in the rest of the file
   (use-package evil-collection
     :after evil
     :init
-    (setq evil-collection-company-use-tng nil) ; for lsp tng must be nil
     (setq evil-collection-magit-use-z-for-folds nil)
     :config
     (evil-collection-init))
@@ -519,12 +518,6 @@ in the rest of the file
     ('visual 'evil-surround-mode-map
      "s" 'evil-surround-region))
 #+END_SRC
-
-* undo-tree
-#+begin_src emacs-lisp
-    (use-package undo-tree
-      :config (global-undo-tree-mode 1))
-#+end_src
 
 * Completion framework
 ** selectrum
@@ -1066,11 +1059,19 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
           ("STUB"   . "#1E90FF"))))
 #+end_src
 
+** undo-tree
+#+begin_src emacs-lisp
+    (use-package undo-tree
+      :config (global-undo-tree-mode 1))
+#+end_src
+
 * Programing
 
 ** Hooks for prog mode
 #+begin_src emacs-lisp
   (add-hook 'prog-mode-hook #'visual-line-mode)
+  (add-hook 'prog-mode-hook #'display-line-numbers-mode)
+  (add-hook 'prog-mode-hook #'toggle-truncate-lines)
 #+end_src
 
 ** LSP
@@ -1078,14 +1079,10 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
   (use-package lsp-mode
     :commands
     (lsp lsp-deferred)
+    :ghook
+    ('(c-mode-hook js-mode-hook json-mode-hook web-mode-hook css-mode-hook) #'lsp)
     :hook
     ((lsp-mode . lsp-enable-which-key-integration)
-     (lsp-mode . evil-normalize-keymaps)
-     (c-mode . lsp)
-     (js-mode . lsp)
-     (json-mode . lsp)
-     (web-mode . lsp)
-     (css-mode . lsp)
      (lsp-mode . yas-minor-mode))
     :init
     (setq lsp-keymap-prefix "C-c l")
@@ -1200,14 +1197,9 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 ** Tree-sitter
 #+BEGIN_SRC emacs-lisp
   (use-package tree-sitter
-    :hook
-    (js-mode . tree-sitter-hl-mode)
-    (python-mode . tree-sitter-hl-mode)
-    ;; (web-mode . tree-sitter-hl-mode)
-    (css-mode . tree-sitter-hl-mode)
-    (go-mode . tree-sitter-hl-mode)
+    :ghook ('(c-mode-hook js-mode-hook python-mode-hook css-mode-hook go-mode-hook) #'tree-sitter-hl-mode)
     :config
-    (add-to-list 'tree-sitter-major-mode-language-alist '(web-mode . html))
+    ;; (add-to-list 'tree-sitter-major-mode-language-alist '(web-mode . html))
     (use-package tree-sitter-langs))
 #+END_SRC
 
@@ -1219,7 +1211,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 ** Parentheses
 
 *** Rainbow-delimiters
-Pretty colors for parens :)
+Pretty colors for parens.
 #+begin_src emacs-lisp
   (use-package rainbow-delimiters
     :hook ((prog-mode comint-mode) . rainbow-delimiters-mode))
@@ -1254,27 +1246,22 @@ Parinfer is there for lisp editing.
   ;;   "Modes where parinfer should be enabled")
 
   (use-package parinfer-rust-mode
+    :ghook ('(emacs-lisp-mode-hook lisp-mode-hook) #'parinfer-rust-mode)
     :init
     (setq parinfer-rust-library-directory
           (expand-file-name "./var/parinfer-rust/" user-emacs-directory))
     :config
-    (add-to-list 'parinfer-rust-treat-command-as '(evil-open-above . "indent"))
     (add-to-list 'parinfer-rust-treat-command-as '(meow-open-above . "indent"))
     (add-to-list 'parinfer-rust-treat-command-as '(meow-open-below . "indent"))
-    (add-to-list 'parinfer-rust-treat-command-as '(meow-yank . "indent"))
+    (add-to-list 'parinfer-rust-treat-command-as '(meow-yank . "indent")))
 
-    (general-add-hook '(emacs-lisp-mode-hook lisp-mode-hook) #'parinfer-rust-mode))
 #+end_src
 
-** Line nubmer
-#+begin_src emacs-lisp
-  (add-hook 'prog-mode-hook 'display-line-numbers-mode)
-  (add-hook 'prog-mode-hook 'toggle-truncate-lines)
-#+end_src
+** Formating
 
-** Apheleia
+Formating code buffers on save.
 
-For formating code with ~prettier~ or ~black~.
+Maybe better alternative [[https://github.com/purcell/emacs-reformatter][reformatter]]
 
 #+begin_src emacs-lisp
   (use-package apheleia
@@ -1365,7 +1352,7 @@ Evil object for html attributes:
     ;; (add-hook 'css-mode-hook
     ;;           '(lambda () (add-hook 'lsp-completion-mode-hook 'web-selectors-mode nil t)))
     ;; (add-hook 'web-mode-hook
-    ;;           '(lambda () (add-hook 'lsp-completion-mode-hook 'web-selectors-mode nil t))))
+    ;;           '(lambda () (add-hook 'lsp-completion-mode-hook 'web-selectors-mode nil t)))
 #+end_src
 
 *** lsp-tailwindcss
