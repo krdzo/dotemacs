@@ -1523,8 +1523,11 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
       '("2" . meow-expand-2)
       '("1" . meow-expand-1)
       '("-" . negative-argument)
-      '("[" . meow-beginning-of-thing)
-      '("]" . meow-end-of-thing)
+      ;; thing
+      '("," . meow-inner-of-thing)
+      '("." . meow-bounds-of-thing)
+      '("<" . meow-beginning-of-thing)
+      '(">" . meow-end-of-thing)
 
       '("q" . meow-cancel-selection)
       '("u" . meow-undo)
@@ -1560,10 +1563,6 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
       '("e" . meow-next-word)
       '("E" . meow-next-symbol)
       '(";" . meow-reverse)
-      '("," . meow-inner-of-thing)
-      '("." . meow-bounds-of-thing)
-      '("[" . meow-beginning-of-thing)
-      '("]" . meow-end-of-thing)
       '("b" . meow-back-word)
       '("B" . meow-back-symbol)
       '("v" . meow-line)
@@ -1592,30 +1591,32 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
    ;;    '("Y" . meow-sync-grab)
    ;;    '("z" . meow-pop-selection)
    ;;    '("'" . repeat)
-   ;;    '("<escape>" . mode-line-other-buffer)))
+  ;;    '("<escape>" . mode-line-other-buffer)
 
   (use-package meow
     :init
     :config
     (setq meow-use-clipboard t)
     (setq meow-mode-state-list (delete '(help-mode . normal) meow-mode-state-list))
-    (setq meow-char-thing-table '((?\( . round)
-                                  (?r . round)
-                                  (?\[ . square)
-                                  (?\{ . curly)
-                                  (?s . string)
-                                  (?\" . string)
-                                  (?\' . string)
-                                  (?W . symbol)
-                                  (?b . buffer)
-                                  (?p . paragraph)
-                                  (?l . line)
-                                  (?d . defun)
-                                  (?x . extend)
-                                  (?. . sentence)
-                                  (?i . indent)))
     (meow-setup)
     (meow-global-mode 1))
+#+end_src
+
+** Things config
+#+begin_src emacs-lisp
+  (meow-thing-register 'quote '(regexp "['\"]" "['\"]") '(regexp "['\"]" "['\"]"))
+  (setq meow-char-thing-table '((?r . round)
+                                (?\[ . square)
+                                (?\{ . curly)
+                                (?s . string)
+                                (?W . symbol)
+                                ;; (?a . window)
+                                (?b . buffer)
+                                (?p . paragraph)
+                                (?l . line)
+                                (?d . defun)
+                                (?. . sentence)))
+  (add-to-list 'meow-char-thing-table '(?\" . quote))
 #+end_src
 
 ** config for extending meow
@@ -1640,45 +1641,18 @@ Funciton and advices for making meow behave like I like it.
   (advice-add 'meow-expand :around #'kr-meow-maybe-digit)
    ;;;;;;;;;;;;;;;
 
-  (defun kr-meow-space-kill (_)
-    "Delete space after a word is deleted, and not leave two spaces behind."
-    (when (= (char-after) (string-to-char " "))
-      (meow-delete)))
-  ;; (advice-add 'meow-kill :after #'kr-meow-space-kill)
-  ;; (advice-remove 'meow-kill #'kr-meow-space-kill)
-
-  (setq meow-use-cursor-position-hack nil)
-
-  (defun kr-meow-insert-exit ()
-    "Change `meow-insert-exit' to exit before point like evil/vim."
-    (unless (= (line-beginning-position) (point))
-      (backward-char 1)))
-  ;; (advice-add 'meow-insert-exit :after #'ispravi-meow-insert-exit)
-
-  (defun kr-na-pocetak-linije ()
-    "Go to beginning of the line and enter intsert mode"
-    (interactive)
-    (back-to-indentation)
-    (meow-insert))
-
-  (defun kr-na-kraj-linije ()
-    "Go to end of the line and go to insert state"
-    (interactive)
-    (end-of-visual-line)
-    (meow-append))
-
   (defun kr-meow-save-line ()
     (interactive)
     (save-excursion
       (call-interactively #'meow-line)
       (call-interactively #'meow-save)))
 
-  (defun ubaci-minus-umesto-reverse-ako-nema-selekcije (fun)
+  (defun kr-meow-reverse (fun)
     "Attemt to reverse command when there is no selection."
     (if mark-active
         (funcall fun)
       (negative-argument 1)))
-  (advice-add 'meow-reverse :around #'ubaci-minus-umesto-reverse-ako-nema-selekcije)
+  (advice-add 'meow-reverse :around #'kr-meow-reverse)
 #+end_src
 
 ** meow leader keys with general
@@ -1693,24 +1667,6 @@ This is impractical and should be all in ~meow-setup~ but for now it is here.
 
 
 #+begin_src emacs-lisp
-  ;; buffer
-  (kr-define-meow-leader-keys
-    "bd" 'kill-current-buffer
-    "br" 'revert-buffer
-    "bb" 'consult-buffer
-    "bs" '((lambda () (interactive)
-             (switch-to-buffer "*scratch*"))
-           :wk "scratch"))
-
-  ;; window
-  (kr-define-meow-leader-keys
-    "wd" 'delete-window
-    "ws" 'split-window-below
-    "ww" 'other-window
-    "wW" 'window-swap-states
-    "wo" 'delete-other-windows
-    "wv" 'split-window-right)
-
   ;; register
   (kr-define-meow-leader-keys
     "ff" 'find-file
@@ -1726,43 +1682,60 @@ This is impractical and should be all in ~meow-setup~ but for now it is here.
   (kr-define-meow-normal-keys
     "{" 'backward-paragraph
     "}" 'forward-paragraph)
-  ;; "t"  '(:ignore t :which-key "toggle")
-  ;;       "td" '(toggle-debug-on-error :which-key "debug on error")
-  ;;       "tl" '(display-line-numbers-mode :wk "line numbers")
-  ;;       "tw" '(toggle-truncate-lines :wk "word wrap")
 #+end_src
 
-** (g) menu options
+** (g) menu
 
 #+begin_src emacs-lisp
   (kr-define-meow-normal-keys
     "gc" 'recompile
+    "gC" 'compile
     "gf" 'find-file-at-point)
 #+end_src
 
-** [ and ] modification for meow
+** ([ and ]) menu
 #+begin_src emacs-lisp
   (kr-define-meow-normal-keys
-    "[" (general-key-dispatch 'meow-beginning-of-thing
-          :timeout 0.5
-          "t" 'hl-todo-previous
-          "g" 'git-gutter:previous-hunk)
-    "]" (general-key-dispatch 'meow-end-of-thing
-          :timeout 0.5
-          "t" 'hl-todo-next
-          "g" 'git-gutter:next-hunk))
-#+end_src
+    "[b" 'beginning-of-buffer
+    "]b" 'end-of-buffer
+    "[t" 'hl-todo-previous
+    "[g" 'git-gutter:previous-hunk
+    "]t" 'hl-todo-next
+    "]g" 'git-gutter:next-hunk)
 
-** Emacs binding for meow keypad
-Here I change emacs build in keybindings for better meow ergonomics.
-For example because I use ~dired~ that is bound to =C-x d= more often then ~list-direcory~ that is bound to =C-x C-d= so I will swap those two commands so I can type =SPC x d= to acces dired faster with ~meow-keypad~.
-#+begin_src emacs-lisp
-  (general-def
-    "C-x d" 'list-directory
-    "C-x C-d" 'dired)
+  ;; TODO: this should be movet to flymake configuration
+  (with-eval-after-load 'flymake
+    (kr-define-meow-normal-keys
+      "[e" 'flymake-goto-prev-error
+      "]e" 'flymake-goto-next-error))
 #+end_src
 
 ** Other bindings
+*** Windows bindins
+#+begin_src emacs-lisp
+  (kr-define-meow-leader-keys
+    "wd" 'delete-window
+    "ws" 'split-window-below
+    "ww" 'other-window
+    "wW" 'window-swap-states
+    "wo" 'delete-other-windows
+    "wv" 'split-window-right)
+#+end_src
+
+*** Buffer bindings
+#+begin_src emacs-lisp
+  (defvar kr-buffer-map (make-sparse-keymap))
+
+  (general-def kr-buffer-map
+    "d" 'kill-current-buffer
+    "r" 'revert-buffer
+    "b" 'consult-buffer
+    "s" '(lambda () (interactive) (switch-to-buffer "*scratch*")))
+
+  (general-def meow-leader-keymap
+    "b" kr-buffer-map)
+#+end_src
+
 *** ESC bindings
 #+begin_src emacs-lisp
   (general-emacs-define-key
@@ -1794,6 +1767,29 @@ Here change help for different modes.
    kr-help-key 'sly-describe-symbol)
 #+end_src
 
+*** Emacs switch bindings
+Here I change emacs build in keybindings for better meow ergonomics.
+For example because I use ~dired~ that is bound to =C-x d= more often then ~list-direcory~ that is bound to =C-x C-d= so I will swap those two commands so I can type =SPC x d= to acces dired faster with ~meow-keypad~.
+#+begin_src emacs-lisp
+  (general-def
+    "C-x d" 'list-directory
+    "C-x C-d" 'dired)
+#+end_src
+
+*** Toggle bindings
+#+begin_src emacs-lisp
+  (defvar kr-toggle-map (make-sparse-keymap))
+
+  (general-def kr-toggle-map
+    "d" 'toggle-debug-on-error
+    "l" 'display-line-numbers-mode
+    "V" 'toggle-truncate-lines
+    "v" 'visual-line-mode
+    "r" 'read-only-mode)
+
+  (general-def meow-leader-keymap
+    "t" kr-toggle-map)
+#+end_src
 
 ** COMMENT meow palyground
 
