@@ -76,9 +76,7 @@ for every keybinding and in ~use-package~ blocks.
 #+END_SRC
 
 * Keybindings
-This section contains personal keybindings that are grouped in keymaps.
-Each keymap is a logical grouping of keybindings for some purpose (buffers, windows, etc.) and then that keymap is bound to a prefix key so that there is only one place where we need to change the prefix key so that it works globaly.
-After this ~meow~ can bind to the prefix key. This help in a way so that I don't need to configure meow separately.
+Setup keybindings for builtin features that are not tied to any mode.
 ** Buffer
 #+begin_src emacs-lisp
   (defvar kr-buffer-map (make-sparse-keymap)
@@ -91,7 +89,6 @@ After this ~meow~ can bind to the prefix key. This help in a way so that I don't
   (general-def kr-buffer-map
     "d" 'kill-current-buffer
     "r" 'revert-buffer
-    "b" 'consult-buffer
     "s" 'kr-go-to-scratch)
 
   (general-def
@@ -173,10 +170,10 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 #+BEGIN_SRC emacs-lisp
   (use-package emacs
     :init
-   (setq initial-scratch-message nil
-          sentence-end-double-space nil
-          ring-bell-function 'ignore
-          frame-resize-pixelwise t
+    (setq initial-scratch-message nil
+           sentence-end-double-space nil
+           ring-bell-function 'ignore
+           frame-resize-pixelwise t)
     (setq help-window-select t)
 
     ;; (setq user-full-name "Luca Cambiaghi"
@@ -472,7 +469,8 @@ and the second filter to the completion-style filtering (?).
     :straight (consult :host github :repo "minad/consult" :branch "main")
     :commands (consult-ripgrep)
     :general
-    ([remap apropos-command] 'consult-apropos)
+    ("C-x M-b b" 'consult-buffer
+     [remap apropos-command] 'consult-apropos)
     :init
     (setq xref-show-xrefs-function #'consult-xref
           xref-show-definitions-function #'consult-xref)
