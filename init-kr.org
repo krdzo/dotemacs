@@ -75,11 +75,75 @@ for every keybinding and in ~use-package~ blocks.
     "C-h l" 'find-library)
 #+END_SRC
 
-* Emacs
-Here is configuration that concerns Emacs builtin options, ether changing the
-default options or installing packages that enhance some core Emacs features,
-like for example changing the help system with helpful package.
+* Keybindings
+This section contains personal keybindings that are grouped in keymaps.
+Each keymap is a logical grouping of keybindings for some purpose (buffers, windows, etc.) and then that keymap is bound to a prefix key so that there is only one place where we need to change the prefix key so that it works globaly.
+After this ~meow~ can bind to the prefix key. This help in a way so that I don't need to configure meow separately.
+** Buffer
+#+begin_src emacs-lisp
+  (defvar kr-buffer-map (make-sparse-keymap)
+    "Personal keymap for buffers.")
 
+  (defun kr-go-to-scratch ()
+    (interactive)
+    (switch-to-buffer "*scratch*"))
+
+  (general-def kr-buffer-map
+    "d" 'kill-current-buffer
+    "r" 'revert-buffer
+    "b" 'consult-buffer
+    "s" 'kr-go-to-scratch)
+
+  (general-def
+    "C-x M-b" kr-buffer-map)
+#+end_src
+
+** Window
+#+begin_src emacs-lisp
+  (defvar kr-window-map (make-sparse-keymap)
+    "Personal keymap for windows.")
+
+  (general-def kr-window-map
+    "d" 'delete-window
+    "s" 'split-window-below
+    "w" 'other-window
+    "W" 'window-swap-states
+    "o" 'delete-other-windows
+    "v" 'split-window-right)
+
+  (general-def
+    "C-x M-w" kr-window-map)
+#+end_src
+
+** Help
+Help at point key is =C-x M-h h=. Every mode that implements a help at point needs to change it to point to it's "help-at-point" function
+#+begin_src emacs-lisp
+  (defvar kr-help-map (make-sparse-keymap)
+   "Personal map for help.")
+
+  (general-def
+    "C-x M-h" kr-help-map)
+#+end_src
+
+** Toggle
+#+begin_src emacs-lisp
+  (defvar kr-toggle-map (make-sparse-keymap))
+
+  (general-def
+    "C-x M-t" kr-toggle-map)
+
+  (general-def kr-toggle-map
+    "d" 'toggle-debug-on-error
+    "l" 'display-line-numbers-mode
+    "V" 'toggle-truncate-lines
+    "v" 'visual-line-mode
+    "r" 'read-only-mode)
+#+end_src
+
+* Emacs
+Here is configuration that concerns Emacs builtin features.
+Changing options, enabling and configuring modes etc.
+Big packages like org-mode will get their own headings.
 ** Measuring start-up
 So I know how many dreadful seconds it took.
 
@@ -91,6 +155,15 @@ So I know how many dreadful seconds it took.
                      gcs-done)))
 #+end_src
 
+** Garbage collector magic hack
+
+#+BEGIN_SRC emacs-lisp
+  (use-package gcmh
+    :config
+    (gcmh-mode 1)
+    (setq gcmh-idle-delay 5))
+#+END_SRC
+
 ** Sane defaults
 
 Inspired by https://github.com/natecox/dotfiles/blob/master/emacs/emacs.d/nathancox.org
@@ -100,16 +173,14 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 #+BEGIN_SRC emacs-lisp
   (use-package emacs
     :init
-    (setq initial-scratch-message nil
+   (setq initial-scratch-message nil
           sentence-end-double-space nil
           ring-bell-function 'ignore
-          frame-resize-pixelwise t)
+          frame-resize-pixelwise t
     (setq help-window-select t)
 
     ;; (setq user-full-name "Luca Cambiaghi"
     ;;       user-mail-address "luca.cambiaghi@me.com")
-
-    (setq read-process-output-max (* 1024 1024)) ;; 1mb
 
     ;; always allow 'y' instead of 'yes'.
     (defalias 'yes-or-no-p 'y-or-n-p)
@@ -125,18 +196,6 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
     (prefer-coding-system 'utf-8)
     (setq default-process-coding-system '(utf-8-unix . utf-8-unix))
 
-    ;; write over selected text on input... like all modern editors do
-    (delete-selection-mode t)
-
-    ;; Don't persist a custom file, this bites me more than it helps
-    (setq custom-safe-themes t)            ; mark all themes as safe, since we can't persist now
-    ;; (setq enable-local-variables :all)     ; fix =defvar= warnings
-
-    ;; stop emacs from littering the file system with backup files
-    ;; (setq make-backup-files nil
-    ;;       auto-save-default nil
-    ;;       create-lockfiles nil)
-
     ;; follow symlinks
     (setq vc-follow-symlinks t)
 
@@ -144,10 +203,6 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
     (when (window-system)
       (tool-bar-mode -1)
       (toggle-scroll-bar -1))
-
-    ;; enable winner mode globally for undo/redo window layout changes
-    ;; (winner-mode t)
-
 
     ;; less noise when compiling elisp
     ;; (setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
@@ -183,7 +238,7 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
     ;; Better interaction with clipboard
     (setq-default save-interprogram-paste-before-kill t)
 
-    (setq-default show-trailing-whitespace nil)
+    (setq-default show-trailing-whitespace t)
 
     (setq-default fill-column 75)
 
@@ -202,17 +257,8 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
     (add-hook 'focus-out-hook #'garbage-collect)
 
     ;; delete whitespace
-    (add-hook 'before-save-hook #'whitespace-cleanup))
+    (add-hook 'before-save-hook #'whitespace-cleanup)))
 
-#+END_SRC
-
-** Garbage collector magic hack
-Used by DOOM to manage garbage collection
-#+BEGIN_SRC emacs-lisp
-  (use-package gcmh
-    :config
-    (gcmh-mode 1)
-    (setq gcmh-idle-delay 5))
 #+END_SRC
 
 ** help
