@@ -1086,6 +1086,8 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
      (lsp-mode . yas-minor-mode))
     :init
     (setq lsp-keymap-prefix "C-c l")
+    ;; (setq lsp-completion-enable nil)
+    (setq lsp-completion-provider :none)
     :config
     (setq lsp-lens-enable t))
 
