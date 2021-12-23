@@ -224,7 +224,6 @@ Used by DOOM to manage garbage collection
 
 #+BEGIN_SRC emacs-lisp
   (use-package helpful
-    :after evil
     :config
     (add-hook 'helpful-mode-hook 'visual-line-mode)
     :general
@@ -660,8 +659,8 @@ or a function across files in the project.
      "C-j" 'company-select-next-or-abort
      "C-k" 'company-select-previous-or-abort
      "M-h" 'company-show-doc-buffer))
-     ;; icons with company
-    ;; (setq company-format-margin-function #'company-vscode-light-icons-margin)
+  ;; icons with company
+    ;; (setq company-format-margin-function #'company-vscode-light-icons-margin))
 
 #+END_SRC
 
@@ -1137,7 +1136,6 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 *** git-timemachine
 #+begin_src emacs-lisp
   (use-package git-timemachine
-    :hook (git-time-machine-mode . evil-normalize-keymaps)
     :init (setq git-timemachine-show-minibuffer-details t)
     :general
     (git-timemachine-mode-map
@@ -1303,19 +1301,6 @@ Maybe better alternative [[https://github.com/purcell/emacs-reformatter][reforma
 #+end_src
 
 ** web
-
-*** Exato
-
-Evil object for html attributes:
-
-- =daa= : delete around attribute
-- =dia= : delete inside attribute
-
-#+begin_src emacs-lisp
-  (use-package exato
-    :init
-    (setq exato-key "a"))
-#+end_src
 
 *** web-mode
 
