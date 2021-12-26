@@ -5,7 +5,7 @@
 * Introduction
 This config is primarily inspired from [[https://www.lucacambiaghi.com/vanilla-emacs/readme.html#h:16B948EA-5375-44DE-ACD7-3664D4A9CE5F][here]] and most of this is directly taken from there.
 
-* Bootstrap straight.el
+* Bootstrap Straight.el
 
 I'm using straight in combination with use-package for package management.
 
@@ -23,7 +23,6 @@ sure to declare the "base" package with the ~github~ recipe first.
 
 NOTE: for ~straight-cache-autoloads~ you must run ~straight-prune-build~ ocaisonaly so that you keep you straight config clean.
 #+begin_src emacs-lisp
-  (setq straight-use-package-by-default t)
   (setq straight-vc-git-default-clone-depth 1)
   (setq straight-recipes-gnu-elpa-use-mirror t)
   (setq straight-check-for-modifications '(check-on-save find-when-checking))
@@ -41,32 +40,54 @@ NOTE: for ~straight-cache-autoloads~ you must run ~straight-prune-build~ ocaison
         "https://github.com/raxod502/straight.el.git && "
         "git -C " straight-repo-dir " checkout 2d407bc")))
     (load bootstrap-file nil 'nomessage))
-  ;; install use-package
-  (straight-use-package 'use-package)
+
   ;; This is a variable that has been renamed but straight still refers when
   ;; doing :sraight (:no-native-compile t)
   ;; (setq comp-deferred-compilation-black-list nil)
 #+end_src
 ** COMMENT Enable use-package statistics
+
+* Utilities
+Utility packages that have some functions that make configuration easier or configure some aspect of Emacs so that I don't have to.
+
+** Use package
+~use package~ macro for easier configuring of Emacs.
+#+begin_src emacs-lisp
+  (setq straight-use-package-by-default t)
+  (straight-use-package 'use-package)
+#+end_src
+
 If you'd like to see how many packages you've loaded, what stage of
 initialization they've reached, and how much aggregate time they've spent
 (roughly), you can enable ~use-package-compute-statistics~ after loading
 use-package but before any use-package forms, and then run the command M-x
 ~use-package-report~ to see the results. The buffer displayed is a tabulated
 list. You can use S in a column to sort the rows based on it.
-
 #+BEGIN_SRC emacs-lisp
   (setq use-package-compute-statistics t)
   (global-set-key (kbd "C-x M-q") 'use-package-report)
 #+END_SRC
 
-* General.el
-For uniform keybinding.
-In this block we load ~general~ and define bindings for generic commands e.g. ~find-file~.
-The commands provided by packages should be binded in the ~use-package~ block,
-thanks to the ~:general~ keyword.
-NOTE: We need to load ~general~ before everything else because we want to use
-for every keybinding and in ~use-package~ blocks.
+** Blackout
+For keeping mode line clean.
+#+begin_src emacs-lisp
+  (use-package blackout
+    :config
+    (add-hook 'eldoc-mode-hook #'(lambda () (blackout 'eldoc-mode)))
+    (add-hook 'smartparens-mode-hook #'(lambda () (blackout 'smartparens-mode)))
+    (add-hook 'org-mode-hook #'(lambda () (blackout 'evil-org-mode) (blackout 'org-indent-mode)))
+    (add-hook 'yas-minor-mode-hook #'(lambda () (blackout 'yas-minor-mode))))
+#+end_src
+
+** General
+Helper functions for configuring keybindings, hooks and many more.
+There is ~general-def~ that's is used for keybinding,
+~general-setq~ that is used for setting "customize" variables,
+~general-add-hook~, ~general-remove-hook~ for adding or removing hooks in bulk (can add to more that one hook at a time and more than one function at the time),
+~general-advice-add~, ~general-advice-remove~ for adding and removing advice... There are some others but I don't use them.
+There is also ~use-package~ integration for all of these functions and they are:
+[[https://github.com/noctuid/general.el#general-keyword][:general]] for ~general-def~
+[[https://github.com/noctuid/general.el#general-keyword][:ghook]] and [[https://github.com/noctuid/general.el#general-keyword][:gfhook]] for ~general-add-hook~
 
 #+BEGIN_SRC emacs-lisp
   (use-package general
@@ -74,6 +95,76 @@ for every keybinding and in ~use-package~ blocks.
   (general-def
     "C-h l" 'find-library)
 #+END_SRC
+
+** Garbage collector magic hack
+What the title says.
+#+BEGIN_SRC emacs-lisp
+  (use-package gcmh
+    :config
+    (gcmh-mode 1)
+    (setq gcmh-idle-delay 5)
+    :blackout t)
+#+END_SRC
+
+** no littering
+Helping me so that I don't have to configure Emacs not to clutter .emacs.d.
+#+begin_src emacs-lisp
+  (use-package no-littering
+    :config
+    (with-eval-after-load 'recentf
+      (add-to-list 'recentf-exclude no-littering-var-directory)
+      (add-to-list 'recentf-exclude no-littering-etc-directory))
+    (setq auto-save-file-name-transforms
+          `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
+    (setq custom-file (no-littering-expand-etc-file-name "custom.el"))
+    (when (file-exists-p custom-file)
+      (load-file custom-file)))
+#+end_src
+
+** which-key
+Help with discovery of keybindings.
+#+BEGIN_SRC emacs-lisp
+  (use-package which-key
+    :general
+    :hook (after-init . which-key-mode)
+    :config
+    (setq which-key-idle-delay 0.5)
+    :blackout t)
+#+END_SRC
+
+** Measuring start-up
+
+I like to know how fast Emacs has started.
+#+begin_src emacs-lisp
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (message "Emacs ready in %s with %d garbage collections."
+                     (emacs-init-time)
+                     gcs-done)))
+#+end_src
+
+** helpful
+Better help than built-in help.
+#+BEGIN_SRC emacs-lisp
+  (use-package helpful
+    :config
+    (add-hook 'helpful-mode-hook 'visual-line-mode)
+    :general
+    ("C-x M-h h" 'helpful-at-point
+     [remap describe-function] 'helpful-callable
+     [remap describe-command] 'helpful-command
+     [remap describe-variable] 'helpful-variable
+     [remap describe-key] 'helpful-key))
+#+END_SRC
+
+** elisp-demos
+Small snippets in help buffer that show how a function is used.
+#+begin_src emacs-lisp
+  (use-package elisp-demos
+    :after (helpful)
+    :config
+    (advice-add 'helpful-update :after #'elisp-demos-advice-helpful-update))
+#+end_src
 
 * Keybindings
 Setup keybindings for builtin features that are not tied to any mode.
@@ -137,30 +228,21 @@ Help at point key is =C-x M-h h=. Every mode that implements a help at point nee
     "r" 'read-only-mode)
 #+end_src
 
+** Files
+#+begin_src emacs-lisp
+  (defvar kr-file-map (make-sparse-keymap))
+  (general-def
+    "C-x M-f" kr-file-map)
+  (general-def kr-file-map
+    "r" 'jump-to-register
+    "f" 'find-file
+    "j" 'dired-jump)
+#+end_src
+
 * Emacs
 Here is configuration that concerns Emacs builtin features.
 Changing options, enabling and configuring modes etc.
 Big packages like org-mode will get their own headings.
-** Measuring start-up
-So I know how many dreadful seconds it took.
-
-#+begin_src emacs-lisp
-(add-hook 'emacs-startup-hook
-          (lambda ()
-            (message "Emacs ready in %s with %d garbage collections."
-                     (emacs-init-time)
-                     gcs-done)))
-#+end_src
-
-** Garbage collector magic hack
-
-#+BEGIN_SRC emacs-lisp
-  (use-package gcmh
-    :config
-    (gcmh-mode 1)
-    (setq gcmh-idle-delay 5))
-#+END_SRC
-
 ** Sane defaults
 
 Inspired by https://github.com/natecox/dotfiles/blob/master/emacs/emacs.d/nathancox.org
@@ -239,14 +321,11 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 
     (setq-default fill-column 75)
 
-    ;; LSP recomendation
-    (setq read-process-output-max (* 1024 1024))
 
     ;; Some usefull builtin minor modes
     ;; (save-place-mode 1)
     (blink-cursor-mode 0)
     (column-number-mode 1)
-    (global-subword-mode 1)
     (global-auto-revert-mode 1)
     (set-fringe-style '(10 . 10))
 
@@ -254,8 +333,7 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
     (add-hook 'focus-out-hook #'garbage-collect)
 
     ;; delete whitespace
-    (add-hook 'before-save-hook #'whitespace-cleanup)))
-
+    (add-hook 'before-save-hook #'whitespace-cleanup))
 #+END_SRC
 
 ** help
@@ -263,46 +341,20 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
   (add-hook 'help-mode-hook 'visual-line-mode)
 #+end_src
 
-** helpful
+** Subword
 
-#+BEGIN_SRC emacs-lisp
-  (use-package helpful
-    :config
-    (add-hook 'helpful-mode-hook 'visual-line-mode)
-    :general
-    ([remap describe-function] 'helpful-callable
-     [remap describe-command] 'helpful-command
-     [remap describe-variable] 'helpful-variable
-     [remap describe-key] 'helpful-key))
-#+END_SRC
-
-** elisp-demos
 #+begin_src emacs-lisp
-  (use-package elisp-demos
-    :after (helpful)
+  (use-package subword
+    :straight (:type built-in)
     :config
-    (advice-add 'helpful-update :after #'elisp-demos-advice-helpful-update))
+    (global-subword-mode 1)
+    :blackout t)
 #+end_src
 
 ** eldoc
 #+begin_src emacs-lisp
   (use-package eldoc
     :hook (emacs-lisp-mode cider-mode))
-#+end_src
-
-** no littering
-#+begin_src emacs-lisp
-  (use-package no-littering
-    :config
-    (with-eval-after-load 'recentf
-      (add-to-list 'recentf-exclude no-littering-var-directory)
-      (add-to-list 'recentf-exclude no-littering-etc-directory))
-    (setq auto-save-file-name-transforms
-          `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
-    (setq custom-file (no-littering-expand-etc-file-name "custom.el"))
-    (when (file-exists-p custom-file)
-      (load-file custom-file)))
-
 #+end_src
 
 ** recentf
@@ -698,12 +750,16 @@ Taken from DOOM
 
   (use-package doom-themes
     :config
-    (load-theme 'doom-1337 t))
+    (load-theme 'doom-dark+ t))
 
   ;; global-hl-line-mode and region have the same color so i change it here
   (set-face-attribute 'region nil :background "#292929")
   (set-face-attribute 'secondary-selection nil :background "#701818")
   (set-face-attribute 'highlight nil :background "#454545")
+
+  ;; theme that doesn't work for now
+  ;; (straight-use-package '(uwu.el :repo "kborling/uwu.el"))
+  ;; (load-file "~/.config/emacs/straight/repos/uwu.el/uwu.el")
 #+end_src
 
 ** Start-up maximized
@@ -711,43 +767,6 @@ Taken from DOOM
   (when window-system
     (add-to-list 'initial-frame-alist '(fullscreen . maximized)))
 #+end_src
-
-** Blackout
-#+begin_src emacs-lisp
-  (use-package blackout
-    :config
-    (blackout 'subword-mode)
-    (blackout 'anzu-mode)
-    (blackout 'evil-goggles-mode)
-    (blackout 'undo-tree-mode)
-    (blackout 'evil-snipe-local-mode)
-    (blackout 'evil-collection-unimpaired-mode)
-    (blackout 'evil-commentary-mode)
-    (blackout 'gcmh-mode)
-    (add-hook 'eldoc-mode-hook #'(lambda () (blackout 'eldoc-mode)))
-    (add-hook 'which-key-mode-hook #'(lambda () (blackout 'which-key-mode)))
-    (add-hook 'git-gutter-mode-hook #'(lambda () (blackout 'git-gutter-mode)))
-    (add-hook 'evil-commentary-mode-hook #'(lambda () (blackout 'evil-commentary-mode)))
-    (add-hook 'smartparens-mode-hook #'(lambda () (blackout 'smartparens-mode)))
-    (add-hook 'org-mode-hook #'(lambda () (blackout 'evil-org-mode) (blackout 'org-indent-mode)))
-    (add-hook 'yas-minor-mode-hook #'(lambda () (blackout 'yas-minor-mode))))
-
-
-
-  ;; (use-package rich-minority
-  ;; :config
-  ;; (setq rm-text-properties '(("\\` company\\'"  'face 'font-lock-warning-face))
-  ;; (setq rm-whitelist '(" company"))))
-#+end_src
-
-** which-key
-#+BEGIN_SRC emacs-lisp
-  (use-package which-key
-    :general
-    :hook (after-init . which-key-mode)
-    :config
-    (setq which-key-idle-delay 0.5))
-#+END_SRC
 
 * Org
 
@@ -855,6 +874,8 @@ NOTE - dired enhancement packages: dired-postframe, dired-git, dired-filter, dir
     :after dired
     :config
     ;; so that dired icons work nicely with subtree
+    (general-def dired-mode-map
+      "TAB" 'dired-subtree-toggle)
     (advice-add 'dired-subtree-toggle :after #'(lambda ()
                                                  (interactive)
                                                  (call-interactively #'revert-buffer))))
@@ -959,8 +980,9 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 
 ** undo-tree
 #+begin_src emacs-lisp
-    (use-package undo-tree
-      :config (global-undo-tree-mode 1))
+  (use-package undo-tree
+    :config (global-undo-tree-mode 1)
+    :blackout t)
 #+end_src
 
 * Programing
@@ -987,6 +1009,13 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     ;; (setq lsp-completion-enable nil)
     (setq lsp-completion-provider :none)
     :config
+    ;; LSP recomendation
+    (setq read-process-output-max (* 1024 1024))
+
+    (general-def lsp-mode-map
+      "C-x M-g a" 'lsp-execute-code-action
+      "C-x M-g =" 'lsp-format-buffer
+      "C-x M-h h" 'lsp-describe-thing-at-point)
     (setq lsp-lens-enable t))
 
     ;; (setq lsp-restart 'ignore)
@@ -1029,7 +1058,8 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 *** Git-gutter
 #+begin_src emacs-lisp
   (use-package git-gutter-fringe
-    :init (add-hook 'emacs-startup-hook #'global-git-gutter-mode))
+    :init (add-hook 'emacs-startup-hook #'global-git-gutter-mode)
+    :blackout git-gutter-mode)
 #+end_src
 
 *** git-timemachine
@@ -1096,10 +1126,10 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 ** Tree-sitter
 #+BEGIN_SRC emacs-lisp
   (use-package tree-sitter
-    :ghook ('(c-mode-hook js-mode-hook python-mode-hook css-mode-hook go-mode-hook) #'tree-sitter-hl-mode)
-    :config
+    :ghook ('(c-mode-hook js-mode-hook python-mode-hook css-mode-hook go-mode-hook) #'tree-sitter-hl-mode))
+
     ;; (add-to-list 'tree-sitter-major-mode-language-alist '(web-mode . html))
-    (use-package tree-sitter-langs))
+  (use-package tree-sitter-langs)
 #+END_SRC
 
 ** Project
@@ -1276,7 +1306,8 @@ Sly the better SLIME.
   (use-package sly
     :defer t
     :config
-    (add-hook 'sly-popup-buffer-mode-hook #'(lambda () (meow-normal-mode -1)))
+    (general-def 'sly-mode-map
+     "C-x M-h h" 'sly-describe-symbol)
     (setq sly-contribs '(sly-fancy sly-mrepl)))
 #+end_src
 
@@ -1373,17 +1404,11 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
      "My meow setup thats similar to evil/vim"
      (meow-motion-overwrite-define-key
       '("j" . meow-next)
-      '("k" . meow-prev)
-      '("h" . meow-left)
-      '("l" . meow-right)
-      '("/" . meow-visit))
+      '("k" . meow-prev))
      (meow-leader-define-key
       ;; SPC j/k will run the original command in MOTION state.
       '("j" . "H-j")
       '("k" . "H-k")
-      '("h" . "H-h")
-      '("l" . "H-l")
-      '("/" . "H-/")
       ;; Use SPC (0-9) for digit arguments.
       '("1" . meow-digit-argument)
       '("2" . meow-digit-argument)
@@ -1415,7 +1440,6 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
       '("<" . meow-beginning-of-thing)
       '(">" . meow-end-of-thing)
 
-      '("q" . meow-cancel-selection)
       '("u" . meow-undo)
       '("U" . meow-undo-in-selection)
       '("y" . meow-save)
@@ -1437,14 +1461,15 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
       '("H" . meow-left-expand)
       '("L" . meow-right-expand)
       '("c" . meow-change)
-      '("X" . meow-delete)
-      '("x" . meow-backward-delete)
       '("w" . meow-mark-word)
       '("W" . meow-mark-symbol)
       '("n" . meow-search)
+      '("/" . meow-visit)
+
       '("d" . meow-kill)
       '("D" . meow-kill-whole-line)
-      '("/" . meow-visit)
+      '("x" . meow-backward-delete)
+      '("X" . meow-delete)
 
       '("e" . meow-next-word)
       '("E" . meow-next-symbol)
@@ -1463,7 +1488,7 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
       '("<return>" . meow-open-below)
       '("S-<return>" . meow-open-above)
 
-
+      '("q" . meow-quit)
       '("I" . meow-inner-of-thing)
       '("A" . meow-bounds-of-thing)
       '("C-r" . undo-tree-redo)))
@@ -1483,7 +1508,6 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
     :init
     :config
     (setq meow-use-clipboard t)
-    (setq meow-mode-state-list (delete '(help-mode . normal) meow-mode-state-list))
     (meow-setup)
     (meow-global-mode 1))
 #+end_src
@@ -1553,30 +1577,14 @@ This is impractical and should be all in ~meow-setup~ but for now it is here.
 
 
 #+begin_src emacs-lisp
-  ;; register
   (kr-define-meow-leader-keys
-    "ff" 'find-file
-    "fr" 'jump-to-register)
-
-  (kr-define-meow-leader-keys
-    "i" 'consult-imenu)
-
-  (kr-define-meow-leader-keys
+    "i" 'consult-imenu
     "v" 'magit-status
     "p" project-prefix-map)
 
   (kr-define-meow-normal-keys
     "{" 'backward-paragraph
     "}" 'forward-paragraph)
-#+end_src
-
-** (g) menu
-
-#+begin_src emacs-lisp
-  (kr-define-meow-normal-keys
-    "gc" 'recompile
-    "gC" 'compile
-    "gf" 'find-file-at-point)
 #+end_src
 
 ** ([ and ]) menu
@@ -1589,7 +1597,7 @@ This is impractical and should be all in ~meow-setup~ but for now it is here.
     "]t" 'hl-todo-next
     "]g" 'git-gutter:next-hunk)
 
-  ;; TODO: this should be movet to flymake configuration
+  ;; TODO: this should be move to flymake configuration
   (with-eval-after-load 'flymake
     (kr-define-meow-normal-keys
       "[e" 'flymake-goto-prev-error
@@ -1597,63 +1605,37 @@ This is impractical and should be all in ~meow-setup~ but for now it is here.
 #+end_src
 
 ** Other bindings
-*** Windows bindins
+Leader
 #+begin_src emacs-lisp
-  (kr-define-meow-leader-keys
-    "wd" 'delete-window
-    "ws" 'split-window-below
-    "ww" 'other-window
-    "wW" 'window-swap-states
-    "wo" 'delete-other-windows
-    "wv" 'split-window-right)
+  (meow-leader-define-key
+   '("w" . "C-x M-w")
+   '("b" . "C-x M-b"))
 #+end_src
-
-*** Buffer bindings
-#+begin_src emacs-lisp
-  (defvar kr-buffer-map (make-sparse-keymap))
-
-  (general-def kr-buffer-map
-    "d" 'kill-current-buffer
-    "r" 'revert-buffer
-    "b" 'consult-buffer
-    "s" '(lambda () (interactive) (switch-to-buffer "*scratch*")))
-
-  (general-def meow-leader-keymap
-    "b" kr-buffer-map)
-#+end_src
-
-*** ESC bindings
+ESC bindings
 #+begin_src emacs-lisp
   (general-emacs-define-key
       '(meow-motion-state-keymap meow-normal-state-keymap)
     "<escape>" 'keyboard-quit)
 #+end_src
-
-*** Help bindings
-=C-x M-k= will be the "help key" and it will always be bound to help-at-point function most appropriate for current mode.
+Help
 #+begin_src emacs-lisp
-  (defvar kr-help-key "C-x M-k"
-    "Key chord that I use for help under point.")
-
-  ;; set meow to point to `help-key'
-  (general-define-key
-   :keymaps '(meow-normal-state-keymap meow-motion-state-keymap)
-   "M-h" kr-help-key)
+  (meow-normal-define-key
+   '("M-h" . "C-x M-h h"))
+  (meow-motion-overwrite-define-key
+   '("M-h" . "C-x M-h h"))
+#+end_src
+Toggle
+#+begin_src emacs-lisp
+  (meow-leader-define-key
+   '("t" . "C-x M-t"))
+#+end_src
+File
+#+begin_src emacs-lisp
+  (meow-leader-define-key
+   '("f" . "C-x M-f"))
 #+end_src
 
-Here change help for different modes.
-#+begin_src emacs-lisp
-  ;; set Globally `help-key' to helpful
-  (general-define-key kr-help-key 'helpful-at-point)
-
-  ;; set `help-key' in specific states
-  (general-define-key :keymaps 'lsp-mode-map
-   kr-help-key 'lsp-describe-thing-at-point)
-  (general-define-key :keymaps 'sly-mode-map
-   kr-help-key 'sly-describe-symbol)
-#+end_src
-
-*** Emacs switch bindings
+** Emacs switch bindings
 Here I change emacs build in keybindings for better meow ergonomics.
 For example because I use ~dired~ that is bound to =C-x d= more often then ~list-direcory~ that is bound to =C-x C-d= so I will swap those two commands so I can type =SPC x d= to acces dired faster with ~meow-keypad~.
 #+begin_src emacs-lisp
@@ -1662,19 +1644,27 @@ For example because I use ~dired~ that is bound to =C-x d= more often then ~list
     "C-x C-d" 'dired)
 #+end_src
 
-*** Toggle bindings
+** (g) menu
+
 #+begin_src emacs-lisp
-  (defvar kr-toggle-map (make-sparse-keymap))
+  (defvar kr-g-menu-map (make-sparse-keymap))
+  (general-def kr-g-menu-map
+    "c" 'recompile
+    "C" 'compile
+    "f" 'find-file-at-point)
 
-  (general-def kr-toggle-map
-    "d" 'toggle-debug-on-error
-    "l" 'display-line-numbers-mode
-    "V" 'toggle-truncate-lines
-    "v" 'visual-line-mode
-    "r" 'read-only-mode)
+  (general-def
+    "C-x M-g" kr-g-menu-map)
 
-  (general-def meow-leader-keymap
-    "t" kr-toggle-map)
+  (meow-normal-define-key
+   '("g" . "C-x M-g"))
+
+  ;;; this is some kind of test
+  (defun kr-prog-mode ()
+     (local-set-key (kbd "C-c c") #'recompile)
+     (local-set-key (kbd "C-c C") #'compile)
+     (local-set-key (kbd "C-c a") #'lsp-execute-code-action))
+  (add-hook 'prog-mode-hook #'kr-prog-mode)
 #+end_src
 
 ** COMMENT meow palyground
