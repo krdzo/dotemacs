@@ -1512,7 +1512,10 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
   (use-package meow
     :init
     :config
+    (general-def meow-keymap
+      "C-h k" 'helpful-key)
     (setq meow-use-clipboard t)
+    (add-to-list 'meow-mode-state-list '(helpful-mode . normal))
     (meow-setup)
     (meow-global-mode 1))
 #+end_src
@@ -1521,9 +1524,13 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
 #+begin_src emacs-lisp
   (meow-thing-register 'quote '(regexp "['\"]" "['\"]") '(regexp "['\"]" "['\"]"))
   (setq meow-char-thing-table '((?r . round)
+                                (?\( . round)
+                                (?\) . round)
                                 (?\[ . square)
                                 (?\{ . curly)
                                 (?s . string)
+                                (?\' . string)
+                                (?\" . string)
                                 (?W . symbol)
                                 ;; (?a . window)
                                 (?b . buffer)
@@ -1695,22 +1702,6 @@ For example because I use ~dired~ that is bound to =C-x d= more often then ~list
    '("[t" .))
 #+end_src
 
-** COMMENT meow thing experimentation
-
-How to make new things for ~meow-*-of-thing~ functions.
-
-#+begin_src emacs-lisp
-  (defvar kr-meow-filename-thing-funcitons
-    (filename
-     ((lambda () (bounds-of-thing-at-point 'filename))
-      . (lambda () (let ((fbnd (bounds-of-thing-at-point 'filename)))
-                     (cons (1- (car fbnd))
-                           (1+ (cdr fbnd)))))))
-    "This value goes to `meow--thing-registry' so that it can find filename
-  under point with `meow-inner-of-thing' and releated functions.")
-  ;; also this must be added to make filename thing selection work)
-  (add-to-list 'meow-char-thing-table '(?f . filename))
-#+end_src
 
 * COMMENT read-only-buffer keybinding
 
