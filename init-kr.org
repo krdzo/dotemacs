@@ -245,7 +245,7 @@ Help at point key is =C-x M-h h=. Every mode that implements a help at point nee
 * Emacs
 Here is configuration that concerns Emacs builtin features.
 Changing options, enabling and configuring modes etc.
-Big packages like org-mode will get their own headings.
+Big packages like org-mode will get their own section.
 ** Sane defaults
 
 Inspired by https://github.com/natecox/dotfiles/blob/master/emacs/emacs.d/nathancox.org
@@ -320,10 +320,7 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
     ;; Better interaction with clipboard
     (setq-default save-interprogram-paste-before-kill t)
 
-    (setq-default show-trailing-whitespace t)
-
     (setq-default fill-column 75)
-
 
     ;; Some usefull builtin minor modes
     ;; (save-place-mode 1)
@@ -763,6 +760,9 @@ Taken from DOOM
   ;; theme that doesn't work for now
   ;; (straight-use-package '(uwu.el :repo "kborling/uwu.el"))
   ;; (load-file "~/.config/emacs/straight/repos/uwu.el/uwu.el")
+
+  ;; themes for cheking out
+  ;; misterioso
 #+end_src
 
 ** Start-up maximized
@@ -1496,7 +1496,6 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
       '("A" . meow-bounds-of-thing)
       '("C-r" . undo-tree-redo)))
       ;; help at point
-
 
    ;;    '("m" . meow-join)
    ;;    '("O" . meow-to-block)
