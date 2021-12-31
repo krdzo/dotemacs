@@ -48,7 +48,7 @@ NOTE: for ~straight-cache-autoloads~ you must run ~straight-prune-build~ ocaison
 ** COMMENT Enable use-package statistics
 
 * Utilities
-Utility packages that have some functions that make configuration easier or configure some aspect of Emacs so that I don't have to.
+Utility packages that add functions that make configuration easier or configure some aspect of Emacs so that I don't have to.
 
 ** Use package
 ~use package~ macro for easier configuring of Emacs.
@@ -64,7 +64,7 @@ use-package but before any use-package forms, and then run the command M-x
 ~use-package-report~ to see the results. The buffer displayed is a tabulated
 list. You can use S in a column to sort the rows based on it.
 #+BEGIN_SRC emacs-lisp
-  (setq use-package-compute-statistics t)
+  (setq use-package-compute-statistics nil)
   (global-set-key (kbd "C-x M-q") 'use-package-report)
 #+END_SRC
 
@@ -145,12 +145,14 @@ I like to know how fast Emacs has started.
 
 ** helpful
 Better help than built-in help.
+#+name: helpful
 #+BEGIN_SRC emacs-lisp
   (use-package helpful
     :config
     (add-hook 'helpful-mode-hook 'visual-line-mode)
     :general
     ("C-x M-h h" 'helpful-at-point
+     [remap describe-symbol] 'helpful-symbol
      [remap describe-function] 'helpful-callable
      [remap describe-command] 'helpful-command
      [remap describe-variable] 'helpful-variable
@@ -205,12 +207,13 @@ Setup keybindings for builtin features that are not tied to any mode.
 
 ** Help
 Help at point key is =C-x M-h h=. Every mode that implements a help at point needs to change it to point to it's "help-at-point" function
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :noweb yes
   (defvar kr-help-map (make-sparse-keymap)
    "Personal map for help.")
 
   (general-def
     "C-x M-h" kr-help-map)
+  <<helpful>>
 #+end_src
 
 ** Toggle
