@@ -985,6 +985,9 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 #+begin_src emacs-lisp
   (use-package undo-tree
     :config (global-undo-tree-mode 1)
+    (general-def undo-tree-visualizer-mode-map
+      "h" 'undo-tree-visualize-switch-branch-left
+      "l" 'undo-tree-visualize-switch-branch-right)
     :blackout t)
 #+end_src
 
