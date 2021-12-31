@@ -1472,8 +1472,8 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
       '("n" . meow-search)
       '("/" . meow-visit)
 
-      '("d" . meow-kill)
-      '("D" . meow-kill-whole-line)
+      '("D" . meow-kill)
+      '("d" . meow-kill-whole-line)
       '("x" . meow-backward-delete)
       '("X" . meow-delete)
 
@@ -1568,6 +1568,16 @@ Funciton and advices for making meow behave like I like it.
         (funcall fun)
       (negative-argument 1)))
   (advice-add 'meow-reverse :around #'kr-meow-reverse)
+
+  (defun kr-meow-kill-whole-line (fun arg)
+    (if mark-active
+        (meow-kill)
+      (funcall fun arg)))
+  (advice-add 'meow-kill-whole-line :around 'kr-meow-kill-whole-line)
+
+  (general-def kr-g-menu-map
+    "h" 'beginning-of-line-text
+    "l" 'end-of-line)
 #+end_src
 
 ** meow leader keys with general
@@ -1653,16 +1663,16 @@ For example because I use ~dired~ that is bound to =C-x d= more often then ~list
 
 #+begin_src emacs-lisp
   (defvar kr-g-menu-map (make-sparse-keymap))
+  (general-def
+    "C-x M-g" kr-g-menu-map)
   (general-def kr-g-menu-map
     "c" 'recompile
     "C" 'compile
     "f" 'find-file-at-point)
 
-  (general-def
-    "C-x M-g" kr-g-menu-map)
-
   (meow-normal-define-key
-   '("g" . "C-x M-g"))
+   '("g" . "C-x M-g")
+   '("=" . "C-x M-g ="))
 
   ;;; this is some kind of test
   (defun kr-prog-mode ()
