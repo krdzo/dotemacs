@@ -8,7 +8,7 @@
 ;; Doesn't change load times, it's just more visualy appealing like this
 (setq inhibit-startup-screen t)
 (setq inhibit-startup-buffer-menu t)
-(setq inhibit-startup-echo-area-message "ivan")
+(setq inhibit-startup-echo-area-message "me")
 
 
 ;; In Emacs 27+, package initialization occurs before `user-init-file' is
@@ -33,7 +33,6 @@
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
 (setq inhibit-splash-screen t)
-(setq use-file-dialog nil)
 
 ;; Prevent unwanted runtime builds in gccemacs (native-comp); packages are
 ;; compiled ahead-of-time when they are installed and site files are compiled
