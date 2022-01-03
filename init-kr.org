@@ -45,7 +45,6 @@ NOTE: for ~straight-cache-autoloads~ you must run ~straight-prune-build~ ocaison
   ;; doing :sraight (:no-native-compile t)
   ;; (setq comp-deferred-compilation-black-list nil)
 #+end_src
-** COMMENT Enable use-package statistics
 
 * Utilities
 Utility packages that add functions that make configuration easier or configure some aspect of Emacs so that I don't have to.
@@ -1627,34 +1626,23 @@ This is impractical and should be all in ~meow-setup~ but for now it is here.
 #+end_src
 
 ** Other bindings
-Leader
+
 #+begin_src emacs-lisp
-  (meow-leader-define-key
-   '("w" . "C-x M-w")
-   '("b" . "C-x M-b"))
-#+end_src
-ESC bindings
-#+begin_src emacs-lisp
+  ;; ESC bindings
   (general-emacs-define-key
       '(meow-motion-state-keymap meow-normal-state-keymap)
     "<escape>" 'keyboard-quit)
-#+end_src
-Help
-#+begin_src emacs-lisp
+  ;; Help
   (meow-normal-define-key
    '("M-h" . "C-x M-h h"))
   (meow-motion-overwrite-define-key
    '("M-h" . "C-x M-h h"))
-#+end_src
-Toggle
-#+begin_src emacs-lisp
+  ;; Leader
   (meow-leader-define-key
-   '("t" . "C-x M-t"))
-#+end_src
-File
-#+begin_src emacs-lisp
-  (meow-leader-define-key
-   '("f" . "C-x M-f"))
+   '("w" . "C-x M-w")                   ; window
+   '("b" . "C-x M-b")                   ; buffer
+   '("t" . "C-x M-t")                   ; toggle
+   '("f" . "C-x M-f"))                  ; file
 #+end_src
 
 ** Emacs switch bindings
