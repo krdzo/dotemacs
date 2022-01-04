@@ -74,8 +74,7 @@ For keeping mode line clean.
     :config
     (add-hook 'eldoc-mode-hook #'(lambda () (blackout 'eldoc-mode)))
     (add-hook 'smartparens-mode-hook #'(lambda () (blackout 'smartparens-mode)))
-    (add-hook 'org-mode-hook #'(lambda () (blackout 'evil-org-mode) (blackout 'org-indent-mode)))
-    (add-hook 'yas-minor-mode-hook #'(lambda () (blackout 'yas-minor-mode))))
+    (add-hook 'org-mode-hook #'(lambda () (blackout 'evil-org-mode) (blackout 'org-indent-mode))))
 #+end_src
 
 ** General
@@ -968,9 +967,11 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
   ;;  (add-hook 'post-command-hook #'lc/yas-try-expanding-auto-snippets))
 
   (use-package yasnippet
-   :commands yas-minor-mode
+    :commands yas-minor-mode
+    :ghook ('yas-minor-mode-hook #'delete-selection-mode)
     :config
-    (yas-reload-all))
+    (yas-reload-all)
+    :blackout yas-minor-mode)
 
   (use-package yasnippet-snippets
     :after yasnippet)
@@ -1035,9 +1036,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     (lsp lsp-deferred)
     :ghook
     ('(c-mode-hook js-mode-hook json-mode-hook web-mode-hook css-mode-hook) #'lsp)
-    :hook
-    ((lsp-mode . lsp-enable-which-key-integration)
-     (lsp-mode . yas-minor-mode))
+    ('lsp-mode-hook '(lsp-enable-which-key-integration yas-minor-mode))
     :init
     (setq lsp-keymap-prefix "C-c l")
     ;; (setq lsp-completion-enable nil)
