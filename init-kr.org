@@ -180,11 +180,13 @@ For easyer setup for keymaps.
 #+begin_src emacs-lisp
   (bind-map kr-<b-menu-map
     :keys ("M-n M-[")
-    :bindings ("b" 'beginning-of-buffer))
+    :bindings ("b" 'beginning-of-buffer
+               "l" 'beginning-of-line-text))
 
   (bind-map kr->b-menu-map
     :keys ("M-n M-]")
-    :bindings ("b" 'end-of-buffer))
+    :bindings ("b" 'end-of-buffer
+               "l" 'end-of-line))
 #+end_src
 
 ** (g) menu
@@ -211,7 +213,7 @@ For easyer setup for keymaps.
 #+end_src
 
 ** Help
-Help at point key is =C-x M-h h=. Every mode that implements a help at point needs to change it to point to it's "help-at-point" function
+Help at point key is =C-z h=. Every mode that implements a help at point needs to change it to point to it's "help-at-point" function
 #+begin_src emacs-lisp :noweb yes
   (define-key global-map (kbd "C-z") nil)
   (general-def
@@ -1096,11 +1098,14 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
   (use-package git-gutter-fringe
     :init (add-hook 'emacs-startup-hook #'global-git-gutter-mode)
     :config
-    (general-def kr-<b-menu-map
-      "g" 'git-gutter:previous-hunk)
-    (general-def kr->b-menu-map
-      "g" 'git-gutter:next-hunk)
-
+    (general-def
+     :keymaps 'kr-<b-menu-map
+     :predicate 'global-git-gutter-mode
+     "g" 'git-gutter:previous-hunk)
+    (general-def
+     :keymaps 'kr->b-menu-map
+     :predicate 'global-git-gutter-mode
+     "g" 'git-gutter:next-hunk)
     :blackout git-gutter-mode)
 #+end_src
 
