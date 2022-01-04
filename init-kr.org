@@ -1553,6 +1553,9 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
      '("p" . project-prefix-map)
      '("i" . consult-imenu)
      '("V" . magit-status-here)
+     (cons "f" kr-file-map)
+     (cons "w" kr-window-map)
+     (cons "b" kr-buffer-map)
      (cons "t" kr-toggle-map))
     (meow-normal-define-key
      '("{" . backward-paragraph)
@@ -1663,11 +1666,6 @@ Funciton and advices for making meow behave like I like it.
    '("M-h" . "M-n M-h h"))
   (meow-motion-overwrite-define-key
    '("M-h" . "M-n M-h h"))
-  ;; Leader
-  (meow-leader-define-key
-   '("w" . "C-x M-w")                   ; window
-   '("b" . "C-x M-b")                   ; buffer
-   '("f" . "C-x M-f"))                  ; file
 #+end_src
 
 ** Emacs switch bindings
