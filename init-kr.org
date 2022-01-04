@@ -187,6 +187,40 @@ For easyer setup for keymaps.
     :bindings ("b" 'end-of-buffer))
 #+end_src
 
+** (g) menu
+#+begin_src emacs-lisp
+  (bind-map kr-gmenu-map
+    :keys ("M-n M-g")
+    :bindings ("c" 'recompile
+               "C" 'compile
+               "h" 'beginning-of-line-text
+               "l" 'end-of-line
+               "f" 'find-file-at-point))
+
+#+end_src
+
+** Toggle
+#+begin_src emacs-lisp
+  (bind-map kr-toggle-map
+    :keys ("M-n M-t")
+    :bindings ("d" 'toggle-debug-on-error
+               "l" 'display-line-numbers-mode
+               "V" 'toggle-truncate-lines
+               "v" 'visual-line-mode
+               "r" 'read-only-mode))
+#+end_src
+
+** Help
+Help at point key is =C-x M-h h=. Every mode that implements a help at point needs to change it to point to it's "help-at-point" function
+#+begin_src emacs-lisp :noweb yes
+  (defvar kr-help-map (make-sparse-keymap)
+   "Personal map for help.")
+
+  (general-def
+    "M-n M-h" kr-help-map)
+  <<helpful>>
+#+end_src
+
 ** Window
 #+begin_src emacs-lisp
   (defvar kr-window-map (make-sparse-keymap)
@@ -220,28 +254,6 @@ For easyer setup for keymaps.
 
   (general-def
     "C-x M-b" kr-buffer-map)
-#+end_src
-
-** Help
-Help at point key is =C-x M-h h=. Every mode that implements a help at point needs to change it to point to it's "help-at-point" function
-#+begin_src emacs-lisp :noweb yes
-  (defvar kr-help-map (make-sparse-keymap)
-   "Personal map for help.")
-
-  (general-def
-    "C-x M-h" kr-help-map)
-  <<helpful>>
-#+end_src
-
-** Toggle
-#+begin_src emacs-lisp
-  (bind-map kr-toggle-map
-    :keys ("M-n M-t")
-    :bindings ("d" 'toggle-debug-on-error
-               "l" 'display-line-numbers-mode
-               "V" 'toggle-truncate-lines
-               "v" 'visual-line-mode
-               "r" 'read-only-mode))
 #+end_src
 
 ** Files
@@ -1035,9 +1047,9 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     (setq read-process-output-max (* 1024 1024))
 
     (general-def lsp-mode-map
-      "C-x M-g a" 'lsp-execute-code-action
-      "C-x M-g =" 'lsp-format-buffer
-      "C-x M-h h" 'lsp-describe-thing-at-point)
+      "M-n M-g a" 'lsp-execute-code-action
+      "M-n M-g =" 'lsp-format-buffer
+      "M-n M-h h" 'lsp-describe-thing-at-point)
     (setq lsp-lens-enable t))
 
     ;; (setq lsp-restart 'ignore)
@@ -1537,6 +1549,7 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
     (meow-leader-define-key
      (cons "t" kr-toggle-map))
     (meow-normal-define-key
+     (cons "g" kr-gmenu-map)
      (cons "[" kr-<b-menu-map)
      (cons "]" kr->b-menu-map)))
 
@@ -1699,16 +1712,9 @@ For example because I use ~dired~ that is bound to =C-x d= more often then ~list
     [remap delete-blank-lines] 'other-window)
 #+end_src
 
-** (g) menu
+** COMMENT (g) menu
 
 #+begin_src emacs-lisp
-  (defvar kr-g-menu-map (make-sparse-keymap))
-  (general-def
-    "C-x M-g" kr-g-menu-map)
-  (general-def kr-g-menu-map
-    "c" 'recompile
-    "C" 'compile
-    "f" 'find-file-at-point)
 
   (meow-normal-define-key
    '("g" . "C-x M-g")
