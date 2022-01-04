@@ -169,6 +169,23 @@ Small snippets in help buffer that show how a function is used.
 
 * Keybindings
 Setup keybindings for builtin features that are not tied to any mode.
+** Window
+#+begin_src emacs-lisp
+  (defvar kr-window-map (make-sparse-keymap)
+    "Personal keymap for windows.")
+
+  (general-def kr-window-map
+    "d" 'delete-window
+    "s" 'split-window-below
+    "w" 'other-window
+    "W" 'window-swap-states
+    "o" 'delete-other-windows
+    "v" 'split-window-right)
+
+  (general-def
+    "C-x M-w" kr-window-map)
+#+end_src
+
 ** Buffer
 #+begin_src emacs-lisp
   (defvar kr-buffer-map (make-sparse-keymap)
@@ -185,23 +202,6 @@ Setup keybindings for builtin features that are not tied to any mode.
 
   (general-def
     "C-x M-b" kr-buffer-map)
-#+end_src
-
-** Window
-#+begin_src emacs-lisp
-  (defvar kr-window-map (make-sparse-keymap)
-    "Personal keymap for windows.")
-
-  (general-def kr-window-map
-    "d" 'delete-window
-    "s" 'split-window-below
-    "w" 'other-window
-    "W" 'window-swap-states
-    "o" 'delete-other-windows
-    "v" 'split-window-right)
-
-  (general-def
-    "C-x M-w" kr-window-map)
 #+end_src
 
 ** Help
@@ -318,8 +318,6 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 
     ;; Better interaction with clipboard
     (setq-default save-interprogram-paste-before-kill t)
-
-    (setq-default fill-column 75)
 
     ;; Some usefull builtin minor modes
     ;; (save-place-mode 1)
@@ -521,6 +519,7 @@ and the second filter to the completion-style filtering (?).
     :commands (consult-ripgrep)
     :general
     ("C-x M-b b" 'consult-buffer
+     [remap switch-to-buffer] 'consult-buffer
      [remap apropos-command] 'consult-apropos)
     :init
     (setq xref-show-xrefs-function #'consult-xref
@@ -1522,6 +1521,8 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
 ** Things config
 #+begin_src emacs-lisp
   (meow-thing-register 'quote '(regexp "['\"]" "['\"]") '(regexp "['\"]" "['\"]"))
+  (meow-thing-register 'htag '(regexp ">" "<") '(regexp ">" "<"))
+  (meow-thing-register 'angle '(regexp "<" ">") '(regexp "<" ">"))
   (setq meow-char-thing-table '((?r . round)
                                 (?\( . round)
                                 (?\) . round)
@@ -1538,6 +1539,9 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
                                 (?d . defun)
                                 (?. . sentence)))
   (add-to-list 'meow-char-thing-table '(?\" . quote))
+  (add-to-list 'meow-char-thing-table '(?t . htag))
+  (add-to-list 'meow-char-thing-table '(?< . angle))
+  (add-to-list 'meow-char-thing-table '(?> . angle))
 #+end_src
 
 ** config for extending meow
@@ -1625,7 +1629,7 @@ This is impractical and should be all in ~meow-setup~ but for now it is here.
       "]e" 'flymake-goto-next-error))
 #+end_src
 
-** Other bindings
+** Oth bindings
 
 #+begin_src emacs-lisp
   ;; ESC bindings
