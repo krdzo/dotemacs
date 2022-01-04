@@ -150,7 +150,7 @@ Better help than built-in help.
     :config
     (add-hook 'helpful-mode-hook 'visual-line-mode)
     :general
-    ("C-x M-h h" 'helpful-at-point
+    ("M-n M-h h" 'helpful-at-point
      [remap describe-symbol] 'helpful-symbol
      [remap describe-function] 'helpful-callable
      [remap describe-command] 'helpful-command
@@ -1549,8 +1549,14 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
      '("C-r" . undo-tree-redo))
     ;; untipical bindings
     (meow-leader-define-key
+     '("v" . magit-status)
+     '("p" . project-prefix-map)
+     '("i" . consult-imenu)
+     '("V" . magit-status-here)
      (cons "t" kr-toggle-map))
     (meow-normal-define-key
+     '("{" . backward-paragraph)
+     '("}" . forward-paragraph)
      (cons "g" kr-gmenu-map)
      (cons "[" kr-<b-menu-map)
      (cons "]" kr->b-menu-map)))
@@ -1647,33 +1653,6 @@ Funciton and advices for making meow behave like I like it.
         (funcall fun arg)
       (kr-meow-save-line)))
   (advice-add 'meow-save :around #'kr-meow-copy-line-or-selection)
-
-  (general-def kr-g-menu-map
-    "h" 'beginning-of-line-text
-    "l" 'end-of-line)
-#+end_src
-
-** meow leader keys with general
-
-This is impractical and should be all in ~meow-setup~ but for now it is here.
-#+begin_src emacs-lisp
-  (general-create-definer kr-define-meow-leader-keys
-    :keymaps 'meow-leader-keymap)
-  (general-create-definer kr-define-meow-normal-keys
-    :keymaps 'meow-normal-state-keymap)
-#+end_src
-
-
-#+begin_src emacs-lisp
-  (kr-define-meow-leader-keys
-    "i" 'consult-imenu
-    "v" 'magit-status
-    "V" 'magit-status-here
-    "p" project-prefix-map)
-
-  (kr-define-meow-normal-keys
-    "{" 'backward-paragraph
-    "}" 'forward-paragraph)
 #+end_src
 
 ** Other bindings
@@ -1681,9 +1660,9 @@ This is impractical and should be all in ~meow-setup~ but for now it is here.
 #+begin_src emacs-lisp
   ;; Help
   (meow-normal-define-key
-   '("M-h" . "C-x M-h h"))
+   '("M-h" . "M-n M-h h"))
   (meow-motion-overwrite-define-key
-   '("M-h" . "C-x M-h h"))
+   '("M-h" . "M-n M-h h"))
   ;; Leader
   (meow-leader-define-key
    '("w" . "C-x M-w")                   ; window
@@ -1704,30 +1683,21 @@ For example because I use ~dired~ that is bound to =C-x d= more often then ~list
     "C-x b" 'list-buffers
     "C-x C-b" 'switch-to-buffer
     ;; C-x 0
-    [remap delete-window] 'text-scale-adjust
-    [remap text-scale-adjust] 'delete-window
+    "C-x 0" 'text-scale-adjust
+    "C-x C-0" 'delete-window
     ;; C-x d
-    [remap dired] 'list-directory
-    [remap list-directory] 'dired
+    "C-x d" 'list-directory
+    "C-x C-d" 'dired
     ;; C-x o
-    [remap other-window] 'delete-blank-lines
-    [remap delete-blank-lines] 'other-window)
+    "C-x o" 'delete-blank-lines
+    "C-x C-o" 'other-window)
 #+end_src
 
 ** COMMENT (g) menu
 
 #+begin_src emacs-lisp
-
   (meow-normal-define-key
-   '("g" . "C-x M-g")
    '("=" . "C-x M-g ="))
-
-  ;;; this is some kind of test
-  (defun kr-prog-mode ()
-     (local-set-key (kbd "C-c c") #'recompile)
-     (local-set-key (kbd "C-c C") #'compile)
-     (local-set-key (kbd "C-c a") #'lsp-execute-code-action))
-  (add-hook 'prog-mode-hook #'kr-prog-mode)
 #+end_src
 
 ** COMMENT meow palyground
