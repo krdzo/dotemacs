@@ -1046,10 +1046,12 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     ;; LSP recomendation
     (setq read-process-output-max (* 1024 1024))
 
-    (general-def lsp-mode-map
-      "M-n M-g a" 'lsp-execute-code-action
-      "M-n M-g =" 'lsp-format-buffer
-      "M-n M-h h" 'lsp-describe-thing-at-point)
+    (general-define-key
+     :keymaps 'local
+     :predicate 'lsp-mode
+     "g=" 'lsp-format-buffer
+     "ga" 'lsp-execute-code-action
+     "M-n M-h h" 'lsp-describe-thing-at-point)
     (setq lsp-lens-enable t))
 
     ;; (setq lsp-restart 'ignore)
