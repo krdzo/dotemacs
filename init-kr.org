@@ -1568,9 +1568,8 @@ Funciton and advices for making meow behave like I like it.
 
   (defun kr-meow-save-line ()
     (interactive)
-    (save-excursion
-      (call-interactively #'meow-line)
-      (call-interactively #'meow-save)))
+    (meow-line 1)
+    (call-interactively #'meow-save))
 
   (defun kr-meow-reverse (fun)
     "Attemt to reverse command when there is no selection."
@@ -1580,10 +1579,19 @@ Funciton and advices for making meow behave like I like it.
   (advice-add 'meow-reverse :around #'kr-meow-reverse)
 
   (defun kr-meow-kill-whole-line (fun arg)
+    "Delete line if there is no selection but delete selection if there
+  is active selection."
     (if mark-active
         (meow-kill)
       (funcall fun arg)))
   (advice-add 'meow-kill-whole-line :around 'kr-meow-kill-whole-line)
+
+  (defun kr-meow-copy-line-or-selection (fun arg)
+    "Copy region if active. Copy line if no region is active."
+    (if mark-active
+        (funcall fun arg)
+      (kr-meow-save-line)))
+  (advice-add 'meow-save :around #'kr-meow-copy-line-or-selection)
 
   (general-def kr-g-menu-map
     "h" 'beginning-of-line-text
