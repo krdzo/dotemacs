@@ -70,11 +70,7 @@ list. You can use S in a column to sort the rows based on it.
 ** Blackout
 For keeping mode line clean.
 #+begin_src emacs-lisp
-  (use-package blackout
-    :config
-    (add-hook 'eldoc-mode-hook #'(lambda () (blackout 'eldoc-mode)))
-    (add-hook 'smartparens-mode-hook #'(lambda () (blackout 'smartparens-mode)))
-    (add-hook 'org-mode-hook #'(lambda () (blackout 'evil-org-mode) (blackout 'org-indent-mode))))
+  (use-package blackout)
 #+end_src
 
 ** General
@@ -376,7 +372,8 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 ** eldoc
 #+begin_src emacs-lisp
   (use-package eldoc
-    :hook (emacs-lisp-mode cider-mode))
+    :hook (emacs-lisp-mode cider-mode)
+    :blackout t)
 #+end_src
 
 ** recentf
@@ -1223,7 +1220,8 @@ Smart paren I'm using to pair characters like quotes.
 
     (smartparens-global-mode 1)
     ;; (show-paren-mode 1)
-    (show-smartparens-global-mode 1)) ; alternative to show-paren-mode
+    (show-smartparens-global-mode 1) ; alternative to show-paren-mode
+    :blackout t)
 #+end_src
 
 *** Parinfer
