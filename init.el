@@ -1,5 +1,5 @@
 (when (version<  "28" emacs-version)
-    (setq straight-base-dir "~/.emacsen/"))
+    (setq straight-base-dir "~/.stemacsd/"))
 
 (defvar kr/config-org "init-kr.org"
   "Name of my config file")

@@ -1052,9 +1052,9 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
      "=" 'lsp-format-buffer
      "a" 'lsp-execute-code-action)
     (general-define-key
-     :keymaps lsp-mode-map
-     "C-z h" 'lsp-describe-thing-at-point)
-    (setq lsp-lens-enable t))
+     :keymaps 'lsp-mode-map
+     "C-z h" 'lsp-describe-thing-at-point))
+
 
     ;; (setq lsp-restart 'ignore)
     ;; (setq lsp-eldoc-enable-hover nil)
