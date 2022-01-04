@@ -1201,8 +1201,8 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 *** Rainbow-delimiters
 Pretty colors for parens.
 #+begin_src emacs-lisp
-  (use-package rainbow-delimiters
-    :hook ((prog-mode comint-mode) . rainbow-delimiters-mode))
+  ;; (use-package rainbow-delimiters
+  ;;   :hook ((prog-mode comint-mode) . rainbow-delimiters-mode))
 #+end_src
 
 *** Smartparen
@@ -1684,13 +1684,6 @@ For example because I use ~dired~ that is bound to =C-x d= more often then ~list
     ;; C-x o
     "C-x o" 'delete-blank-lines
     "C-x C-o" 'other-window)
-#+end_src
-
-** COMMENT (g) menu
-
-#+begin_src emacs-lisp
-  (meow-normal-define-key
-   '("=" . "C-x M-g ="))
 #+end_src
 
 ** COMMENT meow palyground
