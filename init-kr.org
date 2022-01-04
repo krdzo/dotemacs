@@ -169,6 +169,24 @@ Small snippets in help buffer that show how a function is used.
 
 * Keybindings
 Setup keybindings for builtin features that are not tied to any mode.
+** Bind-map
+For easyer setup for keymaps.
+#+begin_src emacs-lisp
+  (use-package bind-map
+    :defer t)
+#+end_src
+
+** Go to [] menu
+#+begin_src emacs-lisp
+  (bind-map kr-<b-menu-map
+    :keys ("M-n M-[")
+    :bindings ("b" 'beginning-of-buffer))
+
+  (bind-map kr->b-menu-map
+    :keys ("M-n M-]")
+    :bindings ("b" 'end-of-buffer))
+#+end_src
+
 ** Window
 #+begin_src emacs-lisp
   (defvar kr-window-map (make-sparse-keymap)
@@ -970,6 +988,10 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
   (use-package hl-todo
     :hook (prog-mode . hl-todo-mode)
     :config
+    (general-def kr-<b-menu-map
+      "t" 'hl-todo-previous)
+    (general-def kr->b-menu-map
+      "t" 'hl-todo-next)
     (setq hl-todo-highlight-punctuation ":")
     (setq hl-todo-keyword-faces
         '(("TODO"   . "#FF4500")
@@ -1063,6 +1085,12 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 #+begin_src emacs-lisp
   (use-package git-gutter-fringe
     :init (add-hook 'emacs-startup-hook #'global-git-gutter-mode)
+    :config
+    (general-def kr-<b-menu-map
+      "g" 'git-gutter:previous-hunk)
+    (general-def kr->b-menu-map
+      "g" 'git-gutter:next-hunk)
+
     :blackout git-gutter-mode)
 #+end_src
 
@@ -1125,6 +1153,18 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
       ("r" smerge-resolve)
       ("R" smerge-kill-current)
       ("q" nil :color blue)))
+#+end_src
+
+** Flymake
+#+begin_src emacs-lisp
+  (use-package flymake
+    :straight (:type built-in)
+    :defer t
+    :config
+    (general-def kr-<b-menu-map
+      "e" 'flymake-goto-prev-error)
+    (general-def kr->b-menu-map
+      "e" 'flymake-goto-next-error))
 #+end_src
 
 ** Tree-sitter
@@ -1492,15 +1532,15 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
       '("<return>" . meow-open-below)
       '("S-<return>" . meow-open-above)
 
-      '("q" . meow-quit)
-      '("I" . meow-inner-of-thing)
-      '("A" . meow-bounds-of-thing)
-      '("C-r" . undo-tree-redo)))
+      '("q" . quit-window)
+      '("I" . meow-open-above)
+      '("A" . meow-open-below)
+      '("C-r" . undo-tree-redo)
+      (cons "[" kr-<b-menu-map)
+      (cons "]" kr->b-menu-map)))
       ;; help at point
 
-   ;;    '("m" . meow-join)
    ;;    '("O" . meow-to-block)
-   ;;    '("q" . meow-quit)
 
    ;;    '("Y" . meow-sync-grab)
    ;;    '("z" . meow-pop-selection)
@@ -1613,28 +1653,12 @@ This is impractical and should be all in ~meow-setup~ but for now it is here.
   (kr-define-meow-leader-keys
     "i" 'consult-imenu
     "v" 'magit-status
+    "V" 'magit-status-here
     "p" project-prefix-map)
 
   (kr-define-meow-normal-keys
     "{" 'backward-paragraph
     "}" 'forward-paragraph)
-#+end_src
-
-** ([ and ]) menu
-#+begin_src emacs-lisp
-  (kr-define-meow-normal-keys
-    "[b" 'beginning-of-buffer
-    "]b" 'end-of-buffer
-    "[t" 'hl-todo-previous
-    "[g" 'git-gutter:previous-hunk
-    "]t" 'hl-todo-next
-    "]g" 'git-gutter:next-hunk)
-
-  ;; TODO: this should be move to flymake configuration
-  (with-eval-after-load 'flymake
-    (kr-define-meow-normal-keys
-      "[e" 'flymake-goto-prev-error
-      "]e" 'flymake-goto-next-error))
 #+end_src
 
 ** Other bindings
@@ -1666,15 +1690,15 @@ For example because I use ~dired~ that is bound to =C-x d= more often then ~list
     "C-x k" kmacro-keymap
     "C-x K" 'kill-buffer
     "C-x C-k" 'kill-current-buffer
+    ;; C-x b
+    "C-x b" 'list-buffers
+    "C-x C-b" 'switch-to-buffer
     ;; C-x 0
     [remap delete-window] 'text-scale-adjust
     [remap text-scale-adjust] 'delete-window
     ;; C-x d
     [remap dired] 'list-directory
     [remap list-directory] 'dired
-    ;; C-x b
-    [remap switch-to-buffer] 'ibuffer
-    [remap list-buffers] 'switch-to-buffer
     ;; C-x o
     [remap other-window] 'delete-blank-lines
     [remap delete-blank-lines] 'other-window)
