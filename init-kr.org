@@ -145,12 +145,12 @@ I like to know how fast Emacs has started.
 ** helpful
 Better help than built-in help.
 #+name: helpful
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
   (use-package helpful
     :config
     (add-hook 'helpful-mode-hook 'visual-line-mode)
     :general
-    ("M-n M-h h" 'helpful-at-point
+    ("C-z h" 'helpful-at-point
      [remap describe-symbol] 'helpful-symbol
      [remap describe-function] 'helpful-callable
      [remap describe-command] 'helpful-command
@@ -213,11 +213,9 @@ For easyer setup for keymaps.
 ** Help
 Help at point key is =C-x M-h h=. Every mode that implements a help at point needs to change it to point to it's "help-at-point" function
 #+begin_src emacs-lisp :noweb yes
-  (defvar kr-help-map (make-sparse-keymap)
-   "Personal map for help.")
-
+  (define-key global-map (kbd "C-z") nil)
   (general-def
-    "M-n M-h" kr-help-map)
+    "C-z h" 'describe-symbol)
   <<helpful>>
 #+end_src
 
@@ -1052,8 +1050,8 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
      "=" 'lsp-format-buffer
      "a" 'lsp-execute-code-action)
     (general-define-key
-     :keymap lsp-mode-map
-     "M-n M-h h" 'lsp-describe-thing-at-point)
+     :keymaps lsp-mode-map
+     "C-z h" 'lsp-describe-thing-at-point)
     (setq lsp-lens-enable t))
 
     ;; (setq lsp-restart 'ignore)
@@ -1350,7 +1348,7 @@ Maybe better alternative [[https://github.com/purcell/emacs-reformatter][reforma
                            (lsp))))  ; or lsp-deferred
 #+end_src
 
-*** common Lisp
+*** Common Lisp
 
 Seting ~sbcl~ to be default interpreter for lisp.
 #+begin_src emacs-lisp
@@ -1363,7 +1361,7 @@ Sly the better SLIME.
     :defer t
     :config
     (general-def 'sly-mode-map
-     "C-x M-h h" 'sly-describe-symbol)
+     "C-z h" 'sly-describe-symbol)
     (setq sly-contribs '(sly-fancy sly-mrepl)))
 #+end_src
 
@@ -1549,7 +1547,8 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
      '("I" . meow-open-above)
      '("A" . meow-open-below)
      '("C-r" . undo-tree-redo))
-    ;; untipical bindings
+
+    ;; unrelated to editing
     (meow-leader-define-key
      '("v" . magit-status)
      '("p" . project-prefix-map)
@@ -1564,14 +1563,13 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
      '("}" . forward-paragraph)
      (cons "g" kr-gmenu-map)
      (cons "[" kr-<b-menu-map)
-     (cons "]" kr->b-menu-map)))
+     (cons "]" kr->b-menu-map))
 
-   ;;    '("O" . meow-to-block)
-
-   ;;    '("Y" . meow-sync-grab)
-   ;;    '("z" . meow-pop-selection)
-   ;;    '("'" . repeat)
-  ;;    '("<escape>" . mode-line-other-buffer)
+    ;; help
+    (meow-normal-define-key
+     '("M-h" . "C-z h"))
+    (meow-motion-overwrite-define-key
+     '("M-h" . "C-z h")))
 
   (use-package meow
     :init
@@ -1658,16 +1656,6 @@ Funciton and advices for making meow behave like I like it.
         (funcall fun arg)
       (kr-meow-save-line)))
   (advice-add 'meow-save :around #'kr-meow-copy-line-or-selection)
-#+end_src
-
-** Other bindings
-
-#+begin_src emacs-lisp
-  ;; Help
-  (meow-normal-define-key
-   '("M-h" . "M-n M-h h"))
-  (meow-motion-overwrite-define-key
-   '("M-h" . "M-n M-h h"))
 #+end_src
 
 ** Emacs switch bindings
