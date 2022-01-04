@@ -235,17 +235,13 @@ Help at point key is =C-x M-h h=. Every mode that implements a help at point nee
 
 ** Toggle
 #+begin_src emacs-lisp
-  (defvar kr-toggle-map (make-sparse-keymap))
-
-  (general-def
-    "C-x M-t" kr-toggle-map)
-
-  (general-def kr-toggle-map
-    "d" 'toggle-debug-on-error
-    "l" 'display-line-numbers-mode
-    "V" 'toggle-truncate-lines
-    "v" 'visual-line-mode
-    "r" 'read-only-mode)
+  (bind-map kr-toggle-map
+    :keys ("M-n M-t")
+    :bindings ("d" 'toggle-debug-on-error
+               "l" 'display-line-numbers-mode
+               "V" 'toggle-truncate-lines
+               "v" 'visual-line-mode
+               "r" 'read-only-mode))
 #+end_src
 
 ** Files
@@ -1445,100 +1441,104 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
 
 #+begin_src emacs-lisp
   (defun meow-setup ()
-     "My meow setup thats similar to evil/vim"
-     (meow-motion-overwrite-define-key
-      '("j" . meow-next)
-      '("k" . meow-prev))
-     (meow-leader-define-key
-      ;; SPC j/k will run the original command in MOTION state.
-      '("j" . "H-j")
-      '("k" . "H-k")
-      ;; Use SPC (0-9) for digit arguments.
-      '("1" . meow-digit-argument)
-      '("2" . meow-digit-argument)
-      '("3" . meow-digit-argument)
-      '("4" . meow-digit-argument)
-      '("5" . meow-digit-argument)
-      '("6" . meow-digit-argument)
-      '("7" . meow-digit-argument)
-      '("8" . meow-digit-argument)
-      '("9" . meow-digit-argument)
-      '("0" . meow-digit-argument)
-      '("?" . meow-cheatsheet)
-      '("/" . meow-keypad-describe-key))
-     (meow-normal-define-key
-      '("0" . meow-expand-0)
-      '("9" . meow-expand-9)
-      '("8" . meow-expand-8)
-      '("7" . meow-expand-7)
-      '("6" . meow-expand-6)
-      '("5" . meow-expand-5)
-      '("4" . meow-expand-4)
-      '("3" . meow-expand-3)
-      '("2" . meow-expand-2)
-      '("1" . meow-expand-1)
-      '("-" . negative-argument)
-      ;; thing
-      '("," . meow-inner-of-thing)
-      '("." . meow-bounds-of-thing)
-      '("<" . meow-beginning-of-thing)
-      '(">" . meow-end-of-thing)
+    "My meow setup thats similar to evil/vim"
+    (meow-motion-overwrite-define-key
+     '("j" . meow-next)
+     '("k" . meow-prev))
+    (meow-leader-define-key
+     ;; SPC j/k will run the original command in MOTION state.
+     '("j" . "H-j")
+     '("k" . "H-k")
+     ;; Use SPC (0-9) for digit arguments.
+     '("1" . meow-digit-argument)
+     '("2" . meow-digit-argument)
+     '("3" . meow-digit-argument)
+     '("4" . meow-digit-argument)
+     '("5" . meow-digit-argument)
+     '("6" . meow-digit-argument)
+     '("7" . meow-digit-argument)
+     '("8" . meow-digit-argument)
+     '("9" . meow-digit-argument)
+     '("0" . meow-digit-argument)
+     '("?" . meow-cheatsheet)
+     '("/" . meow-keypad-describe-key))
+    (meow-normal-define-key
+     '("0" . meow-expand-0)
+     '("9" . meow-expand-9)
+     '("8" . meow-expand-8)
+     '("7" . meow-expand-7)
+     '("6" . meow-expand-6)
+     '("5" . meow-expand-5)
+     '("4" . meow-expand-4)
+     '("3" . meow-expand-3)
+     '("2" . meow-expand-2)
+     '("1" . meow-expand-1)
+     '("-" . negative-argument)
+     '("<escape>" . keyboard-quit)
+     ;; thing
+     '("," . meow-inner-of-thing)
+     '("." . meow-bounds-of-thing)
+     '("<" . meow-beginning-of-thing)
+     '(">" . meow-end-of-thing)
 
-      '("u" . meow-undo)
-      '("U" . meow-undo-in-selection)
-      '("y" . meow-save)
-      '("Y" . kr-meow-save-line)
+     '("u" . meow-undo)
+     '("U" . meow-undo-in-selection)
+     '("y" . meow-save)
+     '("Y" . kr-meow-save-line)
 
-      '("p" . meow-yank)
-      '("i" . meow-insert)
-      '("a" . meow-append)
+     '("p" . meow-yank)
+     '("i" . meow-insert)
+     '("a" . meow-append)
 
-      '("j" . meow-next)
-      '("M-j" . (lambda () (interactive) (scroll-up-line)))
-      '("k" . meow-prev)
-      '("M-k" . (lambda () (interactive) (scroll-down-line)))
-      '("h" . meow-left)
-      '("l" . meow-right)
+     '("j" . meow-next)
+     '("M-j" . (lambda () (interactive) (scroll-up-line)))
+     '("k" . meow-prev)
+     '("M-k" . (lambda () (interactive) (scroll-down-line)))
+     '("h" . meow-left)
+     '("l" . meow-right)
 
-      '("J" . meow-next-expand)
-      '("K" . meow-prev-expand)
-      '("H" . meow-left-expand)
-      '("L" . meow-right-expand)
-      '("c" . meow-change)
-      '("w" . meow-mark-word)
-      '("W" . meow-mark-symbol)
-      '("n" . meow-search)
-      '("/" . meow-visit)
+     '("J" . meow-next-expand)
+     '("K" . meow-prev-expand)
+     '("H" . meow-left-expand)
+     '("L" . meow-right-expand)
+     '("c" . meow-change)
+     '("w" . meow-mark-word)
+     '("W" . meow-mark-symbol)
+     '("n" . meow-search)
+     '("/" . meow-visit)
 
-      '("D" . meow-kill)
-      '("d" . meow-kill-whole-line)
-      '("x" . meow-backward-delete)
-      '("X" . meow-delete)
+     '("D" . meow-kill)
+     '("d" . meow-kill-whole-line)
+     '("x" . meow-backward-delete)
+     '("X" . meow-delete)
 
-      '("e" . meow-next-word)
-      '("E" . meow-next-symbol)
-      '(";" . meow-reverse)
-      '("b" . meow-back-word)
-      '("B" . meow-back-symbol)
-      '("v" . meow-line)
-      '("f" . meow-find)
-      '("t" . meow-till)
-      '("G" . meow-grab)
-      '("r" . meow-replace)
-      '("R" . meow-swap-grab)
-      '("m" . meow-join)
+     '("e" . meow-next-word)
+     '("E" . meow-next-symbol)
+     '(";" . meow-reverse)
+     '("b" . meow-back-word)
+     '("B" . meow-back-symbol)
+     '("v" . meow-line)
+     '("f" . meow-find)
+     '("t" . meow-till)
+     '("G" . meow-grab)
+     '("r" . meow-replace)
+     '("R" . meow-swap-grab)
+     '("m" . meow-join)
 
-      '("o" . meow-block)
-      '("<return>" . meow-open-below)
-      '("S-<return>" . meow-open-above)
+     '("o" . meow-block)
+     '("<return>" . meow-open-below)
+     '("S-<return>" . meow-open-above)
 
-      '("q" . quit-window)
-      '("I" . meow-open-above)
-      '("A" . meow-open-below)
-      '("C-r" . undo-tree-redo)
-      (cons "[" kr-<b-menu-map)
-      (cons "]" kr->b-menu-map)))
-      ;; help at point
+     '("q" . quit-window)
+     '("I" . meow-open-above)
+     '("A" . meow-open-below)
+     '("C-r" . undo-tree-redo))
+    ;; untipical bindings
+    (meow-leader-define-key
+     (cons "t" kr-toggle-map))
+    (meow-normal-define-key
+     (cons "[" kr-<b-menu-map)
+     (cons "]" kr->b-menu-map)))
 
    ;;    '("O" . meow-to-block)
 
@@ -1664,10 +1664,6 @@ This is impractical and should be all in ~meow-setup~ but for now it is here.
 ** Other bindings
 
 #+begin_src emacs-lisp
-  ;; ESC bindings
-  (general-emacs-define-key
-      '(meow-motion-state-keymap meow-normal-state-keymap)
-    "<escape>" 'keyboard-quit)
   ;; Help
   (meow-normal-define-key
    '("M-h" . "C-x M-h h"))
@@ -1677,7 +1673,6 @@ This is impractical and should be all in ~meow-setup~ but for now it is here.
   (meow-leader-define-key
    '("w" . "C-x M-w")                   ; window
    '("b" . "C-x M-b")                   ; buffer
-   '("t" . "C-x M-t")                   ; toggle
    '("f" . "C-x M-f"))                  ; file
 #+end_src
 
