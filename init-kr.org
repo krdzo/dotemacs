@@ -1552,13 +1552,13 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
      '("R" . meow-swap-grab)
      '("m" . meow-join)
 
-     '("o" . meow-block)
-     '("<return>" . meow-open-below)
-     '("S-<return>" . meow-open-above)
-
+     '("A" . kr-meow-append-to-line)
+     '("I" . kr-meow-insert-to-line)
+     '("o" . meow-open-below)
+     '("O" . meow-open-above)
+     '("s" . meow-block)
+     '("S" . meow-block-expand)
      '("q" . quit-window)
-     '("I" . meow-open-above)
-     '("A" . meow-open-below)
      '("C-r" . undo-tree-redo))
 
     ;; unrelated to editing
@@ -1629,13 +1629,6 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
 Funciton and advices for making meow behave like I like it.
 
 #+begin_src emacs-lisp
-  ;; (defun kr-meow-append ()
-  ;;  "Make `meow-append' behavior similar to evil-append."
-  ;;  (unless (and (not mark-active) (= (line-end-position) (point)))
-  ;;    (forward-char 1)))
-  ;; (advice-add 'meow-append :before #'kr-meow-append)
-  ;; (advice-remove 'meow-append #'kr-meow-append)
-
    ;;;;;;;;;;;;;;;
   (defun kr-meow-maybe-digit (fun n)
     "One more advice so that I can get digit arguments if there is no
@@ -1672,6 +1665,33 @@ Funciton and advices for making meow behave like I like it.
         (funcall fun arg)
       (kr-meow-save-line)))
   (advice-add 'meow-save :around #'kr-meow-copy-line-or-selection)
+
+
+  (defun kr-meow-append-mark ()
+    "Move to end of selection and switch to insert state.
+  Keep mark active."
+    (interactive)
+    (call-interactively #'meow-append)
+    (activate-mark))
+  (defun kr-meow-insert-mark ()
+    "Move to beginign of selection and switch to insert state.
+  Keep mark active."
+    (interactive)
+    (call-interactively #'meow-insert)
+    (activate-mark))
+  (meow-normal-define-key
+   '("(" . kr-meow-insert-mark)
+   '(")" . kr-meow-append-mark))
+
+
+  (defun kr-meow-append-to-line ()
+    (interactive)
+    (end-of-line)
+    (call-interactively #'meow-append))
+  (defun kr-meow-insert-to-line ()
+    (interactive)
+    (beginning-of-line-text)
+    (call-interactively #'meow-insert))
 #+end_src
 
 ** Emacs switch bindings
