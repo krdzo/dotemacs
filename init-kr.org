@@ -369,6 +369,14 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
     :blackout t)
 #+end_src
 
+** Visual line mode
+#+begin_src emacs-lisp
+  (use-package simple  ;package in which visual line mode is defined
+    :straight (:type built-in)
+    :ghook ('prog-mode-hook #'visual-line-mode)
+    :blackout visual-line-mode)
+#+end_src
+
 ** eldoc
 #+begin_src emacs-lisp
   (use-package eldoc
@@ -810,7 +818,8 @@ Taken from DOOM
     (setq org-image-actual-width 700)
     (setq org-M-RET-may-split-line nil)
     (setq org-return-follows-link t)
-    (setq org-src-window-setup 'current-window))
+    (setq org-src-window-setup 'current-window)
+    :blackout org-indent-mode)
 
 #+end_src
 
