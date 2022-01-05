@@ -1049,6 +1049,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     (setq lsp-completion-provider :none)
     :config
     ;; LSP recomendation
+    (setq lsp-enable-snippet nil)
     (setq read-process-output-max (* 1024 1024))
 
     (general-define-key
