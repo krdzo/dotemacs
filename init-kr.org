@@ -1714,7 +1714,14 @@ For example because I use ~dired~ that is bound to =C-x d= more often then ~list
     "C-x C-d" 'dired
     ;; C-x o
     "C-x o" 'delete-blank-lines
-    "C-x C-o" 'other-window)
+    "C-x C-o" 'other-window
+    ;; C-x p
+    "C-x p" 'mark-page
+    "C-x C-p" project-prefix-map)
+
+  ;; some convinience bindings
+  (general-def
+    "C-x W" 'window-swap-states)
 #+end_src
 
 ** COMMENT meow palyground
