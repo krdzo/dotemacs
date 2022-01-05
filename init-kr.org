@@ -630,6 +630,7 @@ or a function across files in the project.
     (setq company-minimum-prefix-length 1)
     (setq company-selection-wrap-around t)
     (setq company-global-modes '(not help-mode
+                                     eshell-mode
                                      helpful-mode
                                      gud-mode))
 
@@ -1590,6 +1591,9 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
       "C-h k" 'helpful-key)
     (setq meow-use-clipboard t)
     (add-to-list 'meow-mode-state-list '(helpful-mode . normal))
+    (add-to-list 'meow-mode-state-list '(fundamental-mode . normal))
+    (add-to-list 'meow-mode-state-list '(eshell-mode . normal))
+    (add-to-list 'meow-mode-state-list '(sly-mrepl-mode . normal))
     (meow-setup)
     (meow-global-mode 1))
 #+end_src
