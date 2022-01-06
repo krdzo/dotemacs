@@ -634,12 +634,12 @@ or a function across files in the project.
                                      helpful-mode
                                      gud-mode))
 
-    (setq company-backends '((company-capf company-keywords company-files :with company-yasnippet)))
+    (setq company-backends '(company-capf company-keywords company-files company-yasnippet))
     (general-def company-active-map
      "C-j" 'company-select-next-or-abort
      "C-k" 'company-select-previous-or-abort
      "M-h" 'company-show-doc-buffer))
-  ;; icons with company
+    ;; icons with company
     ;; (setq company-format-margin-function #'company-vscode-light-icons-margin))
 
 #+END_SRC
@@ -978,7 +978,31 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     :ghook ('yas-minor-mode-hook #'delete-selection-mode)
     :config
     (yas-reload-all)
-    :blackout yas-minor-mode)
+    (defun check-expansion ()
+       (save-excursion
+        (if (looking-at "\\_>") t
+          (backward-char 1)
+          (if (looking-at "\\.") t
+            (backward-char 1)
+            (if (looking-at "->") t nil)))))
+
+    (defun do-yas-expand ()
+      (let ((yas-fallback-behavior 'return-nil))
+        (yas-expand)))
+
+    (defun tab-indent-or-complete ()
+      (interactive)
+      (if (minibufferp)
+          (minibuffer-complete)
+        (if (or (not yas-minor-mode)
+                (null (do-yas-expand)))
+            (if (check-expansion)
+                (company-complete-common)
+              (indent-for-tab-command)))))
+
+    (general-def company-active-map
+      "<tab>" 'tab-indent-or-complete)
+   :blackout yas-minor-mode)
 
   (use-package yasnippet-snippets
     :after yasnippet)
@@ -1501,6 +1525,7 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
      '("2" . meow-expand-2)
      '("1" . meow-expand-1)
      '("-" . negative-argument)
+     '("`" . meow-last-buffer)
      '("<escape>" . keyboard-quit)
      ;; thing
      '("," . meow-inner-of-thing)
