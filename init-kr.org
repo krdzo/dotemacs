@@ -162,6 +162,13 @@ Small snippets in help buffer that show how a function is used.
     (advice-add 'helpful-update :after #'elisp-demos-advice-helpful-update))
 #+end_src
 
+** transient mode
+This is manly for magit but can be used for some other funcitonality.
+#+begin_src emacs-lisp
+(general-def transient-base-map
+  "<escape>" 'transient-quit-one)
+#+end_src
+
 * Keybindings
 Setup keybindings for builtin features that are not tied to any mode.
 ** Bind-map
