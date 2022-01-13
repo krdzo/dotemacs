@@ -978,6 +978,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     :ghook ('yas-minor-mode-hook #'delete-selection-mode)
     :config
     (yas-reload-all)
+
     (defun check-expansion ()
        (save-excursion
         (if (looking-at "\\_>") t
@@ -1423,6 +1424,16 @@ Sly the better SLIME.
     :defer)
   (use-package cargo
     :hook (rust-mode . cargo-minor-mode))
+#+end_src
+
+** devdocs
+#+begin_src emacs-lisp
+  (use-package devdocs
+    :defer
+    :ghook ('devdocs-mode-hook #'olivetti-mode)
+    :init
+    (add-hook 'dart-mode-hook
+              (lambda () (setq-local devdocs-current-docs '("dart~2")))))
 #+end_src
 
 * COMMENT Notes from old config
