@@ -1773,6 +1773,45 @@ For example because I use ~dired~ that is bound to =C-x d= more often then ~list
     "C-x W" 'window-swap-states)
 #+end_src
 
+** define-state
+Template for other selfdefined meow states:
+#+begin_src emacs-lisp :tangle no
+  (defvar meow-paren-keymap (make-keymap))
+  (suppress-keymap meow-paren-keymap t)
+
+  (meow-define-state paren
+    "paren state"
+    :lighter " [P]"
+    :keymap meow-paren-keymap)
+
+  (meow-normal-define-key
+   '("Z" . meow-paren-mode))
+
+  (meow-define-keys 'paren
+    (cons "SPC" meow-leader-keymap)
+    '("<escape>" . meow-normal-mode)
+    '("l" . sp-forward-sexp)
+    '("h" . sp-backward-sexp)
+    '("j" . sp-down-sexp)
+    '("k" . sp-up-sexp)
+    '("w s" . sp-wrap-square)
+    '("w r" . sp-wrap-round)
+    '("w c" . sp-wrap-curly)
+    '("W" . sp-unwrap-sexp)
+    '("n" . sp-forward-slurp-sexp)
+    '("b" . sp-forward-barf-sexp)
+    '("v" . sp-backward-barf-sexp)
+    '("c" . sp-backward-slurp-sexp)
+    '("s" . sp-splice-sexp-killing-forward)
+    '("S" . sp-splice-sexp-killing-backward)
+    '("e" . sp-end-of-sexp)
+    '("a" . sp-beginning-of-sexp)
+    '("t" . sp-transpose-hybrid-sexp)
+    '("u" . meow-undo))
+
+  (setq meow-cursor-type-paren 'hollow)
+#+end_src
+
 ** COMMENT meow palyground
 
 #+begin_src emacs-lisp :tangle no
