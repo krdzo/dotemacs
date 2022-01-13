@@ -641,13 +641,13 @@ or a function across files in the project.
                                      helpful-mode
                                      gud-mode))
 
-    (setq company-backends '(company-capf company-keywords company-files company-yasnippet))
+    (setq company-backends '(company-files company-capf company-keywords company-yasnippet))
     (general-def company-active-map
-     "C-j" 'company-select-next-or-abort
-     "C-k" 'company-select-previous-or-abort
-     "M-h" 'company-show-doc-buffer))
-    ;; icons with company
-    ;; (setq company-format-margin-function #'company-vscode-light-icons-margin))
+      "C-j" 'company-select-next-or-abort
+      "C-k" 'company-select-previous-or-abort
+      "M-h" 'company-show-doc-buffer))
+  ;; icons with company
+  ;; (setq company-format-margin-function #'company-vscode-light-icons-margin))
 
 #+END_SRC
 
