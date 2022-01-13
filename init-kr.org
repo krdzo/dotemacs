@@ -90,6 +90,12 @@ There is also ~use-package~ integration for all of these functions and they are:
     "C-h l" 'find-library)
 #+END_SRC
 
+** ghelp
+#+begin_src emacs-lisp
+  (use-package ghelp
+    :straight (:type git :host github :repo "casouri/ghelp"))
+#+end_src
+
 ** Garbage collector magic hack
 What the title says.
 #+BEGIN_SRC emacs-lisp
