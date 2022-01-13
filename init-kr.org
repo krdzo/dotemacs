@@ -62,9 +62,9 @@ initialization they've reached, and how much aggregate time they've spent
 use-package but before any use-package forms, and then run the command M-x
 ~use-package-report~ to see the results. The buffer displayed is a tabulated
 list. You can use S in a column to sort the rows based on it.
-#+BEGIN_SRC emacs-lisp
-  (setq use-package-compute-statistics nil)
-  (global-set-key (kbd "C-x M-q") 'use-package-report)
+#+BEGIN_SRC emacs-lisp :tangle no
+  (setq use-package-compute-statistics t)
+  (global-set-key (kbd "M-n M-u") 'use-package-report)
 #+END_SRC
 
 ** Blackout
@@ -1213,6 +1213,17 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
       ("r" smerge-resolve)
       ("R" smerge-kill-current)
       ("q" nil :color blue)))
+#+end_src
+
+** COMMENT eshell
+#+begin_src emacs-lisp
+  (defun kr-meow-eshell-key-setup ()
+    (general-def eshell-mode-map
+      "C-j" 'eshell-next-input
+      "C-k" 'eshell-previous-input
+      "C-n" 'eshell-next-prompt
+      "C-p" 'eshell-previous-prompt))
+  (add-hook 'eshell-first-time-mode-hook #'kr-meow-eshell-key-setup)
 #+end_src
 
 ** Flymake
