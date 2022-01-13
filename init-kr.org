@@ -1170,8 +1170,6 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
   (use-package smerge-mode
     :straight (:type built-in)
     :after hydra
-    :general
-    (lc/leader-keys "g m" 'smerge-hydra/body)
     :hook
     (magit-diff-visit-file . (lambda ()
                                (when smerge-mode
@@ -1530,9 +1528,14 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
     "My meow setup thats similar to evil/vim"
     (meow-motion-overwrite-define-key
      '("j" . meow-next)
-     '("k" . meow-prev))
+     '("k" . meow-prev)
+     '("M-j" . (lambda () (interactive) (scroll-up-line)))
+     '("M-k" . (lambda () (interactive) (scroll-down-line)))
+     '("`" . meow-last-buffer)
+     '("<escape>" . keyboard-quit))
     (meow-leader-define-key
      ;; SPC j/k will run the original command in MOTION state.
+     '("`" . "H-`")
      '("j" . "H-j")
      '("k" . "H-k")
      ;; Use SPC (0-9) for digit arguments.
@@ -1563,8 +1566,8 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
      '("`" . meow-last-buffer)
      '("<escape>" . keyboard-quit)
      ;; thing
-     '("," . meow-inner-of-thing)
-     '("." . meow-bounds-of-thing)
+     '("." . meow-inner-of-thing)
+     '("," . meow-bounds-of-thing)
      '("<" . meow-beginning-of-thing)
      '(">" . meow-end-of-thing)
 
@@ -1624,9 +1627,9 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
     ;; unrelated to editing
     (meow-leader-define-key
      '("v" . magit-status)
-     '("p" . project-prefix-map)
      '("i" . consult-imenu)
      '("V" . magit-status-here)
+     (cons "p" project-prefix-map)
      (cons "f" kr-file-map)
      (cons "w" kr-window-map)
      (cons "b" kr-buffer-map)
