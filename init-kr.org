@@ -1096,6 +1096,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     (general-define-key
      :keymaps 'kr-gmenu-map
      :predicate 'lsp-mode
+     "r" 'lsp-rename
      "=" 'lsp-format-buffer
      "a" 'lsp-execute-code-action)
     (general-define-key
