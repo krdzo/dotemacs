@@ -1450,6 +1450,19 @@ Sly the better SLIME.
     :hook (rust-mode . cargo-minor-mode))
 #+end_src
 
+** GTK
+#+begin_src emacs-lisp
+  (defun gtk-run ()
+    "To compile and run gtk file."
+    (interactive)
+    (compile (concat "gcc $( pkg-config --cflags gtk4 ) -o "
+                     (file-name-sans-extension buffer-file-name)
+                     " "
+                     buffer-file-name
+                     " $( pkg-config --libs gtk4 )"))
+    (async-shell-command (file-name-sans-extension buffer-file-name) nil nil))
+#+end_src
+
 ** devdocs
 #+begin_src emacs-lisp
   (use-package devdocs
