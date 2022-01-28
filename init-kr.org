@@ -363,6 +363,8 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
     ;; Maybe gives some optimization
     (add-hook 'focus-out-hook #'garbage-collect)
 
+    (tooltip-mode -1)
+
     ;; delete whitespace
     (add-hook 'before-save-hook #'whitespace-cleanup))
 #+END_SRC
@@ -406,7 +408,7 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
     :demand t
     :config
     (recentf-mode 1)
-    (setq recentf-max-saved-items 50)
+    (setq recentf-max-saved-items 75)
     (setq recentf-exclude `(,(expand-file-name "straight/build/" user-emacs-directory)
                             ,(expand-file-name "eln-cache/" user-emacs-directory))))
     ;;                         ,(expand-file-name "etc/" user-emacs-directory)
