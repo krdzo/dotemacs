@@ -1442,6 +1442,22 @@ Sly the better SLIME.
     :hook (rust-mode . cargo-minor-mode))
 #+end_src
 
+*** Java
+#+begin_src emacs-lisp
+  (use-package lsp-java
+    :hook (java-mode . lsp))
+
+  (defun kr-set-comile-command ()
+    (setq-local
+     compile-command
+     (concat "java "
+             (when buffer-file-name
+               buffer-file-name))))
+
+  (add-hook 'java-mode-hook #'kr-set-comile-command)
+  (add-hook 'java-mode-hook #'tree-sitter-hl-mode)
+#+end_src
+
 ** GTK
 #+begin_src emacs-lisp
   (defun gtk-run ()
