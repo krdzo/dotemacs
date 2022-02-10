@@ -1562,8 +1562,8 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
     (meow-motion-overwrite-define-key
      '("j" . meow-next)
      '("k" . meow-prev)
-     '("M-j" . (lambda () (interactive) (scroll-up-line)))
-     '("M-k" . (lambda () (interactive) (scroll-down-line)))
+     '("M-j" . scroll-up-line)
+     '("M-k" . scroll-down-line)
      '("`" . meow-last-buffer)
      '("<escape>" . keyboard-quit))
     (meow-leader-define-key
@@ -1614,9 +1614,9 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
      '("a" . meow-append)
 
      '("j" . meow-next)
-     '("M-j" . (lambda () (interactive) (scroll-up-line)))
+     '("M-j" . scroll-up-line)
      '("k" . meow-prev)
-     '("M-k" . (lambda () (interactive) (scroll-down-line)))
+     '("M-k" . scroll-down-line)
      '("h" . meow-left)
      '("l" . meow-right)
 
@@ -1648,6 +1648,8 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
      '("R" . meow-swap-grab)
      '("m" . meow-join)
 
+     '("@" . meow-goto-line)
+     '("P" . meow-pop-selection)
      '("A" . kr-meow-append-to-line)
      '("I" . kr-meow-insert-to-line)
      '("o" . meow-open-below)
