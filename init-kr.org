@@ -1107,6 +1107,17 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     ;; (setq lsp-diagnostics-provider :flymake)
 #+END_SRC
 
+** DAP mode
+#+begin_src emacs-lisp
+  (use-package dap-mode
+    :hook
+    (lsp-mode . dap-mode)
+    (python-mode . (lambda () (require 'dap-python)))
+    (java-mode . (lambda () (require 'dap-java)))
+    :config
+    (add-hook 'dap-stopped-hook (lambda (arg) (call-interactively #'dap-hydra))))
+#+end_src
+
 ** Git
 *** Magit
 #+begin_src emacs-lisp
