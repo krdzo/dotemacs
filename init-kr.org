@@ -125,7 +125,8 @@ Help with discovery of keybindings.
   (straight-use-package 'which-key)
   (setq which-key-idle-delay 0.5)
   (add-hook 'after-init-hook 'which-key-mode)
-  (blackout 'which-key-mode)
+  (with-eval-after-load 'which-key
+    (blackout 'which-key-mode))
 #+END_SRC
 
 ** helpful
@@ -366,6 +367,8 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 #+begin_src emacs-lisp
   (straight-use-package 'eldoc)
   (general-add-hook 'emacs-lisp-mode-hook 'eldoc-mode)
+  (with-eval-after-load 'eldoc
+    (blackout 'eldoc-mode))
 #+end_src
 
 ** recentf
@@ -535,6 +538,12 @@ and the second filter to the completion-style filtering (?).
     "C-M-/" 'dabbrev-expand)
 #+end_src
 
+** abbrev
+#+begin_src emacs-lisp
+  (with-eval-after-load 'abbrev
+    (blackout 'abbrev-mode))
+#+end_src
+
 ** Company
 *** company-mode
 ~company-tng-mode~ (tab-n-go):
@@ -658,7 +667,8 @@ and the second filter to the completion-style filtering (?).
   (setq org-return-follows-link t)
   (setq org-src-window-setup 'current-window)
 
-  (blackout 'org-indent-mode)
+  (with-eval-after-load 'org-indent
+    (blackout 'org-indent-mode))
 #+end_src
 
 * Dired
@@ -798,7 +808,8 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
   ;;  (add-hook 'post-command-hook #'lc/yas-try-expanding-auto-snippets))
 
   (straight-use-package 'yasnippet)
-  (blackout 'yas-minor-mode)
+  (with-eval-after-load 'yasnippet
+    (blackout 'yas-minor-mode))
 
   ;; (yas-reload-all)
 
@@ -907,6 +918,9 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
    :keymaps 'lsp-mode-map
    "C-z h" 'lsp-describe-thing-at-point)
 
+  (with-eval-after-load 'lsp-lens
+    (blackout 'lsp-lens-mode))
+
     ;; (setq lsp-restart 'ignore)
     ;; (setq lsp-eldoc-enable-hover nil)
     ;; (setq lsp-enable-file-watchers nil)
@@ -954,7 +968,9 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
    :keymaps 'kr->b-menu-map
    :predicate 'global-git-gutter-mode
    "g" 'git-gutter:next-hunk)
-  (blackout 'git-gutter-mode)
+
+  (with-eval-after-load 'git-gutter
+    (blackout 'git-gutter-mode))
 #+end_src
 
 *** git-timemachine
@@ -1041,7 +1057,8 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
                       css-mode-hook
                       go-mode-hook)
                     #'tree-sitter-hl-mode)
-  (blackout 'tree-sitter-mode)
+  (with-eval-after-load 'tree-sitter
+    (blackout 'tree-sitter-mode))
 
   (straight-use-package 'tree-sitter-langs)
 #+END_SRC
