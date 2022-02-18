@@ -810,7 +810,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
   (with-eval-after-load 'yasnippet
     (blackout 'yas-minor-mode))
 
-  ;; (yas-reload-all)
+  (add-hook 'yas-minor-mode-hook #'yas-reload-all)
 
   (defun check-expansion ()
     (save-excursion
