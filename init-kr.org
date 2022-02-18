@@ -47,9 +47,9 @@ NOTE: for ~straight-cache-autoloads~ you must run ~straight-prune-build~ ocaison
 
   ;; adding syntax highlight for straight-use-package
   (add-hook 'emacs-lisp-mode-hook
-            '(lambda ()
-               (font-lock-add-keywords nil
-                 '(("\\_<straight-use-package\\_>" . font-lock-keyword-face)))))
+            #'(lambda ()
+                (font-lock-add-keywords nil
+                  '(("\\_<straight-use-package\\_>" . font-lock-keyword-face)))))
 
 #+end_src
 
@@ -60,11 +60,11 @@ Utility packages that add functions that make configuration easier or configure 
 
 I like to know how fast Emacs has started.
 #+begin_src emacs-lisp
-(add-hook 'emacs-startup-hook
-          (lambda ()
-            (message "Emacs ready in %s with %d garbage collections."
-                     (emacs-init-time)
-                     gcs-done)))
+  (add-hook 'emacs-startup-hook
+            #'(lambda ()
+                (message "Emacs ready in %s with %d garbage collections."
+                         (emacs-init-time)
+                         gcs-done)))
 #+end_src
 
 ** Blackout
@@ -675,8 +675,8 @@ NOTE - dired enhancement packages: dired-postframe, dired-git, dired-filter, dir
   (setq dired-listing-switches "-valh --group-directories-first")
 
   (add-hook 'dired-mode-hook 'toggle-truncate-lines)
-  (add-hook 'dired-mode-hook '(lambda () (unless (file-remote-p default-directory)
-                                           (auto-revert-mode))))
+  (add-hook 'dired-mode-hook #'(lambda () (unless (file-remote-p default-directory)
+                                            (auto-revert-mode))))
  #+end_src
 
 ** dired-x
@@ -708,9 +708,9 @@ NOTE - dired enhancement packages: dired-postframe, dired-git, dired-filter, dir
   (straight-use-package 'all-the-icons-dired)
 
   (when (display-graphic-p)
-    (add-hook 'dired-mode-hook '(lambda () (interactive)
-                                 (unless (file-remote-p default-directory)
-                                   (all-the-icons-dired-mode)))))
+    (add-hook 'dired-mode-hook #'(lambda () (interactive)
+                                  (unless (file-remote-p default-directory)
+                                    (all-the-icons-dired-mode)))))
 #+end_src
 
 ** dired-hacks
@@ -922,9 +922,9 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 #+begin_src emacs-lisp
   (straight-use-package 'dap-mode)
   (add-hook 'lsp-mode-hook 'dap-mode)
-  (add-hook 'python-mode-hook '(lambda () (require 'dap-python)))
-  (add-hook 'java-mode-hook '(lambda () (require 'dap-java)))
-  (add-hook 'dap-stopped-hook (lambda (arg) (call-interactively #'dap-hydra)))
+  (add-hook 'python-mode-hook #'(lambda () (require 'dap-python)))
+  (add-hook 'java-mode-hook #'(lambda () (require 'dap-java)))
+  (add-hook 'dap-stopped-hook #'(lambda (arg) (call-interactively #'dap-hydra)))
 #+end_src
 
 ** Git
@@ -970,9 +970,9 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 *** hydra-smerge
 #+begin_src emacs-lisp
   (straight-use-package 'smerge-mode)
-  (add-hook 'magit-diff-visit-file '(lambda ()
-                                      (when smerge-mode
-                                        (smerge-hydra/body))))
+  (add-hook 'magit-diff-visit-file #'(lambda ()
+                                       (when smerge-mode
+                                         (smerge-hydra/body))))
   (defhydra smerge-hydra (:hint nil
                                   :pre (smerge-mode 1)
                                   ;; Disable `smerge-mode' when quitting hydra if
@@ -1242,7 +1242,7 @@ Rest of configuration:
   (straight-use-package 'devdocs)
   (add-hook 'devdocs-mode-hook #'olivetti-mode)
   (add-hook 'dart-mode-hook
-              (lambda () (setq-local devdocs-current-docs '("dart~2"))))
+              #'(lambda () (setq-local devdocs-current-docs '("dart~2"))))
 #+end_src
 
 * COMMENT Notes from old config
