@@ -334,7 +334,6 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
   (blink-cursor-mode 0)
   (column-number-mode 1)
   (global-auto-revert-mode 1)
-  (set-fringe-style '(10 . 10))
 
     ;; Maybe gives some optimization
   (add-hook 'focus-out-hook #'garbage-collect)
@@ -957,9 +956,23 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 #+end_src
 
 *** Git-gutter
+If I ever need to change to margin I can use this to setup diff-hl in margin
+https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff-hl.el
 #+begin_src emacs-lisp
   (straight-use-package 'git-gutter-fringe)
+  (setq git-gutter:update-interval 0.02)
+
+  (require 'git-gutter-fringe)
   (add-hook 'emacs-startup-hook #'global-git-gutter-mode)
+
+  (define-fringe-bitmap 'git-gutter-fr:added [#b11100000] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:modified [#b11100000] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:deleted
+    [#b10000000
+     #b11000000
+     #b11100000
+     #b11110000] nil nil 'bottom)
+
   (general-def
      :keymaps 'kr-<b-menu-map
      :predicate 'global-git-gutter-mode
@@ -1663,6 +1676,4 @@ Template for other selfdefined meow states:
 
   (add-hook 'special-mode-hook 'kr-read-only-binidngs)
   (add-hook 'Info-mode 'kr-read-only-binidngs)
-
 #+end_src
-
