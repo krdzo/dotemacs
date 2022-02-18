@@ -461,32 +461,38 @@ Set =serbian-latin= to default input method.
 #+end_src
 
 * Completion framework
-** selectrum
-#+BEGIN_SRC emacs-lisp
-  (straight-use-package 'selectrum)
-  (selectrum-mode t)
+** Vertico
+#+begin_src emacs-lisp
+  (straight-use-package '(vertico :files (:defaults "extensions/*")))
 
-  (setq selectrum-count-style 'current/matches)
+  (vertico-mode 1)
+  (vertico-mouse-mode 1)
 
-  (general-def 'selectrum-minibuffer-map
-    "C-r" 'evil-paste-from-register
-    "C-j" 'selectrum-next-candidate
-    "C-k" 'selectrum-previous-candidate
-    "M-j" 'next-history-element
-    "M-k" 'previous-history-element)
+  (add-hook 'minibuffer-setup-hook #'vertico-repeat-save)
+
   (general-def
-    "M-c" 'selectrum-repeat)
-#+END_SRC
+    "M-c" 'vertico-repeat)
+  (general-def 'vertico-map
+    "C-j" 'vertico-next
+    "C-k" 'vertico-previous)
 
-** prescient
-#+BEGIN_SRC emacs-lisp
-  (straight-use-package 'prescient)
-  (require 'prescient)
-  (prescient-persist-mode 1)
+  (savehist-mode 1)
 
-  (straight-use-package 'selectrum-prescient)
-  (selectrum-prescient-mode 1)
-#+END_SRC
+  ;; (setq read-extended-command-predicate
+  ;;       #'command-completion-default-include-p)
+
+  (setq enable-recursive-minibuffers t)
+#+end_src
+
+#+begin_src emacs-lisp
+  (straight-use-package 'orderless)
+
+  (setq read-file-name-completion-ignore-case t
+        read-buffer-completion-ignore-case t
+        completion-ignore-case t)
+  
+  (setq completion-styles '(orderless))
+#+end_src
 
 ** marginalia
 #+BEGIN_SRC emacs-lisp
@@ -551,7 +557,8 @@ and the second filter to the completion-style filtering (?).
 
 #+BEGIN_SRC emacs-lisp
   (straight-use-package 'company-mode)
-  (setq completion-styles '(basic partial-completion flex))
+  (add-hook 'after-init-hook 'global-company-mode)
+
   (setq company-dabbrev-downcase nil)
   (setq company-dabbrev-ignore-case nil)
   (setq company-idle-delay 0)
@@ -566,22 +573,20 @@ and the second filter to the completion-style filtering (?).
     "C-j" 'company-select-next-or-abort
     "C-k" 'company-select-previous-or-abort
     "M-h" 'company-show-doc-buffer)
-
-  (add-hook 'after-init-hook 'global-company-mode)
-
 #+END_SRC
 
 *** company prescient
 #+BEGIN_SRC emacs-lisp
   (straight-use-package 'company-prescient)
   (company-prescient-mode 1)
+  (prescient-persist-mode 1)
 #+END_SRC
 
 ** corfu
 #+begin_src emacs-lisp
   (straight-use-package 'corfu)
   (general-def 'corfu-map
-    "C-g" 'corfu-abort
+    "C-g" 'corfu-quit
     "C-j" 'corfu-next
     "C-k" 'corfu-previous)
     ;; :hook ((prog-mode . corfu-mode)
