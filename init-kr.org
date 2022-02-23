@@ -933,7 +933,6 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     ;; (setq lsp-keep-workspace-alive nil)
     ;; (setq lsp-auto-execute-action nil)
     ;; (setq lsp-before-save-edits nil)
-    ;; (setq lsp-diagnostics-provider :flymake)
 #+END_SRC
 
 ** DAP mode
@@ -1058,12 +1057,14 @@ https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff
 
 ** Flycheck
 #+begin_src emacs-lisp
-  ;;   (general-def kr-<b-menu-map
-  ;;     "e" 'flymake-goto-prev-error)
-  ;;   (general-def kr->b-menu-map
-  ;;     "e" 'flymake-goto-next-error))
+  (general-def kr-<b-menu-map
+    "e" 'flycheck-previous-error)
+  (general-def kr->b-menu-map
+    "e" 'flycheck-next-error)
 
   (straight-use-package 'flycheck)
+
+
 #+end_src
 
 ** Tree-sitter
