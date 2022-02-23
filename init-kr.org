@@ -490,8 +490,15 @@ Set =serbian-latin= to default input method.
   (setq read-file-name-completion-ignore-case t
         read-buffer-completion-ignore-case t
         completion-ignore-case t)
-  
+
   (setq completion-styles '(orderless))
+  (setq completion-category-defaults nil)
+  (setq completion-category-overrides '((file (styles flex))))
+
+  (setq orderless-matching-styles
+        '(orderless-literal
+          orderless-regexp
+          orderless-prefixes))
 #+end_src
 
 ** marginalia
@@ -573,6 +580,13 @@ and the second filter to the completion-style filtering (?).
     "C-j" 'company-select-next-or-abort
     "C-k" 'company-select-previous-or-abort
     "M-h" 'company-show-doc-buffer)
+
+  (defun just-one-face (fn &rest args)
+    (let ((orderless-match-faces [completions-common-part]))
+      (apply fn args)))
+
+  (advice-add 'company-capf--candidates :around #'just-one-face)
+
 #+END_SRC
 
 *** company prescient
@@ -1503,6 +1517,7 @@ Remainder for some cool packages:
                                 (?\) . round)
                                 (?\[ . square)
                                 (?\{ . curly)
+                                (?\} . curly)
                                 (?s . string)
                                 (?\' . string)
                                 (?\" . string)
