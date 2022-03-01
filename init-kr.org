@@ -206,52 +206,15 @@ Help at point key is =C-z h=. Every mode that implements a help at point needs t
   <<helpful>>
 #+end_src
 
-** Window
-#+begin_src emacs-lisp
-  (defvar kr-window-map (make-sparse-keymap)
-    "Personal keymap for windows.")
-
-  (general-def kr-window-map
-    "d" 'delete-window
-    "s" 'split-window-below
-    "w" 'other-window
-    "W" 'window-swap-states
-    "o" 'delete-other-windows
-    "v" 'split-window-right)
-
-  (general-def
-    "C-x M-w" kr-window-map)
-#+end_src
-
 ** Buffer
 #+begin_src emacs-lisp
-  (defvar kr-buffer-map (make-sparse-keymap)
-    "Personal keymap for buffers.")
-
   (defun kr-go-to-scratch ()
     (interactive)
     (switch-to-buffer "*scratch*"))
 
-  (general-def kr-buffer-map
-    "d" 'kill-current-buffer
-    "r" 'revert-buffer
-    "s" 'kr-go-to-scratch)
-
-  (general-def
-    "C-x M-b" kr-buffer-map)
-#+end_src
-
-** Files
-
-#+begin_src emacs-lisp
-  (defvar kr-file-map (make-sparse-keymap))
-  (general-def
-    "C-x M-f" kr-file-map)
-  (general-def kr-file-map
-    "r" 'jump-to-register
-    "f" 'find-file
-    "s" 'save-buffer
-    "j" 'dired-jump)
+  (general-def 
+    "C-c q s" 'kr-go-to-scratch
+    "C-c q r" 'revert-buffer)
 #+end_src
 
 ** transient mode
@@ -326,11 +289,10 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
    mouse-wheel-flip-direction t
    scroll-conservatively most-positive-fixnum)
 
-    ;; Better interaction with clipboard
+  ;; Better interaction with clipboard
   (setq-default save-interprogram-paste-before-kill t)
 
-    ;; Some usefull builtin minor modes
-    ;; (save-place-mode 1)
+  ;; Some usefull builtin minor modes
   (blink-cursor-mode 0)
   (column-number-mode 1)
   (global-auto-revert-mode 1)
@@ -509,7 +471,7 @@ Set =serbian-latin= to default input method.
                                   marginalia-annotators-light nil))
 #+END_SRC
 
-** consult
+** Consult
 To search for multiple words with ~consult-ripgrep~ you should search e.g. for
 ~#defun#some words~ . The first filter is passed to an async ~ripgrep~ process
 and the second filter to the completion-style filtering (?).
@@ -522,9 +484,10 @@ and the second filter to the completion-style filtering (?).
   (setq consult-preview-key nil)
 
   (general-def
-    "C-x M-b b" 'consult-buffer
      [remap switch-to-buffer] 'consult-buffer
      [remap apropos-command] 'consult-apropos)
+  (general-def mode-specific-map
+    "i" 'consult-imenu)
 #+END_SRC
 
 ** embark
@@ -893,9 +856,18 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 #+begin_src emacs-lisp
   (straight-use-package 'undo-tree)
   (global-undo-tree-mode 1)
+
   (general-def undo-tree-visualizer-mode-map
     "h" 'undo-tree-visualize-switch-branch-left
     "l" 'undo-tree-visualize-switch-branch-right)
+  ;; changes needed for undo-tree to play nice with meow
+  (general-def undo-tree-map
+    "C-x r u" nil
+    "C-x r U" nil
+    "C-x C-r u" 'undo-tree-save-state-to-register
+    "C-x C-r U" 'undo-tree-restore-state-from-register
+    "C-x r" 'find-file-read-only)
+
   (blackout 'undo-tree-mode)
 #+end_src
 
@@ -970,7 +942,11 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
                     magit-diff-removed-highlight))
       (set-face-background face (face-attribute 'magit-diff-context-highlight :background)))
     (set-face-background 'magit-diff-context-highlight
-                           (face-attribute 'default :background)))
+                         (face-attribute 'default :background)))
+
+  (general-def mode-specific-map
+    "v" 'magit-status
+    "V" 'magit-status-here)
 #+end_src
 
 *** Git-gutter
@@ -1380,20 +1356,9 @@ Remainder for some cool packages:
      '("<escape>" . keyboard-quit))
     (meow-leader-define-key
      ;; SPC j/k will run the original command in MOTION state.
-     '("`" . "H-`")
      '("j" . "H-j")
      '("k" . "H-k")
-     ;; Use SPC (0-9) for digit arguments.
-     '("1" . meow-digit-argument)
-     '("2" . meow-digit-argument)
-     '("3" . meow-digit-argument)
-     '("4" . meow-digit-argument)
-     '("5" . meow-digit-argument)
-     '("6" . meow-digit-argument)
-     '("7" . meow-digit-argument)
-     '("8" . meow-digit-argument)
-     '("9" . meow-digit-argument)
-     '("0" . meow-digit-argument)
+     '("`" . "H-`")
      '("?" . meow-cheatsheet)
      '("/" . meow-keypad-describe-key))
     (meow-normal-define-key
@@ -1417,7 +1382,7 @@ Remainder for some cool packages:
      '(">" . meow-end-of-thing)
 
      '("u" . meow-undo)
-     '("U" . meow-undo-in-selection)
+     '("U" . undo-tree-redo)
      '("y" . meow-save)
      '("Y" . kr-meow-save-line)
 
@@ -1456,31 +1421,27 @@ Remainder for some cool packages:
      '("f" . meow-find)
      '("t" . meow-till)
      '("G" . meow-grab)
+     '("m" . meow-join)
+     ;; need to think about these bindings
      '("r" . meow-replace)
      '("R" . meow-swap-grab)
-     '("m" . meow-join)
+     '("P" . meow-sync-grab)
+
 
      '("@" . meow-goto-line)
-     '("P" . meow-pop-selection)
+     '("z" . meow-pop-selection)
      '("A" . kr-meow-append-to-line)
      '("I" . kr-meow-insert-to-line)
      '("o" . meow-open-below)
      '("O" . meow-open-above)
      '("s" . meow-block)
-     '("S" . meow-block-expand)
-     '("q" . quit-window)
-     '("C-r" . undo-tree-redo))
+     '("S" . meow-to-block)
+     '("q" . quit-window))
 
     ;; unrelated to editing
     (meow-leader-define-key
-     '("v" . magit-status)
-     '("i" . consult-imenu)
-     '("V" . magit-status-here)
-     (cons "p" project-prefix-map)
-     (cons "f" kr-file-map)
-     (cons "w" kr-window-map)
-     (cons "b" kr-buffer-map)
      (cons "t" kr-toggle-map))
+
     (meow-normal-define-key
      '("{" . backward-paragraph)
      '("}" . forward-paragraph)
@@ -1496,13 +1457,18 @@ Remainder for some cool packages:
 
   (straight-use-package 'meow)
   (require 'meow)
+
   (general-def meow-keymap
     "C-h k" 'helpful-key)
   (setq meow-use-clipboard t)
+
+  (setq meow-keypad-leader-dispatch "C-c")
+
   (add-to-list 'meow-mode-state-list '(helpful-mode . normal))
   (add-to-list 'meow-mode-state-list '(fundamental-mode . normal))
   (add-to-list 'meow-mode-state-list '(eshell-mode . normal))
   (add-to-list 'meow-mode-state-list '(sly-mrepl-mode . normal))
+
   (meow-setup)
   (meow-global-mode 1)
 #+end_src
@@ -1611,7 +1577,6 @@ For example because I use ~dired~ that is bound to =C-x d= more often then ~list
   (general-def
     ;; C-x k
     "C-x k" kmacro-keymap
-    "C-x K" 'kill-buffer
     "C-x C-k" 'kill-current-buffer
     ;; C-x b
     "C-x b" 'list-buffers
@@ -1627,11 +1592,15 @@ For example because I use ~dired~ that is bound to =C-x d= more often then ~list
     "C-x C-o" 'other-window
     ;; C-x p
     "C-x p" 'mark-page
-    "C-x C-p" project-prefix-map)
+    "C-x C-p" project-prefix-map
+    ;; C-x r
+    "C-x r" 'revert-buffer
+    "C-x C-r" ctl-x-r-map)
 
   ;; some convinience bindings
   (general-def
-    "C-x W" 'window-swap-states)
+    "C-x W" 'window-swap-states
+    "C-x K" 'kill-buffer)
 #+end_src
 
 ** COMMENT define-state
@@ -1673,20 +1642,7 @@ Template for other selfdefined meow states:
   (setq meow-cursor-type-paren 'hollow)
 #+end_src
 
-** COMMENT meow palyground
-
-#+begin_src emacs-lisp :tangle no
-  (setq mark-ring nil)
-  (car mark-ring)
-  (goto-char (car mark-ring))
-  (meow-normal-define-key
-   '("%" . evilmi-jump-items))
-
-  (meow-normal-define-key
-   '("[t" .))
-#+end_src
-
-* COMMENT read-only-buffer keybinding
+** COMMENT read-only-buffer keybinding
 
 #+begin_src emacs-lisp
   (defun kr-read-only-binidngs ()
