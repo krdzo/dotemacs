@@ -51,6 +51,10 @@ NOTE: for ~straight-cache-autoloads~ you must run ~straight-prune-build~ ocaison
                 (font-lock-add-keywords nil
                   '(("\\_<straight-use-package\\_>" . font-lock-keyword-face)))))
 
+
+  ;; my preferences for working with forks
+  (setq straight-vc-git-default-remote-name "upstream")
+  (setq straight-vc-git-default-fork-name "origin")
 #+end_src
 
 * Utilities
@@ -212,7 +216,7 @@ Help at point key is =C-z h=. Every mode that implements a help at point needs t
     (interactive)
     (switch-to-buffer "*scratch*"))
 
-  (general-def 
+  (general-def
     "C-c q s" 'kr-go-to-scratch
     "C-c q r" 'revert-buffer)
 #+end_src
@@ -468,7 +472,7 @@ Set =serbian-latin= to default input method.
   (straight-use-package 'marginalia)
   (marginalia-mode 1)
   (setq marginalia-annotators '(marginalia-annotators-heavy
-                                  marginalia-annotators-light nil))
+                                marginalia-annotators-light nil))
 #+END_SRC
 
 ** Consult
@@ -809,6 +813,8 @@ Here are packages that don't belong to any category.
   (global-undo-tree-mode 1)
 
   (general-def undo-tree-visualizer-mode-map
+    "k" 'undo-tree-visualize-undo
+    "j" 'undo-tree-visualize-redo
     "h" 'undo-tree-visualize-switch-branch-left
     "l" 'undo-tree-visualize-switch-branch-right)
   ;; changes needed for undo-tree to play nice with meow
@@ -845,8 +851,8 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 
   (add-hook 'yas-minor-mode-hook #'yas-reload-all)
 
-  ;; (with-eval-after-load 'lsp-mode
-  ;;   (add-hook 'lsp-mode-hook #'yas-minor-mode))
+  (with-eval-after-load 'lsp-mode
+    (add-hook 'lsp-mode-hook #'yas-minor-mode))
 
   (straight-use-package 'yasnippet-snippets)
 #+end_src
@@ -1064,6 +1070,7 @@ Smart paren I'm using to pair characters like quotes.
   (sp-local-pair 'prog-mode "(" nil :post-handlers '((indent-between-pair "RET")))
   (smartparens-global-mode 1)
   (show-smartparens-global-mode 1) ; alternative to show-paren-mode
+  (set-face-background 'show-paren-match "#7d7b7b")
   (blackout 'smartparens-mode)
 #+end_src
 
@@ -1108,6 +1115,10 @@ Maybe better alternative [[https://github.com/purcell/emacs-reformatter][reforma
 
   (add-hook 'dart-mode-hook #'kr-set-comile-command)
   (add-hook 'dart-mode-hook #'delete-selection-mode)
+
+  (add-hook 'dart-mode-hook #'(lambda ()
+                                (setq dap-auto-configure-features
+                                      '(sessions locals breakpoints expressions tooltip))))
 
 #+end_src
 

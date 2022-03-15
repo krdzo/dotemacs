@@ -34,11 +34,6 @@
 (scroll-bar-mode -1)
 (setq inhibit-splash-screen t)
 
-;; Prevent unwanted runtime builds in gccemacs (native-comp); packages are
-;; compiled ahead-of-time when they are installed and site files are compiled
-;; when gccemacs is installed.
-;(setq comp-deferred-compilation nil)
-
 ;;; early-init.el ends here
 
 ;; Taken from Doom emacs
