@@ -773,55 +773,6 @@ Here are packages that don't belong to any category.
   (straight-use-package 'hydra)
 #+end_src
 
-** yasnippet
-We use =C-TAB= to expand snippets instead of =TAB= .
-
-You can have ~#condition: 'auto~ for the snippet to auto-expand.
-
-See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9][here]] to share snippets across modes
-
-#+begin_src emacs-lisp
-  ;; ((defun lc/yas-try-expanding-auto-snippets ()
-  ;;    (when (and (boundp 'yas-minor-mode) yas-minor-mode)
-  ;;      (let ((yas-buffer-local-condition ''(require-snippet-condition . auto)))
-  ;;        (yas-expand))))
-  ;;  :config
-  ;;  (add-hook 'post-command-hook #'lc/yas-try-expanding-auto-snippets))
-
-  (straight-use-package 'yasnippet)
-  (with-eval-after-load 'yasnippet
-    (blackout 'yas-minor-mode))
-
-  (add-hook 'yas-minor-mode-hook #'yas-reload-all)
-
-  (defun check-expansion ()
-    (save-excursion
-     (if (looking-at "\\_>") t
-       (backward-char 1)
-       (if (looking-at "\\.") t
-         (backward-char 1)
-         (if (looking-at "->") t nil)))))
-
-  (defun do-yas-expand ()
-    (let ((yas-fallback-behavior 'return-nil))
-      (yas-expand)))
-
-  (defun tab-indent-or-complete ()
-    (interactive)
-    (if (minibufferp)
-        (minibuffer-complete)
-      (if (or (not yas-minor-mode)
-              (null (do-yas-expand)))
-          (if (check-expansion)
-              (company-complete-common)
-            (indent-for-tab-command)))))
-
-  (general-def company-active-map
-    "<tab>" 'tab-indent-or-complete)
-
-  (straight-use-package 'yasnippet-snippets)
-#+end_src
-
 ** olivetti
 #+begin_src emacs-lisp
   (straight-use-package 'olivetti)
@@ -880,6 +831,26 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
   (add-hook 'prog-mode-hook #'toggle-truncate-lines)
 #+end_src
 
+** yasnippet
+We use =C-TAB= to expand snippets instead of =TAB= .
+
+You can have ~#condition: 'auto~ for the snippet to auto-expand.
+
+See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9][here]] to share snippets across modes
+
+#+begin_src emacs-lisp
+  (straight-use-package 'yasnippet)
+  (with-eval-after-load 'yasnippet
+    (blackout 'yas-minor-mode))
+
+  (add-hook 'yas-minor-mode-hook #'yas-reload-all)
+
+  ;; (with-eval-after-load 'lsp-mode
+  ;;   (add-hook 'lsp-mode-hook #'yas-minor-mode))
+
+  (straight-use-package 'yasnippet-snippets)
+#+end_src
+
 ** LSP
 #+BEGIN_SRC emacs-lisp
   (straight-use-package 'lsp-mode)
@@ -895,8 +866,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
                       css-mode-hook
                       python-mode-hook)
                     #'lsp-deferred)
-  (general-add-hook 'lsp-mode-hook '(yas-minor-mode
-                                     lsp-enable-which-key-integration))
+  (general-add-hook 'lsp-mode-hook '(lsp-enable-which-key-integration))
 
   (general-define-key
      :keymaps 'kr-gmenu-map
