@@ -1220,6 +1220,12 @@ Rest of configuration:
                                       kr-set-comile-command))
 #+end_src
 
+*** Yaml
+#+begin_src emacs-lisp
+  (straight-use-package 'yaml-mode)
+  (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode))
+#+end_src
+
 ** GTK
 #+begin_src emacs-lisp
   (defun gtk-run ()
