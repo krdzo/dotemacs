@@ -1421,11 +1421,16 @@ Remainder for some cool packages:
 
     ;; help
     (meow-normal-define-key
-     '("M-h" . "C-z h"))
+     '("M-h" . "C-z h")
+     '("?" . "C-z h"))
     (meow-motion-overwrite-define-key
+     '("?" . "C-z h")
+     '("/" . "H-?")
      '("M-h" . "C-z h")))
 
-  (straight-use-package 'meow)
+  (straight-use-package '(meow :depth full
+                               :fork (:host github :repo "krdzo/meow" :protocol ssh)))
+  ;; (straight-use-package '(meow :depth full))
   (require 'meow)
 
   (general-def meow-keymap
@@ -1455,8 +1460,8 @@ Remainder for some cool packages:
                                 (?\{ . curly)
                                 (?\} . curly)
                                 (?s . string)
-                                (?\' . string)
-                                (?\" . string)
+                                (?\' . quote)
+                                (?\" . quote)
                                 (?W . symbol)
                                 ;; (?a . window)
                                 (?b . buffer)
@@ -1464,7 +1469,7 @@ Remainder for some cool packages:
                                 (?l . line)
                                 (?d . defun)
                                 (?. . sentence)))
-  (add-to-list 'meow-char-thing-table '(?\" . quote))
+
   (add-to-list 'meow-char-thing-table '(?t . htag))
   (add-to-list 'meow-char-thing-table '(?< . angle))
   (add-to-list 'meow-char-thing-table '(?> . angle))
@@ -1474,28 +1479,44 @@ Remainder for some cool packages:
 
 Funciton and advices for making meow behave like I like it.
 
+*** Advice for =meow-expand=
+
+Normally when in =normal-state= the number keys 0..9 are bount to =meow-expand-[0..9]=. This command doesn't do anything if there is no selection so I made an advice so it calls =digit-argument= if there is no seleciton, so you can press =9 meow-line= or =meow-line 9= and you will do the same thing.
+
 #+begin_src emacs-lisp
-   ;;;;;;;;;;;;;;;
   (defun kr-meow-maybe-digit (fun n)
-    "One more advice so that I can get digit arguments if there is no
+    "Advice so that I can get digit arguments if there is no
    selection active and expand selestion if the selection is active."
     (if mark-active
         (funcall fun n)
       (call-interactively #'digit-argument)))
   (advice-add 'meow-expand :around #'kr-meow-maybe-digit)
-   ;;;;;;;;;;;;;;;
+#+end_src
 
-  (defun kr-meow-save-line ()
-    (interactive)
-    (meow-line 1)
-    (call-interactively #'meow-save))
+*** Advice for =meow-reverse=
 
+For some comands =meow-find=, =meow-till=, =meow-line=... you can press ~- (negative-argument)~ to go in reverse. We already have a meow command to go in reverse =meow-reverse= but it only works if we have a selection so I aviced it to enter =negative-argument= when there is no selection so that it can be used when there is no selection active.
+
+#+begin_src emacs-lisp
   (defun kr-meow-reverse (fun)
     "Attemt to reverse command when there is no selection."
     (if mark-active
         (funcall fun)
       (negative-argument 1)))
   (advice-add 'meow-reverse :around #'kr-meow-reverse)
+#+end_src
+
+*** Rest
+
+Not categorized
+
+#+begin_src emacs-lisp
+
+  (defun kr-meow-save-line ()
+    (interactive)
+    (meow-line 1)
+    (call-interactively #'meow-save))
+
 
   (defun kr-meow-kill-whole-line (fun arg)
     "Delete line if there is no selection but delete selection if there
@@ -1571,6 +1592,49 @@ For example because I use ~dired~ that is bound to =C-x d= more often then ~list
   (general-def
     "C-x W" 'window-swap-states
     "C-x K" 'kill-buffer)
+#+end_src
+
+** =meow--execute-kbd-macro= modification
+Because meow uses keyboard macros in it's functions if you change a binding for an builtin emacs funciton it changes a meow command that uses that binding. For example =meow-undo= uses ~C-/~ binding but if you change that binding to some other comand =meow-undo= will call that other command insted =undo=. See [[https://github.com/meow-edit/meow/issues/109][here]] another explanation.
+This change allows us to change an emacs binding in =normal-state= and that won't change which binding is called from an meow funcion.
+So I can bind ~C-k~ to =scroll-down-line= in =normal-state= and it wont effect the =meow-kill= command that calls the command that is globaly bound to ~C-k~.
+#+begin_src emacs-lisp :tangle no
+  (defun meow--execute-kbd-macro (kbd-macro)
+    "Execute KBD-MACRO."
+    (meow--switch-state 'insert)
+    (when-let ((ret (if (meow-normal-mode-p)
+                        ((global-key-binding (read-kbd-macro kbd-macro)))
+                      (key-binding (read-kbd-macro kbd-macro)))))
+      (cond
+       ((commandp ret)
+        (call-interactively ret))
+
+       ((and (not meow-use-keypad-when-execute-kbd) (keymapp ret))
+        (set-transient-map ret nil nil))
+
+       ((and meow-use-keypad-when-execute-kbd (keymapp ret))
+        (meow-keypad-start-with kbd-macro))))
+    (meow--switch-state 'normal))
+
+  (meow-define-keys 'normal
+    '("C-j" . scroll-up-line)
+    '("C-k" . scroll-down-line))
+#+end_src
+
+Old function for if something goes wrong debugg.
+#+begin_src emacs-lisp :tangle no
+  (defun meow--execute-kbd-macro (kbd-macro)
+      "Execute KBD-MACRO."
+      (when-let ((ret (key-binding (read-kbd-macro kbd-macro))))
+        (cond
+         ((commandp ret)
+          (call-interactively ret))
+
+         ((and (not meow-use-keypad-when-execute-kbd) (keymapp ret))
+          (set-transient-map ret nil nil))
+
+         ((and meow-use-keypad-when-execute-kbd (keymapp ret))
+          (meow-keypad-start-with kbd-macro)))))
 #+end_src
 
 ** COMMENT define-state
