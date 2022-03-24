@@ -426,6 +426,16 @@ Set =serbian-latin= to default input method.
   (general-setq ediff-split-window-function 'split-window-horizontally)
 #+end_src
 
+** Anzu
+#+begin_src emacs-lisp
+  (straight-use-package 'anzu)
+  (global-anzu-mode 1)
+  (add-hook 'anzu-mode-hook
+            #'(lambda () (blackout 'anzu-mode)))
+  (with-eval-after-load 'anzu-mode
+    (blackout 'anzu-mode))
+#+end_src
+
 * Completion framework
 ** Vertico
 #+begin_src emacs-lisp
@@ -659,6 +669,15 @@ and the second filter to the completion-style filtering (?).
 #+begin_src emacs-lisp
   (when window-system
     (add-to-list 'initial-frame-alist '(fullscreen . maximized)))
+#+end_src
+
+** Goggles
+alternative package ~undo-hl~.
+#+begin_src emacs-lisp
+  (straight-use-package 'goggles)
+  (general-add-hook '(prog-mode-hook text-mode-hook) 'goggles-mode)
+  (with-eval-after-load 'goggles
+    (blackout 'goggles-mode))
 #+end_src
 
 * Org
@@ -1359,6 +1378,7 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
 ** Interesting packages
 Remainder for some cool packages:
 - wgrep
+- emacs-window-layout
 
 * mewo proba
 
