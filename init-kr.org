@@ -530,8 +530,9 @@ and the second filter to the completion-style filtering (?).
 - don't press =RET= to confirm
 
 #+BEGIN_SRC emacs-lisp
-  (straight-use-package 'company-mode)
+  (straight-use-package 'company)
   (add-hook 'after-init-hook 'global-company-mode)
+  (company-tng-mode 1)
 
   (setq company-dabbrev-downcase nil)
   (setq company-dabbrev-ignore-case nil)
@@ -553,7 +554,6 @@ and the second filter to the completion-style filtering (?).
       (apply fn args)))
 
   (advice-add 'company-capf--candidates :around #'just-one-face)
-
 #+END_SRC
 
 *** company prescient
