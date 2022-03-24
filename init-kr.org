@@ -430,17 +430,38 @@ Set =serbian-latin= to default input method.
 ** Vertico
 #+begin_src emacs-lisp
   (straight-use-package '(vertico :files (:defaults "extensions/*")))
-
   (vertico-mode 1)
+
   (vertico-mouse-mode 1)
 
+  (setq vertico-cycle t)
+
+  (vertico-multiform-mode 1)
+
+  (setq vertico-multiform-commands
+        '((consult-yank-pop indexed)
+          (project-find-regexp buffer)
+          (consult-grep buffer)
+          (imenu buffer)))
+
+  ;; (setq vertico-multiform-categories
+  ;;       '((file reverse)))
+
   (add-hook 'minibuffer-setup-hook #'vertico-repeat-save)
+  (add-hook 'rfn-eshadow-update-overlay-hook 'vertico-directory-tidy) ; Correct file path when changed)
 
   (general-def
     "M-c" 'vertico-repeat)
   (general-def 'vertico-map
     "C-j" 'vertico-next
-    "C-k" 'vertico-previous)
+    "C-k" 'vertico-previous
+    "C-<backspace>" 'vertico-directory-delete-word
+    "<backspace>" 'vertico-directory-delete-char
+    "<enter>" 'vertico-directory-enter)
+
+  (general-def 'vertico-reverse-map
+    "C-k" 'vertico-next
+    "C-j" 'vertico-previous)
 
   (savehist-mode 1)
 
@@ -450,21 +471,25 @@ Set =serbian-latin= to default input method.
   (setq enable-recursive-minibuffers t)
 #+end_src
 
+** Orderless
+
 #+begin_src emacs-lisp
   (straight-use-package 'orderless)
+
+  (setq completion-styles '(orderless))
+  (setq completion-category-defaults nil)
+  ;; (setq completion-category-overrides
+  ;;       '((file (styles partial-completion))))
+
+  (setq orderless-matching-styles
+        '(orderless-literal
+          orderless-prefixes
+          orderless-initialism
+          orderless-regexp))
 
   (setq read-file-name-completion-ignore-case t
         read-buffer-completion-ignore-case t
         completion-ignore-case t)
-
-  (setq completion-styles '(orderless))
-  (setq completion-category-defaults nil)
-  (setq completion-category-overrides '((file (styles flex))))
-
-  (setq orderless-matching-styles
-        '(orderless-literal
-          orderless-regexp
-          orderless-prefixes))
 #+end_src
 
 ** marginalia
@@ -489,7 +514,8 @@ and the second filter to the completion-style filtering (?).
 
   (general-def
      [remap switch-to-buffer] 'consult-buffer
-     [remap apropos-command] 'consult-apropos)
+     [remap apropos-command] 'consult-apropos
+     [remap yank-pop] 'consult-yank-pop)
   (general-def mode-specific-map
     "i" 'consult-imenu)
 #+END_SRC
@@ -501,7 +527,7 @@ and the second filter to the completion-style filtering (?).
 
 #+BEGIN_SRC emacs-lisp
   (straight-use-package 'embark)
-  (general-def selectrum-minibuffer-map
+  (general-def 'minibuffer-mode-map
     "C-l" 'embark-act)
 #+END_SRC
 
