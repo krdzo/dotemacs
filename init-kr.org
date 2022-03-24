@@ -891,8 +891,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 
 #+begin_src emacs-lisp
   (straight-use-package 'yasnippet)
-  (with-eval-after-load 'yasnippet
-    (blackout 'yas-minor-mode))
+  (setq yas-alias-to-yas/prefix-p nil)    ; don't make yas/ prefix commands
 
   (add-hook 'yas-minor-mode-hook #'yas-reload-all)
 
@@ -900,6 +899,9 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     (add-hook 'lsp-mode-hook #'yas-minor-mode))
 
   (straight-use-package 'yasnippet-snippets)
+
+  (with-eval-after-load 'yasnippet
+    (blackout 'yas-minor-mode))
 #+end_src
 
 ** LSP
@@ -1476,7 +1478,8 @@ Remainder for some cool packages:
      '("O" . meow-open-above)
      '("s" . meow-block)
      '("S" . meow-to-block)
-     '("q" . quit-window))
+     '("q" . quit-window)
+     '("Q" . kill-current-buffer))
 
     ;; unrelated to editing
     (meow-leader-define-key
