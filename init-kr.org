@@ -1168,7 +1168,13 @@ Maybe better alternative [[https://github.com/purcell/emacs-reformatter][reforma
   (setq lsp-tailwindcss-major-modes '(rjsx-mode web-mode html-mode typescript-mode))
   (setq lsp-tailwindcss-add-on-mode t)
   (setq lsp-tailwindcss-emmet-completions t)
-  (add-hook 'before-save-hook 'lsp-tailwindcss-rustywind-before-save)
+
+  (defun kr-tailwind-setup ()
+    (add-hook 'before-save-hook 'lsp-tailwindcss-rustywind-before-save nil t))
+
+  (add-hook 'web-mode-hoo #'kr-tailwind-setup)
+  (add-hook 'css-mode-hook #'kr-tailwind-setup)
+
 #+end_src
 
 ** Languages
