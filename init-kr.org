@@ -712,6 +712,12 @@ LSP corfu conf:
           (list (cape-capf-properties #'lsp-completion-at-point :exclusive 'no) t)))))
 
 #+end_src
+
+** cape
+#+begin_src emacs-lisp
+  (straight-use-package 'cape)
+
+  (add-hook 'completion-at-point-functions #'cape-file)
 #+end_src
 
 * UI
