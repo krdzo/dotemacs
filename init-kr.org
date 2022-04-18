@@ -670,6 +670,18 @@ corfu config:
     "M-l" 'corfu-show-location)
 #+end_src
 
+Modify corfu-complete to try to complete common and if it can't then start corfu-next.
+#+begin_src emacs-lisp
+  (defun kr-corfu-complete (old-fn)
+    "Call `corfu-complete' one then `corfu-next'"
+    (if (member last-command '(corfu-complete corfu-next))
+        (call-interactively #'corfu-next)
+      (call-interactively old-fn)))
+  (advice-add 'corfu-complete :around #'kr-corfu-complete)
+
+  (general-def 'corfu-map
+    "<tab>" 'corfu-complete)
+#+end_src
 
 Make corfu work with meow
 #+begin_src emacs-lisp
