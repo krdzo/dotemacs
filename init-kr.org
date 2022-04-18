@@ -231,6 +231,14 @@ This is manly for magit but can be used for some other funcitonality.
     "<escape>" 'transient-quit-one)
 #+end_src
 
+** Emacs
+Change builtin macs keybingings that I can't put in any category
+#+begin_src emacs-lisp
+  (general-def
+    "M-;" 'comment-line
+    "C-x C-;" 'comment-dwim)
+#+end_src
+
 * Emacs
 Here is configuration that concerns Emacs builtin features.
 Changing options, enabling and configuring modes etc.
