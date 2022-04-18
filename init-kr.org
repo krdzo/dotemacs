@@ -593,7 +593,12 @@ and the second filter to the completion-style filtering (?).
     (blackout 'abbrev-mode))
 #+end_src
 
-** Company
+** COMMENT Company
+#+begin_src emacs-lisp
+  ;; Enable indentation+completion using the TAB key.
+  (setq tab-always-indent 'complete)
+#+end_src
+
 *** company-mode
 ~company-tng-mode~ (tab-n-go):
 - Select candidates with =C-j= / =C-k= or =TAB= / =S-TAB=
@@ -602,7 +607,6 @@ and the second filter to the completion-style filtering (?).
 #+BEGIN_SRC emacs-lisp
   (straight-use-package 'company)
   (add-hook 'after-init-hook 'global-company-mode)
-  (company-tng-mode 1)
 
   (setq company-dabbrev-downcase nil)
   (setq company-dabbrev-ignore-case nil)
@@ -634,24 +638,38 @@ and the second filter to the completion-style filtering (?).
 #+END_SRC
 
 ** corfu
+
+Completion emacs builtin options:
+#+begin_src emacs-lisp
+  ;; Enable indentation+completion using the TAB key.
+  (setq tab-always-indent 'complete)
+#+end_src
+
+corfu config:
 #+begin_src emacs-lisp
   (straight-use-package 'corfu)
+
+  (setq corfu-cycle t)
+  (setq corfu-auto t)
+  (setq corfu-auto-prefix 1)
+  (setq corfu-auto-delay 0.1)
+  (setq corfu-max-width 50)
+  (setq corfu-min-width corfu-max-width)
+  (setq corfu-preselect-first nil)
+
+  (corfu-global-mode 1)
+
   (general-def 'corfu-map
-    "C-g" 'corfu-quit
+    "S-SPC" 'corfu-insert-separator
+    "<return>" 'corfu-insert
+    "<tab>" 'corfu-next
+    "<backtab>" 'corfu-previous
     "C-j" 'corfu-next
-    "C-k" 'corfu-previous)
-    ;; :hook ((prog-mode . corfu-mode)
-    ;;        (org-mode . corfu-mode))
-    ;; :config
-    ;; (add-to-list 'corfu--frame-parameters '(tab-bar-lines . 0))
-    ;; (defun lc/disable-tabs (orig-fn &rest args)
-    ;;   (progn (centaur-tabs-local-mode) (apply orig-fn args)))
-    ;; (defun lc/reenable-tabs (orig-fn &rest args)
-    ;;   (progn (centaur-tabs-local-mode -1) (apply orig-fn args)))
-    ;; (advice-add 'corfu--popup-show :around #'lc/disable-tabs)
-    ;; (advice-add 'corfu--popup-hide :around #'lc/reenable-tabs)
-    ;; Optionally enable cycling for `corfu-next' and `corfu-previous'.
-    ;; (setq corfu-cycle t)
+    "C-k" 'corfu-previous
+    "M-h" 'corfu-show-documentation
+    "M-l" 'corfu-show-location)
+#+end_src
+
 #+end_src
 
 * UI
