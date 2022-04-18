@@ -1292,6 +1292,11 @@ Rest of configuration:
                                       kr-set-comile-command))
 #+end_src
 
+*** Golang
+#+begin_src emacs-lisp
+  (straight-use-package 'go-mode)
+#+end_src
+
 *** Yaml
 #+begin_src emacs-lisp
   (straight-use-package 'yaml-mode)
