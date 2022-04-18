@@ -670,6 +670,17 @@ corfu config:
     "M-l" 'corfu-show-location)
 #+end_src
 
+
+Make Corfu work from minibuffer:
+#+begin_src emacs-lisp
+  (defun corfu-enable-always-in-minibuffer ()
+    "Enable Corfu in the minibuffer if Vertico/Mct are not active."
+    (unless (or (bound-and-true-p mct--active)
+                (bound-and-true-p vertico--input))
+      ;; (setq-local corfu-auto nil) Enable/disable auto completion
+      (corfu-mode 1)))
+  (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1)
+#+end_src
 #+end_src
 
 * UI
