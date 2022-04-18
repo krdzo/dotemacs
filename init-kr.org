@@ -544,7 +544,6 @@ and the second filter to the completion-style filtering (?).
 
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
-  (setq consult-preview-key nil)
 
   (general-def
      [remap switch-to-buffer] 'consult-buffer
@@ -553,6 +552,16 @@ and the second filter to the completion-style filtering (?).
      "C-s" 'consult-line)
   (general-def mode-specific-map
     "i" 'consult-imenu)
+
+  (setq consult-preview-key 'any)
+  (with-eval-after-load 'consult
+   (consult-customize
+    consult-buffer
+    consult-ripgrep consult-git-grep consult-grep
+    consult-bookmark consult-recent-file consult-xref
+    consult--source-bookmark consult--source-recent-file
+    consult--source-project-recent-file
+    :preview-key (kbd "C-o")))
 #+END_SRC
 
 ** embark
