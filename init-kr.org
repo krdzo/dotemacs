@@ -1494,13 +1494,15 @@ Remainder for some cool packages:
 
     ;; help
     (meow-normal-define-key
-     '("M-h" . "C-z h")
-     '("?" . "C-z h"))
+     '("M-h" . "C-z h"))
     (meow-motion-overwrite-define-key
-     '("?" . "C-z h")
-     '("/" . "H-?")
-     '("M-h" . "C-z h")))
 
+     '("M-h" . "C-z h"))
+
+    ;; commands that are not from meow
+    (meow-normal-define-key
+     '("'" . pop-to-mark-command)
+     '("\"" . pop-global-mark)))
   (straight-use-package '(meow :depth full
                                :fork (:host github :repo "krdzo/meow" :protocol ssh)))
   ;; (straight-use-package '(meow :depth full))
