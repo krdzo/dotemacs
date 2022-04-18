@@ -549,7 +549,8 @@ and the second filter to the completion-style filtering (?).
   (general-def
      [remap switch-to-buffer] 'consult-buffer
      [remap apropos-command] 'consult-apropos
-     [remap yank-pop] 'consult-yank-pop)
+     [remap yank-pop] 'consult-yank-pop
+     "C-s" 'consult-line)
   (general-def mode-specific-map
     "i" 'consult-imenu)
 #+END_SRC
