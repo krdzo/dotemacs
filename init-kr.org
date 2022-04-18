@@ -691,6 +691,27 @@ Make Corfu work from minibuffer:
       (corfu-mode 1)))
   (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1)
 #+end_src
+
+LSP corfu conf:
+#+begin_src emacs-lisp
+  (with-eval-after-load 'lsp-mode
+    ;; make lsp use orderless
+    (defun kr-lsp-mode-setup-completion ()
+      (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+            '(orderless))) ;; Configure flex
+    (add-hook 'lsp-completion-mode-hook #'kr-lsp-mode-setup-completion)
+
+    ;; change lsp-capf funciton to make it work like other capf-s
+    ;; explanation: https://github.com/minad/cape/issues/24
+    (add-hook 'lsp-completion-mode-hook
+              (lambda () (setq-local completion-at-point-functions '(lsp-completion-at-point t))))
+
+    (add-hook 'lsp-completion-mode-hook
+      (lambda ()
+        (setq-local completion-at-point-functions
+          (list (cape-capf-properties #'lsp-completion-at-point :exclusive 'no) t)))))
+
+#+end_src
 #+end_src
 
 * UI
