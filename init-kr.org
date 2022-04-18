@@ -111,9 +111,7 @@ What the title says.
 Helping me so that I don't have to configure Emacs not to clutter .emacs.d.
 #+begin_src emacs-lisp
   (straight-use-package 'no-littering)
-  (with-eval-after-load 'recentf
-    (add-to-list 'recentf-exclude no-littering-var-directory)
-    (add-to-list 'recentf-exclude no-littering-etc-directory))
+
   (setq auto-save-file-name-transforms
         `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
   (setq custom-file (no-littering-expand-etc-file-name "custom.el"))
@@ -121,6 +119,10 @@ Helping me so that I don't have to configure Emacs not to clutter .emacs.d.
   ;; should be moved somewhere else
   (when (file-exists-p custom-file)
     (load-file custom-file))
+
+  (with-eval-after-load 'recentf
+    (add-to-list 'recentf-exclude no-littering-var-directory)
+    (add-to-list 'recentf-exclude no-littering-etc-directory))
 #+end_src
 
 ** which-key
@@ -222,6 +224,7 @@ Help at point key is =C-z h=. Every mode that implements a help at point needs t
 #+end_src
 
 ** transient mode
+
 This is manly for magit but can be used for some other funcitonality.
 #+begin_src emacs-lisp
   (general-def transient-base-map
@@ -706,6 +709,7 @@ alternative package ~undo-hl~.
 NOTE - dired enhancement packages: dired-postframe, dired-git, dired-filter, dired-narow
 
 ** dired
+
 #+begin_src emacs-lisp
   (setq dired-dwim-target t)
   (setq dired-isearch-filenames 'dwim)
@@ -719,9 +723,12 @@ NOTE - dired enhancement packages: dired-postframe, dired-git, dired-filter, dir
                                             (auto-revert-mode))))
  #+end_src
 
-** dired-x
+dired-x
 #+begin_src emacs-lisp
-  ;; (setq dired-clean-confirm-killing-deleted-buffers nil)
+  (add-hook 'dired-mode-hook
+            #'(lambda ()
+                (require 'dired-x)
+                (setq dired-clean-confirm-killing-deleted-buffers nil)))
 
   ;; dired-x will help to remove buffers that were associated with deleted
   ;; files/directories
