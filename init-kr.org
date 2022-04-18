@@ -671,6 +671,16 @@ corfu config:
 #+end_src
 
 
+Make corfu work with meow
+#+begin_src emacs-lisp
+  (with-eval-after-load 'meow
+    (defun kr-meow--corfu-maybe-abort-advice ()
+     "Adviced for `meow-insert-exit'."
+     (when corfu--candidates
+       (corfu-quit)))
+    (add-hook 'meow-insert-exit-hook #'kr-meow--corfu-maybe-abort-advice))
+#+end_src
+
 Make Corfu work from minibuffer:
 #+begin_src emacs-lisp
   (defun corfu-enable-always-in-minibuffer ()
