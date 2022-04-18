@@ -1765,3 +1765,40 @@ Template for other selfdefined meow states:
   (add-hook 'special-mode-hook 'kr-read-only-binidngs)
   (add-hook 'Info-mode 'kr-read-only-binidngs)
 #+end_src
+
+* hacks
+Some modes need hacks for them to work with each other properly.
+corfu - yasnippet hack
+If corfu is active yasnipet won't override =<tab>= binding.
+#+begin_src emacs-lisp
+    (defun corfu-active-p ()
+      corfu--candidates)
+    (add-hook 'yas-minor-mode-hook
+              #'(lambda ()
+                  (add-hook 'yas-keymap-disable-hook 'corfu-active-p nil t)))
+
+    (add-hook 'yas-keymap-disable-hook 'corfu-active-p nil t)
+#+end_src
+
+lsp - yasnippet hack for ~$0~
+If a LSP server returns a snippet with ~$0~ snippet than change it to ~$1~ so that we don't exit snippet expansion. See [[https://github.com/emacs-lsp/lsp-dart/issues/130][issue]].
+#+begin_src emacs-lisp
+  (add-hook 'lsp-mode-hook
+    #'(lambda ()
+       (defun lsp--to-yasnippet-snippet (snippet)
+          "Convert LSP SNIPPET to yasnippet snippet."
+          ;; LSP snippet doesn't escape "{" and "`", but yasnippet requires escaping it.
+          ;; if there is a {0:} and no {1:} in snippet change the 0 to 1
+          (if (and (not (string-match "${1:" snippet))
+                   (string-match "${0:" snippet))
+              (let ((newsnippet (replace-regexp-in-string "${0:" "${1:"
+                                                          snippet)))
+                (replace-regexp-in-string (rx (or bos (not (any "$" "\\"))) (group (or "{" "`")))
+                                          (rx "\\" (backref 1))
+                                          newsnippet
+                                          nil nil 1))
+            (replace-regexp-in-string (rx (or bos (not (any "$" "\\"))) (group (or "{" "`")))
+                                      (rx "\\" (backref 1))
+                                      snippet
+                                      nil nil 1)))))
+#+end_src
