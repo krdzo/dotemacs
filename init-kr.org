@@ -488,6 +488,7 @@ Set =serbian-latin= to default input method.
   (general-def 'vertico-map
     "C-j" 'vertico-next
     "C-k" 'vertico-previous
+    "SPC" 'minibuffer-complete-word
     "C-<backspace>" 'vertico-directory-delete-word
     "<backspace>" 'vertico-directory-delete-char
     "<enter>" 'vertico-directory-enter)
@@ -507,13 +508,23 @@ Set =serbian-latin= to default input method.
 ** Orderless
 
 #+begin_src emacs-lisp
+  (setq completion-styles '(basic partial-completion substring initials flex))
+
+  (setq read-file-name-completion-ignore-case t
+        read-buffer-completion-ignore-case t
+        completion-ignore-case nil)
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
   (straight-use-package 'orderless)
 
-  ;; (setq completion-styles '(orderless basic))
   (setq completion-styles '(basic orderless))
-  (setq completion-category-overrides
-        '((file (styles basic partial-completion))))
+  ;; (setq completion-styles '(orderless basic))
   (setq completion-category-defaults nil)
+  (setq completion-category-overrides
+        '((file (styles basic partial-completion))
+          (command (styles orderless))
+          (variable (styles orderless))))
 
   (setq orderless-matching-styles
         '(orderless-literal
@@ -524,6 +535,100 @@ Set =serbian-latin= to default input method.
   (setq read-file-name-completion-ignore-case t
         read-buffer-completion-ignore-case t
         completion-ignore-case t)
+#+end_src
+
+** corfu
+
+Completion emacs builtin options:
+#+begin_src emacs-lisp
+  ;; Enable indentation+completion using the TAB key.
+  (setq tab-always-indent 'complete)
+#+end_src
+
+corfu config:
+#+begin_src emacs-lisp
+  (straight-use-package 'corfu)
+
+  (setq corfu-cycle t)
+  (setq corfu-auto t)
+  (setq corfu-auto-prefix 1)
+  (setq corfu-auto-delay 0.1)
+  (setq corfu-max-width 50)
+  (setq corfu-min-width corfu-max-width)
+  (setq corfu-preselect-first nil)
+
+  (corfu-global-mode 1)
+
+  (general-def 'corfu-map
+    ;; "S-SPC" 'corfu-insert-separator
+    "<return>" 'corfu-insert
+    "<tab>" 'corfu-next
+    "<backtab>" 'corfu-previous
+    "C-j" 'corfu-next
+    "C-k" 'corfu-previous
+    "M-h" 'corfu-show-documentation
+    "M-l" 'corfu-complete)
+#+end_src
+
+Modify corfu-complete to try to complete common and if it can't then start corfu-next.
+#+begin_src emacs-lisp :tangle no
+  (defun kr-corfu-complete-dwim (old-fn)
+    "Call `corfu-complete' one then `corfu-next'"
+    (if (member last-command '(corfu-complete corfu-next))
+        (call-interactively #'corfu-next)
+      (call-interactively old-fn)))
+  ;; (advice-add 'corfu-complete :around #'kr-corfu-complete-dwim)
+  ;; (advice-remove 'corfu-complete #'kr-corfu-complete-dwim)
+
+  (general-def 'corfu-map
+    "<tab>" 'corfu-complete)
+#+end_src
+
+Make corfu work with meow
+#+begin_src emacs-lisp
+  (with-eval-after-load 'meow
+    (defun kr-meow--corfu-maybe-abort-advice ()
+     "Adviced for `meow-insert-exit'."
+     (when corfu--candidates
+       (corfu-quit)))
+    (add-hook 'meow-insert-exit-hook #'kr-meow--corfu-maybe-abort-advice))
+#+end_src
+
+Make Corfu work from minibuffer:
+#+begin_src emacs-lisp
+  (defun corfu-enable-always-in-minibuffer ()
+    "Enable Corfu in the minibuffer if Vertico/Mct are not active."
+    (unless (or (bound-and-true-p mct--active)
+                (bound-and-true-p vertico--input))
+      ;; (setq-local corfu-auto nil) Enable/disable auto completion
+      (corfu-mode 1)))
+  (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1)
+#+end_src
+
+LSP corfu conf:
+#+begin_src emacs-lisp
+  (with-eval-after-load 'lsp-mode
+    ;; make lsp use orderless
+    (defun kr-lsp-mode-setup-completion ()
+      (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+            '(orderless))) ;; Configure flex
+    (add-hook 'lsp-completion-mode-hook #'kr-lsp-mode-setup-completion)
+
+    ;; change lsp-capf funciton to make it work like other capf-s
+    ;; explanation: https://github.com/minad/cape/issues/24
+    (add-hook 'lsp-completion-mode-hook
+              (lambda () (setq-local completion-at-point-functions '(lsp-completion-at-point t))))
+    (add-hook 'lsp-completion-mode-hook
+      (lambda ()
+        (setq-local completion-at-point-functions
+          (list (cape-capf-properties #'lsp-completion-at-point :exclusive 'no) t)))))
+#+end_src
+
+** cape
+#+begin_src emacs-lisp
+  (straight-use-package 'cape)
+
+  (add-hook 'completion-at-point-functions #'cape-file)
 #+end_src
 
 ** marginalia
@@ -636,101 +741,6 @@ and the second filter to the completion-style filtering (?).
   (company-prescient-mode 1)
   (prescient-persist-mode 1)
 #+END_SRC
-
-** corfu
-
-Completion emacs builtin options:
-#+begin_src emacs-lisp
-  ;; Enable indentation+completion using the TAB key.
-  (setq tab-always-indent 'complete)
-#+end_src
-
-corfu config:
-#+begin_src emacs-lisp
-  (straight-use-package 'corfu)
-
-  (setq corfu-cycle t)
-  (setq corfu-auto t)
-  (setq corfu-auto-prefix 1)
-  (setq corfu-auto-delay 0.1)
-  (setq corfu-max-width 50)
-  (setq corfu-min-width corfu-max-width)
-  (setq corfu-preselect-first nil)
-
-  (corfu-global-mode 1)
-
-  (general-def 'corfu-map
-    "S-SPC" 'corfu-insert-separator
-    "<return>" 'corfu-insert
-    "<tab>" 'corfu-next
-    "<backtab>" 'corfu-previous
-    "C-j" 'corfu-next
-    "C-k" 'corfu-previous
-    "M-h" 'corfu-show-documentation
-    "M-l" 'corfu-show-location)
-#+end_src
-
-Modify corfu-complete to try to complete common and if it can't then start corfu-next.
-#+begin_src emacs-lisp
-  (defun kr-corfu-complete (old-fn)
-    "Call `corfu-complete' one then `corfu-next'"
-    (if (member last-command '(corfu-complete corfu-next))
-        (call-interactively #'corfu-next)
-      (call-interactively old-fn)))
-  (advice-add 'corfu-complete :around #'kr-corfu-complete)
-
-  (general-def 'corfu-map
-    "<tab>" 'corfu-complete)
-#+end_src
-
-Make corfu work with meow
-#+begin_src emacs-lisp
-  (with-eval-after-load 'meow
-    (defun kr-meow--corfu-maybe-abort-advice ()
-     "Adviced for `meow-insert-exit'."
-     (when corfu--candidates
-       (corfu-quit)))
-    (add-hook 'meow-insert-exit-hook #'kr-meow--corfu-maybe-abort-advice))
-#+end_src
-
-Make Corfu work from minibuffer:
-#+begin_src emacs-lisp
-  (defun corfu-enable-always-in-minibuffer ()
-    "Enable Corfu in the minibuffer if Vertico/Mct are not active."
-    (unless (or (bound-and-true-p mct--active)
-                (bound-and-true-p vertico--input))
-      ;; (setq-local corfu-auto nil) Enable/disable auto completion
-      (corfu-mode 1)))
-  (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1)
-#+end_src
-
-LSP corfu conf:
-#+begin_src emacs-lisp
-  (with-eval-after-load 'lsp-mode
-    ;; make lsp use orderless
-    (defun kr-lsp-mode-setup-completion ()
-      (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
-            '(orderless))) ;; Configure flex
-    (add-hook 'lsp-completion-mode-hook #'kr-lsp-mode-setup-completion)
-
-    ;; change lsp-capf funciton to make it work like other capf-s
-    ;; explanation: https://github.com/minad/cape/issues/24
-    (add-hook 'lsp-completion-mode-hook
-              (lambda () (setq-local completion-at-point-functions '(lsp-completion-at-point t))))
-
-    (add-hook 'lsp-completion-mode-hook
-      (lambda ()
-        (setq-local completion-at-point-functions
-          (list (cape-capf-properties #'lsp-completion-at-point :exclusive 'no) t)))))
-
-#+end_src
-
-** cape
-#+begin_src emacs-lisp
-  (straight-use-package 'cape)
-
-  (add-hook 'completion-at-point-functions #'cape-file)
-#+end_src
 
 * UI
 ** Font
