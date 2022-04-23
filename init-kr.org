@@ -1724,18 +1724,18 @@ Not categorized
     (call-interactively #'meow-save))
 
 
-  (defun kr-meow-kill-whole-line (fun arg)
+  (defun kr-meow-kill-whole-line (fun)
     "Delete line if there is no selection but delete selection if there
   is active selection."
     (if mark-active
         (meow-kill)
-      (funcall fun arg)))
+      (funcall fun)))
   (advice-add 'meow-kill-whole-line :around 'kr-meow-kill-whole-line)
 
-  (defun kr-meow-copy-line-or-selection (fun arg)
+  (defun kr-meow-copy-line-or-selection (fun)
     "Copy region if active. Copy line if no region is active."
     (if mark-active
-        (funcall fun arg)
+        (funcall fun)
       (kr-meow-save-line)))
   (advice-add 'meow-save :around #'kr-meow-copy-line-or-selection)
 
