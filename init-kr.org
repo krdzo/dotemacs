@@ -459,6 +459,11 @@ Set =serbian-latin= to default input method.
     (blackout 'anzu-mode))
 #+end_src
 
+** auto-insert
+#+begin_src emacs-lisp
+  (auto-insert-mode 1)
+#+end_src
+
 * Completion framework
 ** Vertico
 #+begin_src emacs-lisp
