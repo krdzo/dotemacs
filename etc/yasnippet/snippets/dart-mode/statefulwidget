@@ -1,0 +1,18 @@
+# -*- mode: snippet -*-
+# name: StatefulWidget
+# key: sfw
+# group: flutter
+# --
+class ${1:Name} extends StatefulWidget {
+  const $1({Key? key}) : super(key: key);
+
+  @override
+  _$1State createState() => _$1State();
+}
+
+class _$1State extends State<$1> {
+  @override
+  Widget build(BuildContext context) {
+    return Container($0);
+  }
+}

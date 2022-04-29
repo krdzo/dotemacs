@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: main args
+# key: maina
+# --
+void main(List<String> args) {
+  $0
+}
