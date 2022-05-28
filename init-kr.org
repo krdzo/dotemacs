@@ -1617,10 +1617,6 @@ Remainder for some cool packages:
      '("q" . quit-window)
      '("Q" . kill-current-buffer))
 
-    ;; unrelated to editing
-    (meow-leader-define-key
-     (cons "t" kr-toggle-map))
-
     (meow-normal-define-key
      '("{" . backward-paragraph)
      '("}" . forward-paragraph)
@@ -1637,8 +1633,12 @@ Remainder for some cool packages:
 
     ;; commands that are not from meow
     (meow-normal-define-key
+     '("M" . set-mark-command)
      '("'" . pop-to-mark-command)
-     '("\"" . pop-global-mark)))
+     '("\"" . pop-global-mark))
+    (meow-leader-define-key
+     (cons "t" kr-toggle-map)
+     (cons "p" project-prefix-map)))
   (straight-use-package '(meow :depth full
                                :fork (:host github :repo "krdzo/meow" :protocol ssh)))
   ;; (straight-use-package '(meow :depth full))
@@ -1654,6 +1654,7 @@ Remainder for some cool packages:
   (add-to-list 'meow-mode-state-list '(fundamental-mode . normal))
   (add-to-list 'meow-mode-state-list '(eshell-mode . normal))
   (add-to-list 'meow-mode-state-list '(sly-mrepl-mode . normal))
+  (add-to-list 'meow-mode-state-list '(sly-db-mode . motion))
 
   (meow-setup)
   (meow-global-mode 1)
@@ -1801,7 +1802,10 @@ For example because I use ~dired~ that is bound to =C-x d= more often then ~list
     "C-x C-p" project-prefix-map
     ;; C-x r
     "C-x r" 'revert-buffer
-    "C-x C-r" ctl-x-r-map)
+    "C-x C-r" ctl-x-r-map
+    ;; C-x
+    "C-x c" 'save-buffers-kill-terminal
+    "C-x C-c" (lambda () (interactive) (message "Quit Stop!")))
 
   ;; some convinience bindings
   (general-def
