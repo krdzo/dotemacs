@@ -2,7 +2,9 @@
 /.custom.el
 /init-kr.el
 /recentf*
-/straight/
+/straight/build/
+/straight/repos/
+/straight/build-cache.el
 /var/
 /backup-config/
 /places

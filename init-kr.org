@@ -562,7 +562,7 @@ corfu config:
   (setq corfu-min-width corfu-max-width)
   (setq corfu-preselect-first nil)
 
-  (corfu-global-mode 1)
+  (global-corfu-mode 1)
 
   (general-def 'corfu-map
     ;; "S-SPC" 'corfu-insert-separator
