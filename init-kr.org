@@ -552,7 +552,10 @@ Completion emacs builtin options:
 
 corfu config:
 #+begin_src emacs-lisp
-  (straight-use-package 'corfu)
+  (straight-use-package '(corfu :files (:defaults "extensions/corfu-info.el"
+                                                  "extensions/corfu-history.el")))
+  (corfu-history-mode 1)
+  (add-to-list 'savehist-additional-variables 'corfu-history)
 
   (setq corfu-cycle t)
   (setq corfu-auto t)
@@ -571,7 +574,7 @@ corfu config:
     "<backtab>" 'corfu-previous
     "C-j" 'corfu-next
     "C-k" 'corfu-previous
-    "M-h" 'corfu-show-documentation
+    "M-h" 'corfu-info-documentation
     "M-l" 'corfu-complete)
 #+end_src
 
@@ -611,7 +614,7 @@ Make Corfu work from minibuffer:
 #+end_src
 
 LSP corfu conf:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (with-eval-after-load 'lsp-mode
     ;; make lsp use orderless
     (defun kr-lsp-mode-setup-completion ()
