@@ -1314,11 +1314,6 @@ Maybe better alternative [[https://github.com/purcell/emacs-reformatter][reforma
 
 #+end_src
 
-*** Hover
-#+begin_src emacs-lisp
-  (straight-use-package 'hover)
-#+end_src
-
 ** web
 
 *** web-mode
@@ -1328,6 +1323,7 @@ Maybe better alternative [[https://github.com/purcell/emacs-reformatter][reforma
   (setq web-mode-auto-close-style 1)
   (setq web-mode-code-indent-offset 2)
   (setq web-mode-markup-indent-offset 2)
+  (setq web-mode-css-indent-offset 2)
   (add-hook 'web-mode-hook #'visual-line-mode)
   (add-to-list 'auto-mode-alist '("\\.php?\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
@@ -1382,12 +1378,25 @@ Sly the better SLIME.
   (setq sly-contribs '(sly-fancy sly-mrepl))
 #+end_src
 
+*** Guile
+#+begin_src emacs-lisp
+  (straight-use-package 'geiser-guile)
+  (setq geiser-guile-binary "guile2.2")
+#+end_src
+
 *** JavaScript
 Rest of configuration:
 [[*LSP][lsp-hook]], [[*Tree-sitter][tree-stter-hook]], [[*Formating][apheleia-hook]]
 
 #+begin_src emacs-lisp
   (setq js-indent-level 2)
+#+end_src
+
+**** React
+#+begin_src emacs-lisp
+  (straight-use-package 'rjsx-mode)
+  (add-to-list 'auto-mode-alist '("\\.js\\'" . rjsx-mode))
+  (add-to-list 'auto-mode-alist '("\\.js[mx]?\\'" . rjsx-mode))
 #+end_src
 
 *** JSON
@@ -1403,26 +1412,11 @@ Rest of configuration:
   (add-hook 'rust-mode-hook 'cargo-minor-mode)
 #+end_src
 
-*** Java
-[[*LSP][lsp-hook]]
-#+begin_src emacs-lisp
-  (straight-use-package 'lsp-java)
-
-  (defun kr-set-comile-command ()
-    (setq-local
-     compile-command
-     (concat "java "
-             (when buffer-file-name
-               buffer-file-name))))
-
-  (general-add-hook 'java-mode-hook '(lsp-deferred
-                                      tree-sitter-hl-mode
-                                      kr-set-comile-command))
-#+end_src
-
 *** Golang
 #+begin_src emacs-lisp
   (straight-use-package 'go-mode)
+
+  (add-hook 'go-mode-hook #'lsp-deferred)
 #+end_src
 
 *** Yaml
