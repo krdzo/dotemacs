@@ -763,13 +763,14 @@ and the second filter to the completion-style filtering (?).
   ;; list of ok themes:
   ;; doom-dark+
   ;; doom-hena
-  ;; doom-snazy
+  ;; doom-snazzy
   ;; doom-dracula
   ;; doom-Iosvkem
   ;; doom-old-hope
   ;; doom-palenight
   ;; doom-city-lights
   ;; dom-ocean-next
+  ;; doom-xcode
 
   ;; base16-themes
   ;; dune
@@ -780,7 +781,7 @@ and the second filter to the completion-style filtering (?).
   ;; google-dark
 
   (straight-use-package 'doom-themes)
-  (load-theme 'doom-dark+ t)
+  (load-theme 'doom-snazzy t)
 
   ;; global-hl-line-mode and region have the same color so i change it here
   (set-face-attribute 'region nil :background "#454545")
