@@ -494,7 +494,6 @@ Set =serbian-latin= to default input method.
   (general-def 'vertico-map
     "C-j" 'vertico-next
     "C-k" 'vertico-previous
-    "SPC" 'minibuffer-complete-word
     "C-<backspace>" 'vertico-directory-delete-word
     "<backspace>" 'vertico-directory-delete-char
     "<enter>" 'vertico-directory-enter)
@@ -841,6 +840,12 @@ NOTE - dired enhancement packages: dired-postframe, dired-git, dired-filter, dir
   (add-hook 'dired-mode-hook 'toggle-truncate-lines)
   (add-hook 'dired-mode-hook #'(lambda () (unless (file-remote-p default-directory)
                                             (auto-revert-mode))))
+
+
+  (when (string= system-type "darwin")
+    (setq dired-use-ls-dired t
+          insert-directory-program "/usr/local/bin/gls"))
+          ;; dired-listing-switches "-aBhl --group-directories-first"))
  #+end_src
 
 dired-x
