@@ -381,11 +381,6 @@ is there to prevent it from doing that.
   (set-register ?i `(file . ,(expand-file-name "init.el" user-emacs-directory)))
 #+end_src
 
-*** Personal
-#+begin_src emacs-lisp
-  (set-register ?t `(file . "~/Documents/from-home/terapija.org"))
-#+end_src
-
 ** Written Languages
 
 *** Serbian
@@ -1483,6 +1478,12 @@ Rest of configuration:
       (select-window win)))
 
   (advice-add 'quickrun :around #'kr-quickrun)
+#+end_src
+
+** Docker
+*** dockerfile-mode
+#+begin_src emacs-lisp
+  (straight-use-package 'dockerfile-mode)
 #+end_src
 
 * COMMENT Notes from old config
