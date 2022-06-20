@@ -1020,7 +1020,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
   (straight-use-package 'yasnippet)
   (setq yas-alias-to-yas/prefix-p nil)    ; don't make yas/ prefix commands
 
-  (add-hook 'yas-minor-mode-hook #'yas-reload-all)
+  (add-hook 'prog-mode-hook #'yas-minor-mode)
 
   (with-eval-after-load 'lsp-mode
     (add-hook 'lsp-mode-hook #'yas-minor-mode))
