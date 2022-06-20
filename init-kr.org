@@ -554,8 +554,6 @@ corfu config:
 #+begin_src emacs-lisp
   (straight-use-package '(corfu :files (:defaults "extensions/corfu-info.el"
                                                   "extensions/corfu-history.el")))
-  (corfu-history-mode 1)
-  (add-to-list 'savehist-additional-variables 'corfu-history)
 
   (setq corfu-cycle t)
   (setq corfu-auto t)
@@ -566,16 +564,14 @@ corfu config:
   (setq corfu-preselect-first nil)
 
   (global-corfu-mode 1)
+  (corfu-history-mode 1)
+  (add-to-list 'savehist-additional-variables 'corfu-history)
 
   (general-def 'corfu-map
-    ;; "S-SPC" 'corfu-insert-separator
-    "<return>" 'corfu-insert
-    "<tab>" 'corfu-next
-    "<backtab>" 'corfu-previous
-    "C-j" 'corfu-next
-    "C-k" 'corfu-previous
+    "S-SPC" 'corfu-insert-separator
     "M-h" 'corfu-info-documentation
-    "M-l" 'corfu-complete)
+    "C-j" 'corfu-next
+    "C-k" 'corfu-previous)
 #+end_src
 
 Modify corfu-complete to try to complete common and if it can't then start corfu-next.
@@ -732,10 +728,13 @@ and the second filter to the completion-style filtering (?).
                                    gud-mode))
   (setq company-backends '(company-files company-capf company-keywords company-yasnippet))
   (general-def company-active-map
+    "<escape>" 'company-abort
+    "<tab>" 'company-complete
     "C-j" 'company-select-next-or-abort
     "C-k" 'company-select-previous-or-abort
     "M-h" 'company-show-doc-buffer)
 
+  ;; for orderless to have faces
   (defun just-one-face (fn &rest args)
     (let ((orderless-match-faces [completions-common-part]))
       (apply fn args)))
