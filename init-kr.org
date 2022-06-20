@@ -462,7 +462,7 @@ Set =serbian-latin= to default input method.
 
 ** auto-insert
 #+begin_src emacs-lisp
-  (auto-insert-mode 1)
+  (add-hook 'lisp-mode-hook #'auto-insert-mode)
 #+end_src
 
 * Completion framework
