@@ -514,22 +514,14 @@ Set =serbian-latin= to default input method.
 ** Orderless
 
 #+begin_src emacs-lisp
-  (setq completion-styles '(basic partial-completion substring initials flex))
-
-  (setq read-file-name-completion-ignore-case t
-        read-buffer-completion-ignore-case t
-        completion-ignore-case nil)
-#+end_src
-
-#+begin_src emacs-lisp :tangle no
   (straight-use-package 'orderless)
 
   (setq completion-styles '(basic orderless))
-  ;; (setq completion-styles '(orderless basic))
-  (setq completion-category-defaults nil)
+
   (setq completion-category-overrides
         '((file (styles basic partial-completion))
           (command (styles orderless))
+          (help (styles orderless))
           (variable (styles orderless))))
 
   (setq orderless-matching-styles
@@ -616,7 +608,7 @@ LSP corfu conf:
     ;; make lsp use orderless
     (defun kr-lsp-mode-setup-completion ()
       (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
-            '(orderless))) ;; Configure flex
+            '(flex orderless))) ;; Configure flex
     (add-hook 'lsp-completion-mode-hook #'kr-lsp-mode-setup-completion)
 
     ;; change lsp-capf funciton to make it work like other capf-s
