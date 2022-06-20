@@ -149,6 +149,7 @@ Better help than built-in help.
     [remap describe-variable] 'helpful-variable
     [remap describe-key] 'helpful-key)
 
+  (setq helpful-max-buffers 2)
 #+END_SRC
 
 ** elisp-demos
@@ -852,9 +853,9 @@ NOTE - dired enhancement packages: dired-postframe, dired-git, dired-filter, dir
 
 dired-x
 #+begin_src emacs-lisp
+  (require 'dired-x)
   (add-hook 'dired-mode-hook
             #'(lambda ()
-                (require 'dired-x)
                 (setq dired-clean-confirm-killing-deleted-buffers nil)))
 
   ;; dired-x will help to remove buffers that were associated with deleted
@@ -1334,6 +1335,7 @@ Maybe better alternative [[https://github.com/purcell/emacs-reformatter][reforma
   (setq emmet-move-cursor-after-expanding t)
   (setq emmet-move-cursor-between-quotes t)
   (general-def 'emmet-mode-keymap
+    "C-o" 'emmet-expand-line
     "M-p" 'emmet-prev-edit-point
     "M-n" 'emmet-next-edit-point)
   (add-hook 'web-mode-hook 'emmet-mode)
@@ -1921,7 +1923,7 @@ If corfu is active yasnipet won't override =<tab>= binding.
 
 lsp - yasnippet hack for ~$0~
 If a LSP server returns a snippet with ~$0~ snippet than change it to ~$1~ so that we don't exit snippet expansion. See [[https://github.com/emacs-lsp/lsp-dart/issues/130][issue]].
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (add-hook 'lsp-mode-hook
     #'(lambda ()
        (defun lsp--to-yasnippet-snippet (snippet)
@@ -1940,4 +1942,10 @@ If a LSP server returns a snippet with ~$0~ snippet than change it to ~$1~ so th
                                       (rx "\\" (backref 1))
                                       snippet
                                       nil nil 1)))))
+#+end_src
+
+Disable anoying background in LSP help buffer
+#+begin_src emacs-lisp
+  (with-eval-after-load 'markdown-mode
+    (set-face-background 'markdown-code-face nil))
 #+end_src
