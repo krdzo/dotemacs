@@ -1238,18 +1238,6 @@ https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff
   (add-hook 'eshell-first-time-mode-hook #'kr-meow-eshell-key-setup)
 #+end_src
 
-** Flycheck
-#+begin_src emacs-lisp
-  (general-def kr-<b-menu-map
-    "e" 'flycheck-previous-error)
-  (general-def kr->b-menu-map
-    "e" 'flycheck-next-error)
-
-  (straight-use-package 'flycheck)
-
-
-#+end_src
-
 ** Tree-sitter
 #+BEGIN_SRC emacs-lisp
   (straight-use-package 'tree-sitter)
