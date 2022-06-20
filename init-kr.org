@@ -1033,21 +1033,64 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
   (with-eval-after-load 'lsp-mode
     (add-hook 'lsp-mode-hook #'yas-minor-mode))
 
+  (with-eval-after-load 'eglot
+    (add-hook 'eglot-connect-hook #'yas-minor-mode))
+
   (straight-use-package 'yasnippet-snippets)
 
   (with-eval-after-load 'yasnippet
     (blackout 'yas-minor-mode))
 #+end_src
 
-** LSP
+** eglot
+#+begin_src emacs-lisp
+  (straight-use-package 'eglot)
+
+  (with-eval-after-load 'go-mode
+    (add-hook 'go-mode-hook #'eglot-ensure))
+
+  (add-hook 'eglot-managed-mode-hook
+            #'(lambda ()
+                (setq eldoc-documentation-functions
+                      '(flymake-eldoc-function
+                        eglot-signature-eldoc-function
+                        eglot-hover-eldoc-function))
+                (setq eldoc-documentation-function
+                      'eldoc-documentation-compose)))
+
+  ;; Option 1: Specify explicitly to use Orderless for Eglot
+  (add-to-list 'completion-category-overrides '((eglot (styles orderless))))
+
+
+  ;; Option 2: Undo the Eglot modification of completion-category-defaults
+  ;; (with-eval-after-load 'eglot
+  ;;    (setq completion-category-defaults nil))
+
+  ;; (setq eldoc-echo-area-use-multiline-p 2)
+  (setq eldoc-echo-area-prefer-doc-buffer t)
+  (setq eldoc-echo-area-display-truncation-message nil)
+
+  ;; ;; trying eldoc-box
+  (straight-use-package 'eldoc-box)
+  ;; (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
+  ;; (setq eglot-managed-mode-hook nil)
+
+  (setq x-gtk-resize-child-frames 'resize-mode)
+  ;; (setq eldoc-box-cleanup-interval 0.5)
+#+end_src
+
+** COMMENT LSP
 #+BEGIN_SRC emacs-lisp
   (straight-use-package 'lsp-mode)
 
   (setq lsp-keymap-prefix "C-c l")
   (setq lsp-completion-provider :none)  ; don't change company-backends
   (setq read-process-output-max (* 1024 1024))
+  ;; (setq lsp-signature-auto-activate t
+  ;;       lsp-signature-doc-lines 1)
 
   (general-add-hook '(c-mode-hook
+                      go-mode-hook
                       js-mode-hook
                       json-mode-hook
                       web-mode-hook
@@ -1079,7 +1122,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     ;; (setq lsp-before-save-edits nil)
 #+END_SRC
 
-** DAP mode
+** COMMENT DAP mode
 #+begin_src emacs-lisp
   (straight-use-package 'dap-mode)
   (add-hook 'lsp-mode-hook 'dap-mode)
@@ -1416,8 +1459,6 @@ Rest of configuration:
 *** Golang
 #+begin_src emacs-lisp
   (straight-use-package 'go-mode)
-
-  (add-hook 'go-mode-hook #'lsp-deferred)
 #+end_src
 
 *** Yaml
