@@ -460,6 +460,13 @@ Set =serbian-latin= to default input method.
   (add-hook 'lisp-mode-hook #'auto-insert-mode)
 #+end_src
 
+** Shell for Macos
+#+begin_src emacs-lisp
+  (straight-use-package 'exec-path-from-shell)
+  (when (memq window-system '(mac ns))
+    (exec-path-from-shell-initialize))
+#+end_src
+
 * Completion framework
 ** Vertico
 #+begin_src emacs-lisp
@@ -1654,7 +1661,6 @@ Remainder for some cool packages:
     (meow-normal-define-key
      '("M-h" . "C-z h"))
     (meow-motion-overwrite-define-key
-
      '("M-h" . "C-z h"))
 
     ;; commands that are not from meow
