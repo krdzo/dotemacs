@@ -460,11 +460,17 @@ Set =serbian-latin= to default input method.
   (add-hook 'lisp-mode-hook #'auto-insert-mode)
 #+end_src
 
-** Shell for Macos
+** For Macos
+*** exec-path
 #+begin_src emacs-lisp
   (straight-use-package 'exec-path-from-shell)
   (when (memq window-system '(mac ns))
     (exec-path-from-shell-initialize))
+#+end_src
+*** option key
+#+begin_src emacs-lisp
+  (when (string= system-type "darwin")
+    (setq mac-option-modifier 'meta))
 #+end_src
 
 * Completion framework
