@@ -71,6 +71,15 @@ I like to know how fast Emacs has started.
                          gcs-done)))
 #+end_src
 
+** Util functions
+#+begin_src emacs-lisp
+  (defun kr-mac-p ()
+    (if (string= system-type "darwin")
+        t
+      nil))
+
+#+end_src
+
 ** Blackout
 For keeping mode line clean.
 #+begin_src emacs-lisp
@@ -240,6 +249,14 @@ Change builtin macs keybingings that I can't put in any category
     "C-x C-;" 'comment-dwim)
 #+end_src
 
+** For mac
+#+begin_src emacs-lisp
+  (when (kr-mac-p)
+      (general-def 'global-map
+        "C-<tab>" 'tab-next
+        "C-S-<tab>" 'tab-previous))
+#+end_src
+
 * Emacs
 Here is configuration that concerns Emacs builtin features.
 Changing options, enabling and configuring modes etc.
@@ -251,6 +268,7 @@ Inspired by https://github.com/natecox/dotfiles/blob/master/emacs/emacs.d/nathan
 To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/ with =e=
 
 #+BEGIN_SRC emacs-lisp
+  (setq use-file-dialog nil)
   (setq initial-scratch-message nil
          sentence-end-double-space nil
          ring-bell-function 'ignore
@@ -416,6 +434,9 @@ Set =serbian-latin= to default input method.
 *** Spelling
 #+begin_src emacs-lisp
   (setq ispell-program-name "/usr/bin/aspell")
+  (if (kr-mac-p)
+      (setq ispell-program-name "/usr/local/bin/aspell"))
+
 #+end_src
 
 ** Calendar
@@ -1159,6 +1180,14 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
   (general-def mode-specific-map
     "v" 'magit-status
     "V" 'magit-status-here)
+
+  (when (kr-mac-p)
+    (setq magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1))
+
+  (general-def 'magit-status-mode-map
+    "S-<tab>" 'magit-section-cycle
+    "C-<tab>" 'tab-next)
+
 #+end_src
 
 *** Git-gutter
