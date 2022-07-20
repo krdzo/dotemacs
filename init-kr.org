@@ -561,7 +561,7 @@ corfu config:
   (setq corfu-auto-delay 0.1)
   (setq corfu-max-width 50)
   (setq corfu-min-width corfu-max-width)
-  (setq corfu-preselect-first nil)
+  (setq corfu-preselect-first t)
 
   (global-corfu-mode 1)
   (corfu-history-mode 1)
@@ -681,12 +681,18 @@ and the second filter to the completion-style filtering (?).
 #+BEGIN_SRC emacs-lisp
   (straight-use-package 'embark)
   (general-def 'minibuffer-mode-map
-    "C-l" 'embark-act)
+    "C-;" 'embark-act)
 #+END_SRC
 
 *** embark-consult
 #+begin_src emacs-lisp
   (straight-use-package 'embark-consult)
+
+  (general-add-hook 'minibuffer-setup-hook
+                    #'(lambda () (require 'embark-consult))
+                    nil
+                    nil
+                    t)
 #+end_src
 
 ** dabbrev
