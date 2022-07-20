@@ -1040,6 +1040,14 @@ Here are packages that don't belong to any category.
   (blackout 'undo-tree-mode)
 #+end_src
 
+** wgrep
+#+begin_src emacs-lisp
+  (straight-use-package 'wgrep)
+  (require 'wgrep)
+
+  (set-face-background 'wgrep-face "#B6268")
+#+end_src
+
 * Programing
 
 ** Hooks for prog mode
