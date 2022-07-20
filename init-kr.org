@@ -1083,6 +1083,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 
   (add-hook 'eglot-managed-mode-hook
             #'(lambda ()
+                (add-hook 'before-save-hook 'eglot-format-buffer)
                 (setq eldoc-documentation-functions
                       '(flymake-eldoc-function
                         eglot-signature-eldoc-function
@@ -1104,6 +1105,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 
   ;; ;; trying eldoc-box
   (straight-use-package 'eldoc-box)
+  (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
   ;; (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
   ;; (setq eglot-managed-mode-hook nil)
 
