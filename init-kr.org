@@ -1460,6 +1460,20 @@ Rest of configuration:
   (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode))
 #+end_src
 
+*** Scala
+#+begin_src emacs-lisp
+  (straight-use-package 'scala-mode)
+
+  (straight-use-package 'sbt-mode)
+
+  (substitute-key-definition
+     'minibuffer-complete-word
+     'self-insert-command
+     minibuffer-local-completion-map)
+
+  (setq sbt:program-options '("-Dsbt.supershell=false"))
+#+end_src
+
 ** GTK
 #+begin_src emacs-lisp
   (defun gtk-run ()
