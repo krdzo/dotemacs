@@ -72,12 +72,9 @@ I like to know how fast Emacs has started.
 #+end_src
 
 ** Util functions
+For knowing that we are  on Mac
 #+begin_src emacs-lisp
-  (defun kr-mac-p ()
-    (if (string= system-type "darwin")
-        t
-      nil))
-
+  (defvar kr-mac-p (if (string= system-type "darwin") t nil))
 #+end_src
 
 ** Blackout
@@ -251,7 +248,7 @@ Change builtin macs keybingings that I can't put in any category
 
 ** For mac
 #+begin_src emacs-lisp
-  (when (kr-mac-p)
+  (when kr-mac-p
       (general-def 'global-map
         "C-<tab>" 'tab-next
         "C-S-<tab>" 'tab-previous))
@@ -433,10 +430,10 @@ Set =serbian-latin= to default input method.
 
 *** Spelling
 #+begin_src emacs-lisp
-  (setq ispell-program-name "/usr/bin/aspell")
-  (if (kr-mac-p)
-      (setq ispell-program-name "/usr/local/bin/aspell"))
-
+  (setq ispell-program-name (with-temp-buffer
+                              (call-process "which" nil t nil "aspell")
+                              (backward-delete-char 1)
+                              (buffer-string)))
 #+end_src
 
 ** Calendar
@@ -1177,7 +1174,11 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 *** Magit
 #+begin_src emacs-lisp
   (straight-use-package 'magit)
+
+  (add-hook 'git-commit-mode-hook #'flyspell-mode)
+
   (setq git-commit-fill-column 72)
+
   (with-eval-after-load 'magit
     (dolist (face '(magit-diff-added
                     magit-diff-added-highlight
@@ -1191,8 +1192,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     "v" 'magit-status
     "V" 'magit-status-here)
 
-  (when (kr-mac-p)
-    (setq magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1))
+  (setq magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1)
 
   (general-def 'magit-status-mode-map
     "S-<tab>" 'magit-section-cycle
