@@ -624,25 +624,6 @@ Make Corfu work from minibuffer:
   (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1)
 #+end_src
 
-LSP corfu conf:
-#+begin_src emacs-lisp :tangle no
-  (with-eval-after-load 'lsp-mode
-    ;; make lsp use orderless
-    (defun kr-lsp-mode-setup-completion ()
-      (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
-            '(flex orderless))) ;; Configure flex
-    (add-hook 'lsp-completion-mode-hook #'kr-lsp-mode-setup-completion)
-
-    ;; change lsp-capf funciton to make it work like other capf-s
-    ;; explanation: https://github.com/minad/cape/issues/24
-    (add-hook 'lsp-completion-mode-hook
-              (lambda () (setq-local completion-at-point-functions '(lsp-completion-at-point t))))
-    (add-hook 'lsp-completion-mode-hook
-      (lambda ()
-        (setq-local completion-at-point-functions
-          (list (cape-capf-properties #'lsp-completion-at-point :exclusive 'no) t)))))
-#+end_src
-
 ** cape
 #+begin_src emacs-lisp
   (straight-use-package 'cape)
@@ -1116,6 +1097,10 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 #+end_src
 
 ** COMMENT LSP
+;;;
+#+NOTE: lsp more is not used because it doesn't integrate nicely with corfu mode.
+;;;
+
 #+BEGIN_SRC emacs-lisp
   (straight-use-package 'lsp-mode)
 
@@ -1157,6 +1142,26 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     ;; (setq lsp-auto-execute-action nil)
     ;; (setq lsp-before-save-edits nil)
 #+END_SRC
+
+LSP corfu conf:
+#+begin_src emacs-lisp
+  (with-eval-after-load 'lsp-mode
+    ;; make lsp use orderless
+    (defun kr-lsp-mode-setup-completion ()
+      (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+            '(flex orderless))) ;; Configure flex
+    (add-hook 'lsp-completion-mode-hook #'kr-lsp-mode-setup-completion))
+
+    ;; change lsp-capf funciton to make it work like other capf-s
+    ;; explanation: https://github.com/minad/cape/issues/24
+    ;; (add-hook 'lsp-completion-mode-hook
+    ;;           (lambda () (setq-local completion-at-point-functions '(lsp-completion-at-point t))))
+    ;; (add-hook 'lsp-completion-mode-hook
+    ;;   (lambda ()
+    ;;     (setq-local completion-at-point-functions
+    ;;       (list (cape-capf-properties #'lsp-completion-at-point :exclusive 'no) t)))))
+
+#+end_src
 
 ** COMMENT DAP mode
 #+begin_src emacs-lisp
@@ -1360,7 +1365,7 @@ Maybe better alternative [[https://github.com/purcell/emacs-reformatter][reforma
   (add-hook 'js-mode-hook 'apheleia-mode)
 #+end_src
 
-** Flutter
+** COMMENT Flutter
 
 *** Dart
 #+begin_src emacs-lisp
