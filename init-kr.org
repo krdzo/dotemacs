@@ -2,9 +2,6 @@
 #+author: Krdzo
 #+startup: fold
 
-* Introduction
-This config is primarily inspired from [[https://www.lucacambiaghi.com/vanilla-emacs/readme.html#h:16B948EA-5375-44DE-ACD7-3664D4A9CE5F][here]] and most of this is directly taken from there.
-
 * Bootstrap Straight.el
 
 I'm using straight in combination with use-package for package management.
@@ -1497,6 +1494,7 @@ Rest of configuration:
 *** Golang
 #+begin_src emacs-lisp
   (straight-use-package 'go-mode)
+  (setq gofmt-command "goimports")
 #+end_src
 
 *** Yaml
