@@ -1076,9 +1076,12 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
   (with-eval-after-load 'go-mode
     (add-hook 'go-mode-hook #'eglot-ensure))
 
+  (with-eval-after-load 'rust-mode
+    (add-hook 'rust-mode-hook #'eglot-ensure))
+
   (add-hook 'eglot-managed-mode-hook
             #'(lambda ()
-                (add-hook 'before-save-hook 'eglot-format-buffer)
+                (add-hook 'before-save-hook 'eglot-format-buffer nil t)
                 (setq eldoc-documentation-functions
                       '(flymake-eldoc-function
                         eglot-signature-eldoc-function
@@ -1317,6 +1320,7 @@ https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff
                       js-mode-hook
                       python-mode-hook
                       css-mode-hook
+                      rust-mode-hook
                       go-mode-hook)
                     #'tree-sitter-hl-mode)
   (with-eval-after-load 'tree-sitter
