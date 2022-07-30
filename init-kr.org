@@ -1111,6 +1111,17 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
   ;; (setq eldoc-box-cleanup-interval 0.5)
 #+end_src
 
+** flymake
+#+begin_src emacs-lisp
+  (general-def flymake-mode-map
+    "C-z [e" 'flymake-goto-prev-error
+    "C-z ]e" 'flymake-goto-next-error)
+  (add-hook 'flymake-mode-hook #'(lambda ()
+                                   (general-def 'meow-normal-state-keymap
+                                      "[e" "C-z [e"
+                                      "]e" "C-z ]e")))
+#+end_src
+
 ** COMMENT LSP
 ;;;
 #+NOTE: lsp more is not used because it doesn't integrate nicely with corfu mode.
