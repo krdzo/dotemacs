@@ -1055,6 +1055,18 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 
   (with-eval-after-load 'yasnippet
     (blackout 'yas-minor-mode))
+
+  ;; for corfu
+  (straight-use-package 'cape)
+  (straight-use-package 'company)
+
+  (defun my/eglot-capf ()
+    (setq-local completion-at-point-functions
+                (list (cape-super-capf
+                       #'eglot-completion-at-point
+                       (cape-company-to-capf #'company-yasnippet)))))
+
+  (add-hook 'eglot-managed-mode-hook #'my/eglot-capf)
 #+end_src
 
 ** eglot
@@ -1969,13 +1981,13 @@ Some modes need hacks for them to work with each other properly.
 corfu - yasnippet hack
 If corfu is active yasnipet won't override =<tab>= binding.
 #+begin_src emacs-lisp
-    (defun corfu-active-p ()
-      corfu--candidates)
-    (add-hook 'yas-minor-mode-hook
-              #'(lambda ()
-                  (add-hook 'yas-keymap-disable-hook 'corfu-active-p nil t)))
+  (defun corfu-active-p ()
+    corfu--candidates)
+  (add-hook 'yas-minor-mode-hook
+            #'(lambda ()
+                (add-hook 'yas-keymap-disable-hook 'corfu-active-p nil t)))
 
-    (add-hook 'yas-keymap-disable-hook 'corfu-active-p nil t)
+  (add-hook 'yas-keymap-disable-hook 'corfu-active-p nil t)
 #+end_src
 
 lsp - yasnippet hack for ~$0~
