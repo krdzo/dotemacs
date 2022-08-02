@@ -1556,51 +1556,12 @@ Rest of configuration:
   (straight-use-package 'dockerfile-mode)
 #+end_src
 
-* COMMENT Notes from old config
-** Podsetnik za Info
-*** Korisne komande i promenive koje treba znati
+* Notes from old config
 
-+ ~(list-command-history)~ - izlistava istoriju komandi. Komande su izlistane
-  detaljno tj. sa svim argumentima itd.
-+ =C-x <ESC> <ESC>= ~(repeat-complex-command)~ - daje mogućnost da ponoviš poslednju
-  komandu sa promenjenim ili istim argumentima.
-+ ~(apropos-user-option)~ - Search for user-customizable variables.  With a prefix
-  argument, search for non-customizable variables too.
-+ ~(apropos-variable)~ - Search for variables.  With a prefix argument, search for
-  customizable variables only.
-+ ~show-trailing-whitespace~ - promenjiva, ono sto ime kaže
-
-*** Preskoceno u Emacs Info manual-u
-- 11. 12. 13. 17. 22. sekcije Emacs info manual-a su preskočene
-- 28.1 tj. VC je letimično pročitan zato sto
-  koristim magit ali možda ima nesto pametno da se pročita.
-- 28.4.2 i 28.4.3 TAGS preskočen
-- 28.6 Emerge preskočen
-- 31. 32. 33. 34. preskočeni
-- 37. Document viewing preskočen
-- 38. do 47. preskočeno
-- 49.3.10. i 49.3.11. preskočeno
-
-*** Korisne Info strane da se opet procitaju
-16.4 O spellcheck-u
-26.2.3 imunu
-26.2.4 which-funciton-mode
-49.3.4 minibuffer keymap kad se bude customizovao minibufer
-
-*** Kako lakše raditi sa camelCase i snake_case
-Postavi global sub word
-(global-subword-mode 1)
-Sad se =w= komanda kao i sve ostale ponašaju drugačije tj prepoznaju reči u camelcase i razlikuju ih.
-
-vidiSadKakoSePonasaNaOvomPrimeru
-vidi_sad_kako_se_ponasa_na_ovom_primeru
-
-onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= opkolis ceo simbol, celu promenjivu
-
-- vidi /superword-mode/ Info emacs 26.11
-
-** Notes
-*** Korisni paketi koje treba pogledati
+** Interesting packages
+Remainder for some cool packages:
+- wgrep
+- emacs-window-layout
 - aweshell
 - sudo-edit
 - quickrun
@@ -1608,11 +1569,6 @@ onda sa =vaw= ili =viw= opkoliš reč unutar camelcase-a a sa =vao= ili =vio= op
 - format-all
 - instant-rename-tag
 - epaint
-
-** Interesting packages
-Remainder for some cool packages:
-- wgrep
-- emacs-window-layout
 
 * mewo proba
 
