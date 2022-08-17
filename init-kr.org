@@ -833,6 +833,12 @@ alternative package ~undo-hl~.
     (blackout 'org-indent-mode))
 #+end_src
 
+* Hyperbole
+#+begin_src emacs-lisp
+  (straight-use-package 'hyperbole)
+  (hyperbole-mode 1)
+#+end_src
+
 * Dired
 
 NOTE - dired enhancement packages: dired-postframe, dired-git, dired-filter, dired-narow
