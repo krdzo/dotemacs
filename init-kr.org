@@ -1392,8 +1392,12 @@ Maybe better alternative [[https://github.com/purcell/emacs-reformatter][reforma
   (add-hook 'js-mode-hook 'apheleia-mode)
 #+end_src
 
-** COMMENT Flutter
+** Jenkins
+#+begin_src emacs-lisp
+  (straight-use-package 'jenkinsfile-mode)
+#+end_src
 
+** COMMENT Flutter
 *** Dart
 #+begin_src emacs-lisp
   (defun kr-set-comile-command ()
