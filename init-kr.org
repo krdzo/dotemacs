@@ -1099,7 +1099,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 
   ;; (setq eldoc-echo-area-use-multiline-p 2)
   (setq eldoc-echo-area-prefer-doc-buffer t)
-  (setq eldoc-echo-area-display-truncation-message nil)
+  (setq eldoc-echo-area-display-truncation-message t)
 
   ;; ;; trying eldoc-box
   (straight-use-package 'eldoc-box)
@@ -1108,6 +1108,9 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
   ;; (setq eglot-managed-mode-hook nil)
 
   (setq x-gtk-resize-child-frames 'resize-mode)
+  (setq eldoc-box-offset '(-16 -16 16))
+  (setq eldoc-box-max-pixel-width 600)
+  (setq eldoc-box-max-pixel-height 1800)
   ;; (setq eldoc-box-cleanup-interval 0.5)
 #+end_src
 
