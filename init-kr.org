@@ -431,10 +431,7 @@ Set =serbian-latin= to default input method.
 
 *** Spelling
 #+begin_src emacs-lisp
-  (setq ispell-program-name (with-temp-buffer
-                              (call-process "which" nil t nil "aspell")
-                              (backward-delete-char 1)
-                              (buffer-string)))
+  (setq ispell-program-name (executable-find "aspell"))
 #+end_src
 
 ** Calendar
@@ -542,7 +539,7 @@ Set =serbian-latin= to default input method.
 #+begin_src emacs-lisp
   (straight-use-package 'orderless)
 
-  (setq completion-styles '(basic orderless))
+  (setq completion-styles '(orderless flex))
 
   (setq completion-category-overrides
         '((file (styles basic partial-completion))
@@ -681,7 +678,7 @@ and the second filter to the completion-style filtering (?).
 #+BEGIN_SRC emacs-lisp
   (straight-use-package 'embark)
   (general-def 'minibuffer-mode-map
-    "C-;" 'embark-act)
+    "C-," 'embark-act)
 #+END_SRC
 
 *** embark-consult
@@ -1099,23 +1096,12 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
                 (setq eldoc-documentation-function
                       'eldoc-documentation-compose)))
 
-  ;; Option 1: Specify explicitly to use Orderless for Eglot
-  (add-to-list 'completion-category-overrides '((eglot (styles orderless))))
-
-
-  ;; Option 2: Undo the Eglot modification of completion-category-defaults
-  ;; (with-eval-after-load 'eglot
-  ;;    (setq completion-category-defaults nil))
-
-  ;; (setq eldoc-echo-area-use-multiline-p 2)
   (setq eldoc-echo-area-prefer-doc-buffer t)
   (setq eldoc-echo-area-display-truncation-message t)
 
-  ;; ;; trying eldoc-box
+  ;; trying eldoc-box
   (straight-use-package 'eldoc-box)
   (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
-  ;; (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
-  ;; (setq eglot-managed-mode-hook nil)
 
   (setq x-gtk-resize-child-frames 'resize-mode)
   (setq eldoc-box-offset '(-16 -16 16))
