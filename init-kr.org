@@ -96,11 +96,6 @@ There is also ~use-package~ integration for all of these functions and they are:
     "C-h l" 'find-library)
 #+END_SRC
 
-** ghelp
-#+begin_src emacs-lisp
-  (straight-use-package '(ghelp :type git :host github :repo "casouri/ghelp"))
-#+end_src
-
 ** Garbage collector magic hack
 What the title says.
 #+BEGIN_SRC emacs-lisp
@@ -138,6 +133,19 @@ Help with discovery of keybindings.
     (blackout 'which-key-mode))
 #+END_SRC
 
+** ghelp
+#+name: ghelp
+#+begin_src emacs-lisp :tangle no
+  (straight-use-package '(ghelp :type git :host github :repo "casouri/ghelp"))
+  (require 'ghelp)
+  (general-def
+   "C-z h" 'ghelp-describe-at-point
+   [remap describe-symbol] 'ghelp-describe-elisp
+   [remap describe-function] 'ghelp-describe-function
+   [remap describe-variable] #'ghelp-describe-variable
+   [remap describe-key] 'ghelp-describe-key)
+#+end_src
+
 ** helpful
 Better help than built-in help.
 #+name: helpful
@@ -145,12 +153,7 @@ Better help than built-in help.
   (straight-use-package 'helpful)
   (add-hook 'helpful-mode-hook 'visual-line-mode)
   (general-def
-    "C-z h" 'helpful-at-point
-    [remap describe-symbol] 'helpful-symbol
-    [remap describe-function] 'helpful-callable
-    [remap describe-command] 'helpful-command
-    [remap describe-variable] 'helpful-variable
-    [remap describe-key] 'helpful-key)
+    [remap describe-command] 'helpful-command)
 
   (setq helpful-max-buffers 2)
 #+END_SRC
@@ -214,6 +217,7 @@ Help at point key is =C-z h=. Every mode that implements a help at point needs t
   (general-def
     "C-z h" 'describe-symbol)
   <<helpful>>
+  <<ghelp>>
 #+end_src
 
 ** Buffer
@@ -1735,18 +1739,20 @@ Remainder for some cool packages:
     (meow-leader-define-key
      (cons "t" kr-toggle-map)
      (cons "p" project-prefix-map)))
-  (straight-use-package '(meow :depth full
-                               :fork (:host github :repo "krdzo/meow" :protocol ssh)))
-  ;; (straight-use-package '(meow :depth full))
+  ;; (straight-use-package '(meow :depth full
+  ;;                              :fork (:host github :repo "krdzo/meow" :protocol ssh)))
+  (straight-use-package 'meow)
   (require 'meow)
 
   (general-def meow-keymap
-    "C-h k" 'helpful-key)
+    "C-h k" 'ghelp-describe-key)
   (setq meow-use-clipboard t)
 
   (setq meow-keypad-leader-dispatch "C-c")
 
-  (add-to-list 'meow-mode-state-list '(helpful-mode . normal))
+  (add-to-list 'meow-mode-state-list '(helpful-mode . motion))
+  (add-to-list 'meow-mode-state-list '(ghelp . motion))
+  (add-hook 'ghelp-page-mode-hook 'meow-motion-mode)
   (add-to-list 'meow-mode-state-list '(fundamental-mode . normal))
   (add-to-list 'meow-mode-state-list '(eshell-mode . normal))
   (add-to-list 'meow-mode-state-list '(sly-mrepl-mode . normal))
@@ -1755,6 +1761,8 @@ Remainder for some cool packages:
   (meow-setup)
   (meow-global-mode 1)
 #+end_src
+
+**
 
 ** Things config
 #+begin_src emacs-lisp
