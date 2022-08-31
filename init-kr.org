@@ -51,7 +51,6 @@ NOTE: for ~straight-cache-autoloads~ you must run ~straight-prune-build~ ocaison
 
   ;; my preferences for working with forks
   (setq straight-vc-git-default-remote-name "upstream")
-  (setq straight-vc-git-default-fork-name "origin")
 #+end_src
 
 * Utilities
@@ -1096,6 +1095,15 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
                 (setq eldoc-documentation-function
                       'eldoc-documentation-compose)))
 
+  ;; Option 1: Specify explicitly to use Orderless for Eglot
+  (add-to-list 'completion-category-overrides '((eglot (styles flex orderless))))
+
+
+  ;; Option 2: Undo the Eglot modification of completion-category-defaults
+  ;; (with-eval-after-load 'eglot
+  ;;    (setq completion-category-defaults nil))
+
+  ;; (setq eldoc-echo-area-use-multiline-p 2)
   (setq eldoc-echo-area-prefer-doc-buffer t)
   (setq eldoc-echo-area-display-truncation-message t)
 
@@ -1225,6 +1233,15 @@ LSP corfu conf:
     "S-<tab>" 'magit-section-cycle
     "C-<tab>" 'tab-next)
 
+#+end_src
+
+*** Forge
+#+begin_src emacs-lisp
+  (setq auth-sources '("~/.authinfo"))
+
+  (straight-use-package 'forge)
+  (with-eval-after-load 'magit
+    (require 'forge))
 #+end_src
 
 *** Git-gutter
