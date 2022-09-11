@@ -500,8 +500,6 @@ Enable ~tab-bar-mode~. It helps us to keep window configurations under control.
 ** Per project WM
 Next we create a ~display-buffer-alist~ rule so thet we group project buffers by tabs. All buffers of one project go to one tab and that tab is automatically created when we open the first buffer of a project.
 #+begin_src emacs-lisp
-  (autoload #'project-root "project")
-
   (add-to-list 'display-buffer-alist
                '(mp-buffer-has-project-p
                  (display-buffer-in-tab display-buffer-reuse-window)
@@ -517,6 +515,7 @@ Next we create a ~display-buffer-alist~ rule so thet we group project buffers by
       (with-current-buffer buffer
             (concat "🗃 " (kr-project-name))))
 
+  (autoload #'project-root "project")
   (defun kr-project-name ()
     "Return project name.
   Projects name is the same as the name of the projects parent direcotry."
@@ -811,26 +810,6 @@ and the second filter to the completion-style filtering (?).
 ** Themes
 
 #+begin_src emacs-lisp
-  ;; list of ok themes:
-  ;; doom-dark+
-  ;; doom-hena
-  ;; doom-snazzy
-  ;; doom-dracula
-  ;; doom-Iosvkem
-  ;; doom-old-hope
-  ;; doom-palenight
-  ;; doom-city-lights
-  ;; dom-ocean-next
-  ;; doom-xcode
-
-  ;; base16-themes
-  ;; dune
-  ;; heath
-  ;; brewer
-  ;; bright
-  ;; chalk
-  ;; google-dark
-
   (straight-use-package 'doom-themes)
   (load-theme 'doom-snazzy t)
 
@@ -839,12 +818,13 @@ and the second filter to the completion-style filtering (?).
   (set-face-attribute 'secondary-selection nil :background "#701818")
   (set-face-attribute 'highlight nil :background "#454545")
 
-  ;; theme that doesn't work for now
-  ;; (straight-use-package '(uwu.el :repo "kborling/uwu.el"))
-  ;; (load-file "~/.config/emacs/straight/repos/uwu.el/uwu.el")
-
-  ;; themes for cheking out
-  ;; misterioso
+  ;; tab-bar-mode face
+  (set-face-attribute 'tab-bar nil :background "#1e2029")
+  (set-face-attribute 'tab-bar-tab nil
+                      :foreground "#ffffff"
+                      :background "#282a36"
+                      :overline "gray90"
+                      :box nil)
 #+end_src
 
 ** Start-up maximized
