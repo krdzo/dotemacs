@@ -47,10 +47,6 @@ NOTE: for ~straight-cache-autoloads~ you must run ~straight-prune-build~ ocaison
             #'(lambda ()
                 (font-lock-add-keywords nil
                   '(("\\_<straight-use-package\\_>" . font-lock-keyword-face)))))
-
-
-  ;; my preferences for working with forks
-  (setq straight-vc-git-default-remote-name "upstream")
 #+end_src
 
 * Utilities
@@ -500,6 +496,8 @@ Enable ~tab-bar-mode~. It helps us to keep window configurations under control.
 ** Per project WM
 Next we create a ~display-buffer-alist~ rule so thet we group project buffers by tabs. All buffers of one project go to one tab and that tab is automatically created when we open the first buffer of a project.
 #+begin_src emacs-lisp
+  (defvar kr-package-icon "🗃")
+
   (add-to-list 'display-buffer-alist
                '(mp-buffer-has-project-p
                  (display-buffer-in-tab display-buffer-reuse-window)
@@ -513,7 +511,7 @@ Next we create a ~display-buffer-alist~ rule so thet we group project buffers by
       "If `tab-bar-mode' is enabled and we are in a project
   then set the tab name to project root directory name."
       (with-current-buffer buffer
-            (concat "🗃 " (kr-project-name))))
+            (concat kr-package-icon " " (kr-project-name))))
 
   (autoload #'project-root "project")
   (defun kr-project-name ()
@@ -528,6 +526,11 @@ This are just rundom rules until I get time to sort them properly
 
 #+begin_src emacs-lisp
   (setq switch-to-buffer-obey-display-actions t)
+
+  (add-to-list 'display-buffer-alist
+               `(,(rx "*" (one-or-more alpha) "*")
+                 display-buffer-reuse-window)
+               t)
 
   (add-to-list 'display-buffer-alist
             `(,(rx (| "*xref*"
@@ -576,8 +579,8 @@ This are just rundom rules until I get time to sort them properly
 
   (savehist-mode 1)
 
-  ;; (setq read-extended-command-predicate
-  ;;       #'command-completion-default-include-p)
+  (setq read-extended-command-predicate
+        #'command-completion-default-include-p)
 
   (setq enable-recursive-minibuffers t)
 #+end_src
@@ -804,7 +807,20 @@ and the second filter to the completion-style filtering (?).
 ** Font
 
 #+begin_src emacs-lisp
-  (set-face-attribute 'default nil :height 115)
+  (defun kr-font-available-p (font-name)
+    (find-font (font-spec :name font-name)))
+
+  (cond
+   ((kr-font-available-p "Cascadia Code")
+    (set-frame-font "Cascadia Code-12"))
+   ((kr-font-available-p "Menlo")
+    (set-frame-font "Menlo-12"))
+   ((kr-font-available-p "DejaVu Sans Mono")
+    (set-frame-font "DejaVu Sans Mono-12"))
+   ((kr-font-available-p "Inconsolata")
+    (set-frame-font "Inconsolata-12")))
+
+  (set-face-attribute 'default nil :height 120)
 #+end_src
 
 ** Themes
@@ -842,150 +858,6 @@ alternative package ~undo-hl~.
     (blackout 'goggles-mode))
 #+end_src
 
-* Org
-
-#+begin_src emacs-lisp
-  ;; ;; https://orgmode.org/manual/Labels-and-captions-in-ODT-export.html
-  ;; (setq org-odt-category-map-alist
-  ;;       '(("__Figure__" "Slika" "value" "Figure" org-odt--enumerable-image-p)))
-  (require 'org-tempo)
-  (add-to-list 'org-modules 'org-tempo t)
-  (add-to-list 'org-structure-template-alist
-               '("el" . "src emacs-lisp"))
-
-  (setq org-startup-indented t)
-  (setq org-image-actual-width 700)
-  (setq org-M-RET-may-split-line nil)
-  (setq org-return-follows-link t)
-  (setq org-src-window-setup 'current-window)
-
-  (with-eval-after-load 'org-indent
-    (blackout 'org-indent-mode))
-#+end_src
-
-* Hyperbole
-#+begin_src emacs-lisp
-  (straight-use-package 'hyperbole)
-  (hyperbole-mode 1)
-#+end_src
-
-* Dired
-
-NOTE - dired enhancement packages: dired-postframe, dired-git, dired-filter, dired-narow
-
-** dired
-
-#+begin_src emacs-lisp
-  (setq dired-dwim-target t)
-  (setq dired-isearch-filenames 'dwim)
-  (setq dired-recursive-copies 'always)
-  (setq dired-recursive-deletes 'always)
-  (setq dired-create-destination-dirs 'always)
-  (setq dired-listing-switches "-valh --group-directories-first")
-
-  (add-hook 'dired-mode-hook 'toggle-truncate-lines)
-  (add-hook 'dired-mode-hook #'(lambda () (unless (file-remote-p default-directory)
-                                            (auto-revert-mode))))
-
-
-  (when (string= system-type "darwin")
-    (setq dired-use-ls-dired t
-          insert-directory-program "/usr/local/bin/gls"))
-          ;; dired-listing-switches "-aBhl --group-directories-first"))
- #+end_src
-
-dired-x
-#+begin_src emacs-lisp
-  (require 'dired-x)
-  (add-hook 'dired-mode-hook
-            #'(lambda ()
-                (setq dired-clean-confirm-killing-deleted-buffers nil)))
-
-  ;; dired-x will help to remove buffers that were associated with deleted
-  ;; files/directories
-
-  ;; to not get y-or-no question for killing buffers when deliting files go here for
-  ;; inspiration on how to do it
-  ;; https://stackoverflow.com/questions/11546639/dired-x-how-to-set-kill-buffer-of-too-to-yes-without-confirmation
-  ;; https://emacs.stackexchange.com/questions/30676/how-to-always-kill-dired-buffer-when-deleting-a-folder
-  ;; https://www.reddit.com/r/emacs/comments/91xnv9/noob_delete_buffer_automatically_after_removing/
-#+end_src
-
-** COMMENT dired-sidebar
-#+begin_src emacs-lisp
-  (u-p dired-sidebar
-    :commands (dired-sidebar-toggle-sidebar)
-    :config
-    (setq dired-sidebar-width 30))
-
-#+end_src
-
-** all-the-icons-dired
-
-#+begin_src emacs-lisp
-  (straight-use-package 'all-the-icons-dired)
-
-  (when (display-graphic-p)
-    (add-hook 'dired-mode-hook #'(lambda () (interactive)
-                                  (unless (file-remote-p default-directory)
-                                    (all-the-icons-dired-mode)))))
-#+end_src
-
-** dired-hacks
-
-*** COMMENT dired-k
-#+begin_src emacs-lisp
-  (u-p dired-k
-    :disabled
-    :hook
-    ((dired-initial-position . dired-k)
-     (dired-after-readin . dired-k-no-revert))
-    :config
-    (setq dired-k-style 'git)
-    (setq dired-k-human-readable t)
-    ;; so that dired-k plays nice with dired-subtree
-    (advice-add 'dired-subtree-insert :after 'dired-k-no-revert))
-#+end_src
-
-*** dired-subtree
-#+begin_src emacs-lisp
-  (straight-use-package 'dired-subtree)
-
-  (general-def dired-mode-map
-    "TAB" 'dired-subtree-toggle)
-  (advice-add 'dired-subtree-toggle
-              :after #'(lambda ()
-                         (interactive)
-                         (call-interactively #'revert-buffer)))
-#+end_src
-
-*** dired-reinbow
-#+begin_src emacs-lisp
-  (straight-use-package 'dired-rainbow)
-  (require 'dired-rainbow)
-
-  (dired-rainbow-define-chmod directory "#6cb2eb" "d.*")
-  (dired-rainbow-define html "#eb5286" ("css" "less" "sass" "scss" "htm" "html" "jhtm" "mht" "eml" "mustache" "xhtml"))
-  (dired-rainbow-define xml "#f2d024" ("xml" "xsd" "xsl" "xslt" "wsdl" "bib" "json" "msg" "pgn" "rss" "yaml" "yml" "rdata"))
-  (dired-rainbow-define document "#9561e2" ("docm" "doc" "docx" "odb" "odt" "pdb" "pdf" "ps" "rtf" "djvu" "epub" "odp" "ppt" "pptx"))
-  (dired-rainbow-define markdown "#ffed4a" ("org" "etx" "info" "markdown" "md" "mkd" "nfo" "pod" "rst" "tex" "textfile" "txt"))
-  (dired-rainbow-define database "#6574cd" ("xlsx" "xls" "csv" "accdb" "db" "mdb" "sqlite" "nc"))
-  (dired-rainbow-define media "#de751f" ("mp3" "mp4" "MP3" "MP4" "avi" "mpeg" "mpg" "flv" "ogg" "mov" "mid" "midi" "wav" "aiff" "flac"))
-  (dired-rainbow-define image "#f66d9b" ("tiff" "tif" "cdr" "gif" "ico" "jpeg" "jpg" "png" "psd" "eps" "svg"))
-  (dired-rainbow-define log "#c17d11" ("log"))
-  (dired-rainbow-define shell "#f6993f" ("awk" "bash" "bat" "sed" "sh" "zsh" "vim"))
-  (dired-rainbow-define interpreted "#38c172" ("py" "ipynb" "rb" "pl" "t" "msql" "mysql" "pgsql" "sql" "r" "clj" "cljs" "scala" "js"))
-  (dired-rainbow-define compiled "#4dc0b5" ("asm" "cl" "lisp" "el" "c" "h" "c++" "h++" "hpp" "hxx" "m" "cc" "cs" "cp" "cpp" "go" "f" "for" "ftn" "f90" "f95" "f03" "f08" "s" "rs" "hi" "hs" "pyc" ".java"))
-  (dired-rainbow-define executable "#8cc4ff" ("exe" "msi"))
-  (dired-rainbow-define compressed "#51d88a" ("7z" "zip" "bz2" "tgz" "txz" "gz" "xz" "z" "Z" "jar" "war" "ear" "rar" "sar" "xpi" "apk" "xz" "tar"))
-  (dired-rainbow-define packaged "#faad63" ("deb" "rpm" "apk" "jad" "jar" "cab" "pak" "pk3" "vdf" "vpk" "bsp"))
-  (dired-rainbow-define encrypted "#ffed4a" ("gpg" "pgp" "asc" "bfe" "enc" "signature" "sig" "p12" "pem"))
-  (dired-rainbow-define fonts "#6cb2eb" ("afm" "fon" "fnt" "pfb" "pfm" "ttf" "otf"))
-  (dired-rainbow-define partition "#e3342f" ("dmg" "iso" "bin" "nrg" "qcow" "toast" "vcd" "vmdk" "bak"))
-  (dired-rainbow-define vc "#0074d9" ("git" "gitignore" "gitattributes" "gitmodules"))
-  (dired-rainbow-define-chmod executable-unix "#38c172" "-.*x.*")
-#+end_src
-
 * Uncategorized packages
 Here are packages that don't belong to any category.
 
@@ -1004,11 +876,6 @@ Here are packages that don't belong to any category.
 #+begin_src emacs-lisp
   (straight-use-package 'olivetti)
   (setq olivetti-body-width 90)
-#+end_src
-
-** perspective
-#+begin_src emacs-lisp
-  (straight-use-package 'perspective)
 #+end_src
 
 ** hl-todo
@@ -1059,7 +926,314 @@ Here are packages that don't belong to any category.
   (set-face-background 'wgrep-face "#B6268")
 #+end_src
 
+* Apps
+General TUI apps that are emacs.
+
+** Dired
+
+Emacs builtin file menager.
+*** dired
+
+#+begin_src emacs-lisp
+  (setq dired-dwim-target t)
+  (setq dired-isearch-filenames 'dwim)
+  (setq dired-recursive-copies 'always)
+  (setq dired-recursive-deletes 'always)
+  (setq dired-create-destination-dirs 'always)
+  (setq dired-listing-switches "-valh --group-directories-first")
+
+  (add-hook 'dired-mode-hook 'toggle-truncate-lines)
+  (add-hook 'dired-mode-hook #'(lambda () (unless (file-remote-p default-directory)
+                                            (auto-revert-mode))))
+
+
+  (when (string= system-type "darwin")
+    (setq dired-use-ls-dired t
+          insert-directory-program "/usr/local/bin/gls"))
+          ;; dired-listing-switches "-aBhl --group-directories-first"))
+ #+end_src
+
+dired-x
+#+begin_src emacs-lisp
+  (require 'dired-x)
+  (add-hook 'dired-mode-hook
+            #'(lambda ()
+                (setq dired-clean-confirm-killing-deleted-buffers nil)))
+
+  ;; dired-x will help to remove buffers that were associated with deleted
+  ;; files/directories
+
+  ;; to not get y-or-no question for killing buffers when deliting files go here for
+  ;; inspiration on how to do it
+  ;; https://stackoverflow.com/questions/11546639/dired-x-how-to-set-kill-buffer-of-too-to-yes-without-confirmation
+  ;; https://emacs.stackexchange.com/questions/30676/how-to-always-kill-dired-buffer-when-deleting-a-folder
+  ;; https://www.reddit.com/r/emacs/comments/91xnv9/noob_delete_buffer_automatically_after_removing/
+#+end_src
+
+*** COMMENT dired-sidebar
+#+begin_src emacs-lisp
+  (u-p dired-sidebar
+    :commands (dired-sidebar-toggle-sidebar)
+    :config
+    (setq dired-sidebar-width 30))
+
+#+end_src
+
+*** all-the-icons-dired
+
+#+begin_src emacs-lisp
+  (straight-use-package 'all-the-icons-dired)
+
+  (when (display-graphic-p)
+    (add-hook 'dired-mode-hook #'(lambda () (interactive)
+                                  (unless (file-remote-p default-directory)
+                                    (all-the-icons-dired-mode)))))
+#+end_src
+
+*** dired-hacks
+
+**** COMMENT dired-k
+#+begin_src emacs-lisp
+  (u-p dired-k
+    :disabled
+    :hook
+    ((dired-initial-position . dired-k)
+     (dired-after-readin . dired-k-no-revert))
+    :config
+    (setq dired-k-style 'git)
+    (setq dired-k-human-readable t)
+    ;; so that dired-k plays nice with dired-subtree
+    (advice-add 'dired-subtree-insert :after 'dired-k-no-revert))
+#+end_src
+
+**** dired-subtree
+#+begin_src emacs-lisp
+  (straight-use-package 'dired-subtree)
+
+  (general-def dired-mode-map
+    "TAB" 'dired-subtree-toggle)
+  (advice-add 'dired-subtree-toggle
+              :after #'(lambda ()
+                         (interactive)
+                         (call-interactively #'revert-buffer)))
+#+end_src
+
+**** dired-reinbow
+#+begin_src emacs-lisp
+  (straight-use-package 'dired-rainbow)
+  (require 'dired-rainbow)
+
+  (dired-rainbow-define-chmod directory "#6cb2eb" "d.*")
+  (dired-rainbow-define html "#eb5286" ("css" "less" "sass" "scss" "htm" "html" "jhtm" "mht" "eml" "mustache" "xhtml"))
+  (dired-rainbow-define xml "#f2d024" ("xml" "xsd" "xsl" "xslt" "wsdl" "bib" "json" "msg" "pgn" "rss" "yaml" "yml" "rdata"))
+  (dired-rainbow-define document "#9561e2" ("docm" "doc" "docx" "odb" "odt" "pdb" "pdf" "ps" "rtf" "djvu" "epub" "odp" "ppt" "pptx"))
+  (dired-rainbow-define markdown "#ffed4a" ("org" "etx" "info" "markdown" "md" "mkd" "nfo" "pod" "rst" "tex" "textfile" "txt"))
+  (dired-rainbow-define database "#6574cd" ("xlsx" "xls" "csv" "accdb" "db" "mdb" "sqlite" "nc"))
+  (dired-rainbow-define media "#de751f" ("mp3" "mp4" "MP3" "MP4" "avi" "mpeg" "mpg" "flv" "ogg" "mov" "mid" "midi" "wav" "aiff" "flac"))
+  (dired-rainbow-define image "#f66d9b" ("tiff" "tif" "cdr" "gif" "ico" "jpeg" "jpg" "png" "psd" "eps" "svg"))
+  (dired-rainbow-define log "#c17d11" ("log"))
+  (dired-rainbow-define shell "#f6993f" ("awk" "bash" "bat" "sed" "sh" "zsh" "vim"))
+  (dired-rainbow-define interpreted "#38c172" ("py" "ipynb" "rb" "pl" "t" "msql" "mysql" "pgsql" "sql" "r" "clj" "cljs" "scala" "js"))
+  (dired-rainbow-define compiled "#4dc0b5" ("asm" "cl" "lisp" "el" "c" "h" "c++" "h++" "hpp" "hxx" "m" "cc" "cs" "cp" "cpp" "go" "f" "for" "ftn" "f90" "f95" "f03" "f08" "s" "rs" "hi" "hs" "pyc" ".java"))
+  (dired-rainbow-define executable "#8cc4ff" ("exe" "msi"))
+  (dired-rainbow-define compressed "#51d88a" ("7z" "zip" "bz2" "tgz" "txz" "gz" "xz" "z" "Z" "jar" "war" "ear" "rar" "sar" "xpi" "apk" "xz" "tar"))
+  (dired-rainbow-define packaged "#faad63" ("deb" "rpm" "apk" "jad" "jar" "cab" "pak" "pk3" "vdf" "vpk" "bsp"))
+  (dired-rainbow-define encrypted "#ffed4a" ("gpg" "pgp" "asc" "bfe" "enc" "signature" "sig" "p12" "pem"))
+  (dired-rainbow-define fonts "#6cb2eb" ("afm" "fon" "fnt" "pfb" "pfm" "ttf" "otf"))
+  (dired-rainbow-define partition "#e3342f" ("dmg" "iso" "bin" "nrg" "qcow" "toast" "vcd" "vmdk" "bak"))
+  (dired-rainbow-define vc "#0074d9" ("git" "gitignore" "gitattributes" "gitmodules"))
+  (dired-rainbow-define-chmod executable-unix "#38c172" "-.*x.*")
+#+end_src
+
+** Git
+*** Magit
+Git client in emacs
+#+begin_src emacs-lisp
+  (straight-use-package 'magit)
+
+  (add-hook 'git-commit-mode-hook #'flyspell-mode)
+
+  (setq git-commit-fill-column 72)
+
+  (with-eval-after-load 'magit
+    (dolist (face '(magit-diff-added
+                    magit-diff-added-highlight
+                    magit-diff-removed
+                    magit-diff-removed-highlight))
+      (set-face-background face (face-attribute 'magit-diff-context-highlight :background)))
+    (set-face-background 'magit-diff-context-highlight
+                         (face-attribute 'default :background)))
+
+  (general-def mode-specific-map
+    "v" 'magit-status
+    "V" 'magit-status-here)
+
+  (setq magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1)
+
+  (general-def 'magit-status-mode-map
+    "S-<tab>" 'magit-section-cycle
+    "C-<tab>" 'tab-next)
+
+#+end_src
+
+*** Forge
+
+#+begin_src emacs-lisp
+  (setq auth-sources '("~/.authinfo"))
+
+  (straight-use-package 'forge)
+  (with-eval-after-load 'magit
+    (require 'forge))
+#+end_src
+
+*** Git-gutter
+If I ever need to change to margin I can use this to setup diff-hl in margin
+https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff-hl.el
+#+begin_src emacs-lisp
+  (straight-use-package 'git-gutter-fringe)
+  (setq git-gutter:update-interval 0.02)
+
+  (require 'git-gutter-fringe)
+  (add-hook 'emacs-startup-hook #'global-git-gutter-mode)
+
+  (define-fringe-bitmap 'git-gutter-fr:added [#b11100000] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:modified [#b11100000] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:deleted
+    [#b10000000
+     #b11000000
+     #b11100000
+     #b11110000] nil nil 'bottom)
+
+  (general-def
+     :keymaps 'kr-<b-menu-map
+     :predicate 'global-git-gutter-mode
+     "g" 'git-gutter:previous-hunk)
+  (general-def
+   :keymaps 'kr->b-menu-map
+   :predicate 'global-git-gutter-mode
+   "g" 'git-gutter:next-hunk)
+
+  (with-eval-after-load 'git-gutter
+    (blackout 'git-gutter-mode))
+#+end_src
+
+*** git-timemachine
+#+begin_src emacs-lisp
+  (straight-use-package 'git-timemachine)
+  (setq git-timemachine-show-minibuffer-details t)
+  (general-def 'git-timemachine-mode-map
+    "C-k" 'git-timemachine-show-previous-revision
+    "C-j" 'git-timemachine-show-next-revision
+    "q" 'git-timemachine-quit)
+#+end_src
+
+*** hydra-smerge
+#+begin_src emacs-lisp
+  (straight-use-package 'smerge-mode)
+  (add-hook 'magit-diff-visit-file #'(lambda ()
+                                       (when smerge-mode
+                                         (smerge-hydra/body))))
+  (defhydra smerge-hydra (:hint nil
+                                  :pre (smerge-mode 1)
+                                  ;; Disable `smerge-mode' when quitting hydra if
+                                  ;; no merge conflicts remain.
+                                  :post (smerge-auto-leave))
+      "
+                                                      ╭────────┐
+    Movement   Keep           Diff              Other │ smerge │
+    ╭─────────────────────────────────────────────────┴────────╯
+       ^_g_^       [_b_] base       [_<_] upper/base    [_C_] Combine
+       ^_C-k_^     [_u_] upper      [_=_] upper/lower   [_r_] resolve
+       ^_k_ ↑^     [_l_] lower      [_>_] base/lower    [_R_] remove
+       ^_j_ ↓^     [_a_] all        [_H_] hightlight
+       ^_C-j_^     [_RET_] current  [_E_] ediff             ╭──────────
+       ^_G_^                                            │ [_q_] quit"
+      ("g" (progn (goto-char (point-min)) (smerge-next)))
+      ("G" (progn (goto-char (point-max)) (smerge-prev)))
+      ("C-j" smerge-next)
+      ("C-k" smerge-prev)
+      ("j" next-line)
+      ("k" previous-line)
+      ("b" smerge-keep-base)
+      ("u" smerge-keep-upper)
+      ("l" smerge-keep-lower)
+      ("a" smerge-keep-all)
+      ("RET" smerge-keep-current)
+      ("\C-m" smerge-keep-current)
+      ("<" smerge-diff-base-upper)
+      ("=" smerge-diff-upper-lower)
+      (">" smerge-diff-base-lower)
+      ("H" smerge-refine)
+      ("E" smerge-ediff)
+      ("C" smerge-combine-with-next)
+      ("r" smerge-resolve)
+      ("R" smerge-kill-current)
+      ("q" nil :color blue))
+#+end_src
+
+** kubernetes
+#+begin_src emacs-lisp
+  (straight-use-package 'kubernetes)
+  (setq kubernetes-overview-custom-views-alist
+        '((custom-overview context statefulsets deployments)))
+  (setq kubernetes-default-overview-view 'custom-overview)
+
+  (add-hook 'kubernetes-logs-mode-hook #'visual-line-mode)
+  (add-hook 'kubernetes-logs-mode-hook #'display-line-numbers-mode)
+
+  (general-def 'kubernetes-overview-mode-map
+    "S-<tab>" 'magit-section-cycle
+    "C-<tab>" 'tab-next)
+#+end_src
+
+** Org
+
+#+begin_src emacs-lisp
+  ;; ;; https://orgmode.org/manual/Labels-and-captions-in-ODT-export.html
+  ;; (setq org-odt-category-map-alist
+  ;;       '(("__Figure__" "Slika" "value" "Figure" org-odt--enumerable-image-p)))
+  (require 'org-tempo)
+  (add-to-list 'org-modules 'org-tempo t)
+  (add-to-list 'org-structure-template-alist
+               '("el" . "src emacs-lisp"))
+
+  (setq org-startup-indented t)
+  (setq org-image-actual-width 700)
+  (setq org-M-RET-may-split-line nil)
+  (setq org-return-follows-link t)
+  (setq org-src-window-setup 'current-window)
+
+  (with-eval-after-load 'org-indent
+    (blackout 'org-indent-mode))
+#+end_src
+
+** Hyperbole
+#+begin_src emacs-lisp
+  (straight-use-package 'hyperbole)
+  (hyperbole-mode 1)
+#+end_src
+
+** COMMENT eshell
+#+begin_src emacs-lisp
+  (defun kr-meow-eshell-key-setup ()
+    (general-def eshell-mode-map
+      "C-j" 'eshell-next-input
+      "C-k" 'eshell-previous-input
+      "C-n" 'eshell-next-prompt
+      "C-p" 'eshell-previous-prompt))
+  (add-hook 'eshell-first-time-mode-hook #'kr-meow-eshell-key-setup)
+#+end_src
+
+** devdocs
+#+begin_src emacs-lisp
+  (straight-use-package 'devdocs)
+  (add-hook 'devdocs-mode-hook #'olivetti-mode)
+  (add-hook 'dart-mode-hook
+              #'(lambda () (setq-local devdocs-current-docs '("dart~2"))))
+#+end_src
+
 * Programing
+
 
 ** Hooks for prog mode
 #+begin_src emacs-lisp
@@ -1226,141 +1400,6 @@ LSP corfu conf:
   (add-hook 'dap-stopped-hook #'(lambda (arg) (call-interactively #'dap-hydra)))
 #+end_src
 
-** Git
-*** Magit
-#+begin_src emacs-lisp
-  (straight-use-package 'magit)
-
-  (add-hook 'git-commit-mode-hook #'flyspell-mode)
-
-  (setq git-commit-fill-column 72)
-
-  (with-eval-after-load 'magit
-    (dolist (face '(magit-diff-added
-                    magit-diff-added-highlight
-                    magit-diff-removed
-                    magit-diff-removed-highlight))
-      (set-face-background face (face-attribute 'magit-diff-context-highlight :background)))
-    (set-face-background 'magit-diff-context-highlight
-                         (face-attribute 'default :background)))
-
-  (general-def mode-specific-map
-    "v" 'magit-status
-    "V" 'magit-status-here)
-
-  (setq magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1)
-
-  (general-def 'magit-status-mode-map
-    "S-<tab>" 'magit-section-cycle
-    "C-<tab>" 'tab-next)
-
-#+end_src
-
-*** Forge
-#+begin_src emacs-lisp
-  (setq auth-sources '("~/.authinfo"))
-
-  (straight-use-package 'forge)
-  (with-eval-after-load 'magit
-    (require 'forge))
-#+end_src
-
-*** Git-gutter
-If I ever need to change to margin I can use this to setup diff-hl in margin
-https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff-hl.el
-#+begin_src emacs-lisp
-  (straight-use-package 'git-gutter-fringe)
-  (setq git-gutter:update-interval 0.02)
-
-  (require 'git-gutter-fringe)
-  (add-hook 'emacs-startup-hook #'global-git-gutter-mode)
-
-  (define-fringe-bitmap 'git-gutter-fr:added [#b11100000] nil nil '(center repeated))
-  (define-fringe-bitmap 'git-gutter-fr:modified [#b11100000] nil nil '(center repeated))
-  (define-fringe-bitmap 'git-gutter-fr:deleted
-    [#b10000000
-     #b11000000
-     #b11100000
-     #b11110000] nil nil 'bottom)
-
-  (general-def
-     :keymaps 'kr-<b-menu-map
-     :predicate 'global-git-gutter-mode
-     "g" 'git-gutter:previous-hunk)
-  (general-def
-   :keymaps 'kr->b-menu-map
-   :predicate 'global-git-gutter-mode
-   "g" 'git-gutter:next-hunk)
-
-  (with-eval-after-load 'git-gutter
-    (blackout 'git-gutter-mode))
-#+end_src
-
-*** git-timemachine
-#+begin_src emacs-lisp
-  (straight-use-package 'git-timemachine)
-  (setq git-timemachine-show-minibuffer-details t)
-  (general-def 'git-timemachine-mode-map
-    "C-k" 'git-timemachine-show-previous-revision
-    "C-j" 'git-timemachine-show-next-revision
-    "q" 'git-timemachine-quit)
-#+end_src
-
-*** hydra-smerge
-#+begin_src emacs-lisp
-  (straight-use-package 'smerge-mode)
-  (add-hook 'magit-diff-visit-file #'(lambda ()
-                                       (when smerge-mode
-                                         (smerge-hydra/body))))
-  (defhydra smerge-hydra (:hint nil
-                                  :pre (smerge-mode 1)
-                                  ;; Disable `smerge-mode' when quitting hydra if
-                                  ;; no merge conflicts remain.
-                                  :post (smerge-auto-leave))
-      "
-                                                      ╭────────┐
-    Movement   Keep           Diff              Other │ smerge │
-    ╭─────────────────────────────────────────────────┴────────╯
-       ^_g_^       [_b_] base       [_<_] upper/base    [_C_] Combine
-       ^_C-k_^     [_u_] upper      [_=_] upper/lower   [_r_] resolve
-       ^_k_ ↑^     [_l_] lower      [_>_] base/lower    [_R_] remove
-       ^_j_ ↓^     [_a_] all        [_H_] hightlight
-       ^_C-j_^     [_RET_] current  [_E_] ediff             ╭──────────
-       ^_G_^                                            │ [_q_] quit"
-      ("g" (progn (goto-char (point-min)) (smerge-next)))
-      ("G" (progn (goto-char (point-max)) (smerge-prev)))
-      ("C-j" smerge-next)
-      ("C-k" smerge-prev)
-      ("j" next-line)
-      ("k" previous-line)
-      ("b" smerge-keep-base)
-      ("u" smerge-keep-upper)
-      ("l" smerge-keep-lower)
-      ("a" smerge-keep-all)
-      ("RET" smerge-keep-current)
-      ("\C-m" smerge-keep-current)
-      ("<" smerge-diff-base-upper)
-      ("=" smerge-diff-upper-lower)
-      (">" smerge-diff-base-lower)
-      ("H" smerge-refine)
-      ("E" smerge-ediff)
-      ("C" smerge-combine-with-next)
-      ("r" smerge-resolve)
-      ("R" smerge-kill-current)
-      ("q" nil :color blue))
-#+end_src
-
-** COMMENT eshell
-#+begin_src emacs-lisp
-  (defun kr-meow-eshell-key-setup ()
-    (general-def eshell-mode-map
-      "C-j" 'eshell-next-input
-      "C-k" 'eshell-previous-input
-      "C-n" 'eshell-next-prompt
-      "C-p" 'eshell-previous-prompt))
-  (add-hook 'eshell-first-time-mode-hook #'kr-meow-eshell-key-setup)
-#+end_src
-
 ** Tree-sitter
 #+BEGIN_SRC emacs-lisp
   (straight-use-package 'tree-sitter)
@@ -1380,6 +1419,10 @@ https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff
 ** Project
 #+begin_src emacs-lisp
   (straight-use-package 'project)
+
+  (with-eval-after-load 'consult
+    (general-def 'project-prefix-map
+      "g" 'consult-grep))
 #+end_src
 
 ** Parentheses
@@ -1427,11 +1470,6 @@ Maybe better alternative [[https://github.com/purcell/emacs-reformatter][reforma
 #+begin_src emacs-lisp
   (straight-use-package 'apheleia)
   (add-hook 'js-mode-hook 'apheleia-mode)
-#+end_src
-
-** Jenkins
-#+begin_src emacs-lisp
-  (straight-use-package 'jenkinsfile-mode)
 #+end_src
 
 ** COMMENT Flutter
@@ -1603,14 +1641,6 @@ Rest of configuration:
     (async-shell-command (file-name-sans-extension buffer-file-name) nil nil))
 #+end_src
 
-** devdocs
-#+begin_src emacs-lisp
-  (straight-use-package 'devdocs)
-  (add-hook 'devdocs-mode-hook #'olivetti-mode)
-  (add-hook 'dart-mode-hook
-              #'(lambda () (setq-local devdocs-current-docs '("dart~2"))))
-#+end_src
-
 ** quickrun
 #+begin_src emacs-lisp
   (straight-use-package 'quickrun)
@@ -1621,6 +1651,11 @@ Rest of configuration:
       (select-window win)))
 
   (advice-add 'quickrun :around #'kr-quickrun)
+#+end_src
+
+** Jenkins
+#+begin_src emacs-lisp
+  (straight-use-package 'jenkinsfile-mode)
 #+end_src
 
 ** Docker
@@ -1644,6 +1679,7 @@ Remainder for some cool packages:
 - epaint
 
 * mewo proba
+Meow is a mode for modal edditing inpired by VIM.
 
 ** Meow
 
@@ -2034,6 +2070,19 @@ Template for other selfdefined meow states:
 
   (add-hook 'special-mode-hook 'kr-read-only-binidngs)
   (add-hook 'Info-mode 'kr-read-only-binidngs)
+#+end_src
+
+* Miscellaneous
+Section for code block that I got somewhere from the internet, or are small utility funcitons.
+
+Make parrent directory when it doesn't exist. Taken form [[https://emacsredux.com/blog/2022/06/12/auto-create-missing-directories/][here]]
+#+begin_src emacs-lisp
+(defun kr-er-auto-create-missing-dirs ()
+  (let ((target-dir (file-name-directory buffer-file-name)))
+    (unless (file-exists-p target-dir)
+      (make-directory target-dir t))))
+
+(add-to-list 'find-file-not-found-functions #'kr-er-auto-create-missing-dirs)
 #+end_src
 
 * hacks
