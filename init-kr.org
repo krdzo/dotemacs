@@ -564,6 +564,8 @@ This are just rundom rules until I get time to sort them properly
         '((consult-yank-pop indexed)
           (project-find-regexp buffer)
           (consult-grep buffer)
+          (consult-ripgrep buffer)
+          (consult-imenu buffer)
           (imenu buffer)))
 
   ;; (setq vertico-multiform-categories
@@ -715,6 +717,7 @@ and the second filter to the completion-style filtering (?).
      [remap apropos-command] 'consult-apropos
      [remap yank-pop] 'consult-yank-pop
      "C-s" 'consult-line)
+
   (general-def mode-specific-map
     "i" 'consult-imenu)
 
@@ -722,10 +725,6 @@ and the second filter to the completion-style filtering (?).
   (with-eval-after-load 'consult
    (consult-customize
     consult-buffer
-    consult-ripgrep consult-git-grep consult-grep
-    consult-bookmark consult-recent-file consult-xref
-    consult--source-bookmark consult--source-recent-file
-    consult--source-project-recent-file
     :preview-key (kbd "C-o")))
 #+END_SRC
 
@@ -1429,9 +1428,7 @@ LSP corfu conf:
 #+begin_src emacs-lisp
   (straight-use-package 'project)
 
-  (with-eval-after-load 'consult
-    (general-def 'project-prefix-map
-      "g" 'consult-grep))
+  (define-key project-prefix-map (kbd "g") 'consult-ripgrep)
 #+end_src
 
 ** Parentheses
