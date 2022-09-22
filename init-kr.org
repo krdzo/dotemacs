@@ -484,6 +484,13 @@ Set =serbian-latin= to default input method.
     (setq mac-option-modifier 'meta))
 #+end_src
 
+** Compilation
+
+#+begin_src emacs-lisp
+  ;; add color codes to compilation mode
+  (add-hook 'compilation-filter-hook 'ansi-color-compilation-filter)
+#+end_src
+
 * Window management
 Setup for ~display-buffer-alist~. See [[https://www.masteringemacs.org/article/demystifying-emacs-window-managert][this]] for reference.
 
@@ -1055,6 +1062,7 @@ Git client in emacs
   (add-hook 'git-commit-mode-hook #'flyspell-mode)
 
   (setq git-commit-fill-column 72)
+  (setq magit-process-finish-apply-ansi-colors t)
 
   (with-eval-after-load 'magit
     (dolist (face '(magit-diff-added
