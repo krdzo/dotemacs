@@ -133,12 +133,6 @@ Help with discovery of keybindings.
 #+begin_src emacs-lisp :tangle no
   (straight-use-package '(ghelp :type git :host github :repo "casouri/ghelp"))
   (require 'ghelp)
-  (general-def
-   "C-z h" 'ghelp-describe-at-point
-   [remap describe-symbol] 'ghelp-describe-elisp
-   [remap describe-function] 'ghelp-describe-function
-   [remap describe-variable] #'ghelp-describe-variable
-   [remap describe-key] 'ghelp-describe-key)
 #+end_src
 
 ** helpful
@@ -147,8 +141,14 @@ Better help than built-in help.
 #+BEGIN_SRC emacs-lisp :tangle no
   (straight-use-package 'helpful)
   (add-hook 'helpful-mode-hook 'visual-line-mode)
+
   (general-def
-    [remap describe-command] 'helpful-command)
+    "C-z h" 'helpful-at-point
+    [remap describe-symbol] 'helpful-symbol
+    [remap describe-function] 'helpful-callable
+    [remap describe-command] 'helpful-command
+    [remap describe-variable] 'helpful-variable
+    [remap describe-key] 'helpful-key)
 
   (setq helpful-max-buffers 2)
 #+END_SRC
@@ -487,6 +487,10 @@ Set =serbian-latin= to default input method.
 * Window management
 Setup for ~display-buffer-alist~. See [[https://www.masteringemacs.org/article/demystifying-emacs-window-managert][this]] for reference.
 
+This is maybe the most important variable to set, it makes ~switch-to-buffer~ obey ~display-buffer-alist~ rules.
+#+begin_src emacs-lisp
+  (setq switch-to-buffer-obey-display-actions t)
+#+end_src
 ** tab-bar-mode
 Enable ~tab-bar-mode~. It helps us to keep window configurations under control.
 #+begin_src emacs-lisp
@@ -525,12 +529,9 @@ Next we create a ~display-buffer-alist~ rule so thet we group project buffers by
 This are just rundom rules until I get time to sort them properly
 
 #+begin_src emacs-lisp
-  (setq switch-to-buffer-obey-display-actions t)
-
   (add-to-list 'display-buffer-alist
                `(,(rx "*" (one-or-more alpha) "*")
-                 display-buffer-reuse-window)
-               t)
+                 display-buffer-reuse-window))
 
   (add-to-list 'display-buffer-alist
             `(,(rx (| "*xref*"
@@ -820,7 +821,7 @@ and the second filter to the completion-style filtering (?).
    ((kr-font-available-p "Inconsolata")
     (set-frame-font "Inconsolata-12")))
 
-  (set-face-attribute 'default nil :height 120)
+  (set-face-attribute 'default nil :height 115)
 #+end_src
 
 ** Themes
@@ -1207,7 +1208,7 @@ https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff
     (blackout 'org-indent-mode))
 #+end_src
 
-** Hyperbole
+** COMMENT Hyperbole
 #+begin_src emacs-lisp
   (straight-use-package 'hyperbole)
   (hyperbole-mode 1)
@@ -1887,7 +1888,6 @@ For some comands =meow-find=, =meow-till=, =meow-line=... you can press ~- (nega
 Not categorized
 
 #+begin_src emacs-lisp
-
   (defun kr-meow-save-line ()
     (interactive)
     (meow-line 1)
@@ -2057,19 +2057,6 @@ Template for other selfdefined meow states:
     '("u" . meow-undo))
 
   (setq meow-cursor-type-paren 'hollow)
-#+end_src
-
-** COMMENT read-only-buffer keybinding
-
-#+begin_src emacs-lisp
-  (defun kr-read-only-binidngs ()
-    (when buffer-read-only
-      (make-local-variable 'meow-motion-state-keymap)
-      (general-def 'meow-motion-state-keymap
-        "r" 'kr-test)))
-
-  (add-hook 'special-mode-hook 'kr-read-only-binidngs)
-  (add-hook 'Info-mode 'kr-read-only-binidngs)
 #+end_src
 
 * Miscellaneous
