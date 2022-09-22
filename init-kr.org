@@ -1299,7 +1299,6 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 
   (add-hook 'eglot-managed-mode-hook
             #'(lambda ()
-                (add-hook 'before-save-hook 'eglot-format-buffer nil t)
                 (setq eldoc-documentation-functions
                       '(flymake-eldoc-function
                         eglot-signature-eldoc-function
@@ -1314,8 +1313,9 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
   (straight-use-package 'eldoc-box)
   (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
 
-  (setq x-gtk-resize-child-frames 'resize-mode)
-  (setq eldoc-box-offset '(-16 -16 16))
+  (setq x-gtk-resizechild-frames 'resize-mode)
+  (with-eval-after-load 'eldoc-box
+    (setq eldoc-box-offset `(,(/ (frame-native-width) 2) 1000 16)))
   (setq eldoc-box-max-pixel-width 600)
   (setq eldoc-box-max-pixel-height 1800)
   ;; (setq eldoc-box-cleanup-interval 0.5)
@@ -1416,6 +1416,7 @@ LSP corfu conf:
                       python-mode-hook
                       css-mode-hook
                       rust-mode-hook
+                      typescript-mode-hook
                       go-mode-hook)
                     #'tree-sitter-hl-mode)
   (with-eval-after-load 'tree-sitter
@@ -1592,7 +1593,9 @@ Rest of configuration:
 #+begin_src emacs-lisp
   (straight-use-package 'typescript-mode)
 
-  (add-hook 'typescript-mode-hook #'eglot)
+  (add-hook 'typescript-mode-hook #'eglot-ensure)
+  (add-hook 'typescript-mode-hook #'apheleia-mode)
+  (setq typescript-indent-level 2)
 #+end_src
 
 *** JSON
@@ -1612,6 +1615,7 @@ Rest of configuration:
 #+begin_src emacs-lisp
   (straight-use-package 'go-mode)
   (setq gofmt-command "goimports")
+  (add-hook 'before-save-hook 'gofmt-before-save)
 #+end_src
 
 *** Yaml
