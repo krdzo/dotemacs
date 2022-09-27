@@ -337,6 +337,19 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 ** help
 #+begin_src emacs-lisp
   (add-hook 'help-mode-hook 'visual-line-mode)
+
+  (defun kr-describe-at-point (symbol)
+    "Call `describe-symbol' for the SYMBOL at point."
+    (interactive (list (symbol-at-point)))
+    (if (and symbol (or (fboundp symbol)
+                        (boundp symbol)
+                        (facep symbol)))
+        (describe-symbol symbol)
+      (call-interactively #'describe-symbol)))
+
+  (general-def
+    "C-z h" 'kr-describe-at-point)
+
 #+end_src
 
 ** Subword
@@ -490,6 +503,11 @@ Set =serbian-latin= to default input method.
 #+begin_src emacs-lisp
   ;; add color codes to compilation mode
   (add-hook 'compilation-filter-hook 'ansi-color-compilation-filter)
+#+end_src
+
+** repeat-mode
+#+begin_src emacs-lisp
+  (repeat-mode 1)
 #+end_src
 
 * Window management
