@@ -135,7 +135,7 @@ Help with discovery of keybindings.
   (require 'ghelp)
 #+end_src
 
-** helpful
+** COMMENT helpful
 Better help than built-in help.
 #+name: helpful
 #+BEGIN_SRC emacs-lisp :tangle no
@@ -157,8 +157,9 @@ Better help than built-in help.
 Small snippets in help buffer that show how a function is used.
 #+begin_src emacs-lisp
   (straight-use-package 'elisp-demos)
-  (with-eval-after-load 'helpful
-    (advice-add 'helpful-update :after #'elisp-demos-advice-helpful-update))
+  (advice-add 'describe-function-1 :after #'elisp-demos-advice-describe-function-1)
+  ;; (with-eval-after-load 'helpful
+  ;;   (advice-add 'helpful-update :after #'elisp-demos-advice-helpful-update))
 #+end_src
 
 * Keybindings
@@ -1479,37 +1480,6 @@ Maybe better alternative [[https://github.com/purcell/emacs-reformatter][reforma
   (add-hook 'js-mode-hook 'apheleia-mode)
 #+end_src
 
-** COMMENT Flutter
-*** Dart
-#+begin_src emacs-lisp
-  (defun kr-set-comile-command ()
-    (setq-local
-     compile-command
-     (concat "dart "
-             (when buffer-file-name
-               buffer-file-name))))
-
-  (straight-use-package 'dart-mode)
-  (setq lsp-dart-sdk-dir "~/.flutter/bin/cache/dart-sdk")
-
-  (add-hook 'dart-mode-hook #'kr-set-comile-command)
-  (add-hook 'dart-mode-hook #'delete-selection-mode)
-
-  (add-hook 'dart-mode-hook #'(lambda ()
-                                (setq dap-auto-configure-features
-                                      '(sessions locals breakpoints expressions tooltip))))
-
-#+end_src
-
-*** lsp-dart
-#+begin_src emacs-lisp
-
-  (straight-use-package 'lsp-dart)
-  (setq lsp-signature-auto-activate nil)
-  (add-hook 'dart-mode-hook 'lsp-deferred)
-
-#+end_src
-
 ** web
 
 *** web-mode
@@ -1554,12 +1524,6 @@ Maybe better alternative [[https://github.com/purcell/emacs-reformatter][reforma
 
 ** Languages
 
-*** Python
-[[*LSP][lsp-hook]]
-#+begin_src emacs-lisp
-  (straight-use-package 'lsp-pyright)
-#+end_src
-
 *** Common Lisp
 
 Seting ~sbcl~ to be default interpreter for lisp.
@@ -1567,18 +1531,15 @@ Seting ~sbcl~ to be default interpreter for lisp.
   (setq inferior-lisp-program "sbcl")
 #+end_src
 
-Sly the better SLIME.
 #+begin_src emacs-lisp
   (straight-use-package 'sly)
+
+  (setq sly-contribs '(sly-fancy sly-mrepl))
   (general-def 'sly-mode-map
    "C-z h" 'ghelp-describe-at-point)
-  (setq sly-contribs '(sly-fancy sly-mrepl))
-#+end_src
-
-*** Guile
-#+begin_src emacs-lisp
-  (straight-use-package 'geiser-guile)
-  (setq geiser-guile-binary "guile2.2")
+  (general-def 'sly-mrepl-mode-map
+    "C-k" 'sly-mrepl-previous-prompt
+    "C-j" 'sly-mrepl-next-prompt)
 #+end_src
 
 *** JavaScript
@@ -1803,6 +1764,7 @@ Meow is a mode for modal edditing inpired by VIM.
 
     ;; commands that are not from meow
     (meow-normal-define-key
+     '("C-<backspace>" . cycle-spacing)
      '("M" . set-mark-command)
      '("'" . pop-to-mark-command)
      '("\"" . pop-global-mark))
@@ -1814,8 +1776,6 @@ Meow is a mode for modal edditing inpired by VIM.
   (straight-use-package 'meow)
   (require 'meow)
 
-  (general-def meow-keymap
-    "C-h k" 'ghelp-describe-key)
   (setq meow-use-clipboard t)
 
   (setq meow-keypad-leader-dispatch "C-c")
@@ -1950,6 +1910,20 @@ Not categorized
           (call-interactively #'meow-insert))))
 #+end_src
 
+*** toogle motion
+#+begin_src emacs-lisp
+  (defun kr-meow-motion-normal ()
+    (interactive)
+    (cond ((meow-motion-mode-p)
+           (meow-normal-mode 1)(meow-motion-mode -1))
+          (t
+           (meow-normal-mode -1)(meow-motion-mode 1))))
+
+  (general-def '(meow-motion-state-keymap meow-normal-state-keymap)
+    "~" 'kr-meow-motion-normal)
+
+#+end_src
+
 ** Emacs switch bindings
 Here I change emacs build in keybindings for better meow ergonomics.
 For example because I use ~dired~ that is bound to =C-x d= more often then ~list-direcory~ that is bound to =C-x C-d= so I will swap those two commands so I can type =SPC x d= to acces dired faster with ~meow-keypad~.
@@ -1984,6 +1958,40 @@ For example because I use ~dired~ that is bound to =C-x d= more often then ~list
   (general-def
     "C-x W" 'window-swap-states
     "C-x K" 'kill-buffer)
+#+end_src
+
+** Custom states
+*** view-state
+#+begin_src emacs-lisp
+  (defvar meow-view-keymap (make-sparse-keymap))
+
+  (meow-define-state view
+    "State for viewing a buffer like the builtin `view-mode'."
+    :lighter " [V]"
+    :keymap meow-view-keymap)
+
+  (meow-define-keys 'view
+    '("SPC" . meow-keypad)
+    '("k" . scroll-down-line)
+    '("j" . scroll-up-line))
+
+  ;; (add-hook 'view-mode-hook 'meow-view-mode)
+
+  (add-hook 'view-mode-hook #'kr-view)
+
+  (defun kr-view ()
+    (cond ((meow-view-mode-p)
+           (meow-normal-mode 1)
+           (meow-motion-mode -1))
+          (t
+           (meow-normal-mode -1)
+           (meow-motion-mode 1))))
+
+  ;; (general-def 'meow-view-keymap
+  ;;   "SPC" 'meow-keypad)
+
+  ;; (general-unbind 'view-mode-map
+  ;;   "SPC")
 #+end_src
 
 ** =meow--execute-kbd-macro= modification
@@ -2082,6 +2090,7 @@ Make parrent directory when it doesn't exist. Taken form [[https://emacsredux.co
 #+end_src
 
 * hacks
+
 Some modes need hacks for them to work with each other properly.
 corfu - yasnippet hack
 If corfu is active yasnipet won't override =<tab>= binding.
