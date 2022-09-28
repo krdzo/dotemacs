@@ -301,6 +301,8 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 
     ;; Delete files to trash
   (setq delete-by-moving-to-trash t)
+  (when  kr-mac-p
+    (setq trash-directory  (expand-file-name "~/.Trash/")))
 
     ;; Uniquify buffer names
   (setq-default uniquify-buffer-name-style 'forward)
