@@ -334,6 +334,8 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 
     ;; delete whitespace
   (add-hook 'before-save-hook #'whitespace-cleanup)
+
+  (setq view-read-only t)
 #+END_SRC
 
 ** help
@@ -352,6 +354,8 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
   (general-def
     "C-z h" 'kr-describe-at-point)
 
+  (general-def
+    "C-h s" 'shortdoc-display-group)
 #+end_src
 
 ** Subword
@@ -525,7 +529,7 @@ Enable ~tab-bar-mode~. It helps us to keep window configurations under control.
   (tab-bar-mode 1)
 #+end_src
 
-** Per project WM
+** Per project WM/tab
 Next we create a ~display-buffer-alist~ rule so thet we group project buffers by tabs. All buffers of one project go to one tab and that tab is automatically created when we open the first buffer of a project.
 #+begin_src emacs-lisp
   (defvar kr-package-icon "🗃")
@@ -551,6 +555,8 @@ Next we create a ~display-buffer-alist~ rule so thet we group project buffers by
   Projects name is the same as the name of the projects parent direcotry."
     (file-name-nondirectory
          (directory-file-name (project-root (project-current nil)))))
+
+  (advice-add 'project-kill-buffers :after #'tab-close)
 #+end_src
 
 ** The rest
@@ -1336,7 +1342,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 
   (setq x-gtk-resizechild-frames 'resize-mode)
   (with-eval-after-load 'eldoc-box
-    (setq eldoc-box-offset `(,(/ (frame-native-width) 2) 1000 16)))
+    (setq eldoc-box-offset `(,(+ (/ (frame-native-width) 2) 100) 1000 16)))
   (setq eldoc-box-max-pixel-width 600)
   (setq eldoc-box-max-pixel-height 1800)
   ;; (setq eldoc-box-cleanup-interval 0.5)
@@ -1940,7 +1946,7 @@ Not categorized
            (meow-normal-mode -1)(meow-motion-mode 1))))
 
   (general-def '(meow-motion-state-keymap meow-normal-state-keymap)
-    "~" 'kr-meow-motion-normal)
+    "|" 'kr-meow-motion-normal)
 
 #+end_src
 
