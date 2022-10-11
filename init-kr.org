@@ -63,12 +63,6 @@ I like to know how fast Emacs has started.
                          gcs-done)))
 #+end_src
 
-** Util functions
-For knowing that we are  on Mac
-#+begin_src emacs-lisp
-  (defvar kr-mac-p (if (string= system-type "darwin") t nil))
-#+end_src
-
 ** Blackout
 For keeping mode line clean.
 #+begin_src emacs-lisp
@@ -236,19 +230,11 @@ This is manly for magit but can be used for some other funcitonality.
 #+end_src
 
 ** Emacs
-Change builtin macs keybingings that I can't put in any category
+Change builtin emacs keybingings that I can't put in any category
 #+begin_src emacs-lisp
   (general-def
     "M-;" 'comment-line
     "C-x C-;" 'comment-dwim)
-#+end_src
-
-** For mac
-#+begin_src emacs-lisp
-  (when kr-mac-p
-      (general-def 'global-map
-        "C-<tab>" 'tab-next
-        "C-S-<tab>" 'tab-previous))
 #+end_src
 
 * Emacs
@@ -301,8 +287,6 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 
     ;; Delete files to trash
   (setq delete-by-moving-to-trash t)
-  (when  kr-mac-p
-    (setq trash-directory  (expand-file-name "~/.Trash/")))
 
     ;; Uniquify buffer names
   (setq-default uniquify-buffer-name-style 'forward)
@@ -491,19 +475,6 @@ Set =serbian-latin= to default input method.
   (add-hook 'lisp-mode-hook #'auto-insert-mode)
 #+end_src
 
-** For Macos
-*** exec-path
-#+begin_src emacs-lisp
-  (straight-use-package 'exec-path-from-shell)
-  (when (memq window-system '(mac ns))
-    (exec-path-from-shell-initialize))
-#+end_src
-*** option key
-#+begin_src emacs-lisp
-  (when (string= system-type "darwin")
-    (setq mac-option-modifier 'meta))
-#+end_src
-
 ** Compilation
 
 #+begin_src emacs-lisp
@@ -514,6 +485,44 @@ Set =serbian-latin= to default input method.
 ** repeat-mode
 #+begin_src emacs-lisp
   (repeat-mode 1)
+#+end_src
+
+** For Macos
+
+General MacOs specific configuration
+
+*** exec-path
+Setup PATH and other env varables.
+#+begin_src emacs-lisp
+  (straight-use-package 'exec-path-from-shell)
+  (require 'exec-path-from-shell)
+
+  (when (memq window-system '(mac ns))
+    (dolist (var '("NPM_TOKEN" "NVM_DIR"))
+      (add-to-list 'exec-path-from-shell-variables var))
+    (exec-path-from-shell-initialize))
+#+end_src
+
+*** rest
+#+begin_src emacs-lisp
+  (when (string= system-type "darwin")
+    (setq mac-option-modifier 'meta))
+#+end_src
+
+
+#+begin_src emacs-lisp
+  (when kr-mac-p
+      (general-def 'global-map
+        "C-<tab>" 'tab-next
+        "C-S-<tab>" 'tab-previous))
+
+  (setq ns-command-modifier 'meta)
+  (setq ns-option-modifier 'super)
+
+  (defvar kr-mac-p (if (string= system-type "darwin") t nil))
+
+  (when  kr-mac-p
+    (setq trash-directory  (expand-file-name "~/.Trash/")))
 #+end_src
 
 * Window management
