@@ -235,6 +235,9 @@ Change builtin emacs keybingings that I can't put in any category
   (general-def
     "M-;" 'comment-line
     "C-x C-;" 'comment-dwim)
+
+  (general-def 'global
+    "C-<backspace>" 'cycle-spacing)
 #+end_src
 
 * Emacs
@@ -536,6 +539,7 @@ This is maybe the most important variable to set, it makes ~switch-to-buffer~ ob
 #+begin_src emacs-lisp
   (setq switch-to-buffer-obey-display-actions t)
 #+end_src
+
 ** tab-bar-mode
 Enable ~tab-bar-mode~. It helps us to keep window configurations under control.
 #+begin_src emacs-lisp
@@ -1361,6 +1365,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 
   ;; trying eldoc-box
   (straight-use-package 'eldoc-box)
+  (blackout 'eldoc-box)
   (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
 
   (setq x-gtk-resizechild-frames 'resize-mode)
@@ -1710,7 +1715,7 @@ Remainder for some cool packages:
 - instant-rename-tag
 - epaint
 
-* mewo proba
+* meow
 Meow is a mode for modal edditing inpired by VIM.
 
 ** Meow
@@ -1825,7 +1830,6 @@ Meow is a mode for modal edditing inpired by VIM.
 
     ;; commands that are not from meow
     (meow-normal-define-key
-     '("C-<backspace>" . cycle-spacing)
      '("M" . set-mark-command)
      '("'" . pop-to-mark-command)
      '("\"" . pop-global-mark))
@@ -2135,6 +2139,32 @@ Template for other selfdefined meow states:
     '("u" . meow-undo))
 
   (setq meow-cursor-type-paren 'hollow)
+#+end_src
+
+** input method hack
+#+begin_src emacs-lisp
+  (defvar-local kr-current-input-method nil
+    "Is input methond set in this buffer.")
+
+  (defun kr-meow-input-methond-hack ()
+    "Activate default input method in meow-insert-mode."
+    (if (and (meow-insert-mode-p) (eq kr-current-input-method t))
+        (activate-input-method default-input-method)
+      (deactivate-input-method)))
+
+  (add-hook 'meow-insert-mode-hook #'kr-meow-input-methond-hack)
+
+  (defun kr-toggle-input-method (&optional arg)
+    (interactive "P")
+    (when arg
+      (call-interactively #'toggle-input-method))
+    (setf kr-current-input-method (not kr-current-input-method))
+    (if kr-current-input-method
+        (message "Set input method in insert mode to %s." default-input-method)
+      (message "Disabled input method in insert mode.")))
+
+  (general-def
+    "C-\\" 'kr-toggle-input-method)
 #+end_src
 
 * Miscellaneous
