@@ -491,6 +491,11 @@ Set =serbian-latin= to default input method.
 
 General MacOs specific configuration
 
+Check if we  run on Mac
+#+begin_src emacs-lisp
+  (defvar kr-mac-p (if (string= system-type "darwin") t nil))
+#+end_src
+
 *** exec-path
 Setup PATH and other env varables.
 #+begin_src emacs-lisp
@@ -516,12 +521,11 @@ Setup PATH and other env varables.
         "C-<tab>" 'tab-next
         "C-S-<tab>" 'tab-previous))
 
-  (setq ns-command-modifier 'meta)
-  (setq ns-option-modifier 'super)
+  (setq ns-command-modifier 'super)
+  (setq ns-option-modifier 'meta)
 
-  (defvar kr-mac-p (if (string= system-type "darwin") t nil))
 
-  (when  kr-mac-p
+  (when kr-mac-p
     (setq trash-directory  (expand-file-name "~/.Trash/")))
 #+end_src
 
@@ -994,6 +998,10 @@ Emacs builtin file menager.
     (setq dired-use-ls-dired t
           insert-directory-program "/usr/local/bin/gls"))
           ;; dired-listing-switches "-aBhl --group-directories-first"))
+
+  (general-def 'dired-mode-map
+    "<mouse-2>" 'dired-mouse-find-file
+    "C-c '" 'dired-toggle-read-only)
  #+end_src
 
 dired-x
@@ -1276,12 +1284,18 @@ https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff
               #'(lambda () (setq-local devdocs-current-docs '("dart~2"))))
 #+end_src
 
+** man
+#+begin_src emacs-lisp
+  (general-def 'Man-mode-map
+    "d" 'View-scroll-half-page-forward
+    "u" 'View-scroll-half-page-backward)
+#+end_src
+
 * Programing
 
 
 ** Hooks for prog mode
 #+begin_src emacs-lisp
-  (add-hook 'prog-mode-hook #'visual-line-mode)
   (add-hook 'prog-mode-hook #'display-line-numbers-mode)
   (add-hook 'prog-mode-hook #'toggle-truncate-lines)
 #+end_src
@@ -1320,7 +1334,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
                        #'eglot-completion-at-point
                        (cape-company-to-capf #'company-yasnippet)))))
 
-  (add-hook 'eglot-managed-mode-hook #'my/eglot-capf)
+  ;; (add-hook 'eglot-managed-mode-hook #'my/eglot-capf)
 #+end_src
 
 ** eglot
@@ -1351,10 +1365,21 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 
   (setq x-gtk-resizechild-frames 'resize-mode)
   (with-eval-after-load 'eldoc-box
-    (setq eldoc-box-offset `(,(+ (/ (frame-native-width) 2) 100) 1000 16)))
+    (setq eldoc-box-offset `(,(+ (/ (frame-native-width) 2) 30) 16 20)))
   (setq eldoc-box-max-pixel-width 600)
   (setq eldoc-box-max-pixel-height 1800)
   ;; (setq eldoc-box-cleanup-interval 0.5)
+
+  (general-def 'eglot-mode-map
+    "C-M-." 'eglot-find-implementation)
+#+end_src
+
+** xref
+#+begin_src emacs-lisp
+  (straight-use-package 'xref)
+  (general-def
+    "s-<mouse-1>" 'xref-find-references-at-mouse)
+
 #+end_src
 
 ** flymake
@@ -1618,6 +1643,7 @@ Rest of configuration:
 #+begin_src emacs-lisp
   (straight-use-package 'yaml-mode)
   (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode))
+  (add-hook 'yaml-mode-hook #'toggle-truncate-lines)
 #+end_src
 
 *** Scala
