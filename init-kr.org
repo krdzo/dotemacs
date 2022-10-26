@@ -593,6 +593,50 @@ This are just rundom rules until I get time to sort them properly
 #+end_src
 
 * Completion framework
+** compleiton-style
+#+begin_src emacs-lisp
+  (setq completion-styles '(basic partial-completion substring flex))
+#+end_src
+
+*** Prescient
+#+begin_src emacs-lisp
+  (straight-use-package 'prescient)
+
+  (add-to-list 'completion-styles 'prescient)
+  (with-eval-after-load 'prescient
+    (prescient-persist-mode 1))
+
+  (setq prescient-filter-method '(literal initialism prefix regexp fuzzy))
+
+
+
+
+  ;; setups are copyed from wikis
+  ;; setup for vertico
+  (with-eval-after-load 'vertico
+    (setq vertico-sort-function #'prescient-completion-sort)
+
+    (defun vertico-prescient-remember ()
+      "Remember the chosen candidate with Prescient."
+      (when (>= vertico--index 0)
+        (prescient-remember
+         (substring-no-properties
+          (nth vertico--index vertico--candidates)))))
+    (advice-add #'vertico-insert :after #'vertico-prescient-remember))
+
+  ;; setup for corfu
+  (with-eval-after-load 'corfu
+    (defun dima-corfu-prescient-remember (&rest _)
+      "Advice for `corfu--insert.'"
+      (when (>= corfu--index 0)
+        (prescient-remember (nth corfu--index corfu--candidates))))
+
+    (advice-add #'corfu--insert :before #'dima-corfu-prescient-remember)
+
+    (setq corfu-sort-function #'prescient-completion-sort)
+    (setq corfu-sort-override-function #'prescient-completion-sort))
+#+end_src
+
 ** Vertico
 #+begin_src emacs-lisp
   (straight-use-package '(vertico :files (:defaults "extensions/*")))
@@ -631,36 +675,11 @@ This are just rundom rules until I get time to sort them properly
     "C-k" 'vertico-next
     "C-j" 'vertico-previous)
 
-  (savehist-mode 1)
-
   (setq read-extended-command-predicate
         #'command-completion-default-include-p)
 
   (setq enable-recursive-minibuffers t)
-#+end_src
 
-** Orderless
-
-#+begin_src emacs-lisp
-  (straight-use-package 'orderless)
-
-  (setq completion-styles '(orderless flex))
-
-  (setq completion-category-overrides
-        '((file (styles basic partial-completion))
-          (command (styles orderless))
-          (help (styles orderless))
-          (variable (styles orderless))))
-
-  (setq orderless-matching-styles
-        '(orderless-literal
-          orderless-prefixes
-          orderless-initialism
-          orderless-regexp))
-
-  (setq read-file-name-completion-ignore-case t
-        read-buffer-completion-ignore-case t
-        completion-ignore-case t)
 #+end_src
 
 ** corfu
@@ -685,8 +704,6 @@ corfu config:
   (setq corfu-preselect-first t)
 
   (global-corfu-mode 1)
-  (corfu-history-mode 1)
-  (add-to-list 'savehist-additional-variables 'corfu-history)
 
   (general-def 'corfu-map
     "S-SPC" 'corfu-insert-separator
@@ -806,53 +823,6 @@ and the second filter to the completion-style filtering (?).
   (with-eval-after-load 'abbrev
     (blackout 'abbrev-mode))
 #+end_src
-
-** COMMENT Company
-#+begin_src emacs-lisp
-  ;; Enable indentation+completion using the TAB key.
-  (setq tab-always-indent 'complete)
-#+end_src
-
-*** company-mode
-~company-tng-mode~ (tab-n-go):
-- Select candidates with =C-j= / =C-k= or =TAB= / =S-TAB=
-- don't press =RET= to confirm
-
-#+BEGIN_SRC emacs-lisp
-  (straight-use-package 'company)
-  (add-hook 'after-init-hook 'global-company-mode)
-
-  (setq company-dabbrev-downcase nil)
-  (setq company-dabbrev-ignore-case nil)
-  (setq company-idle-delay 0)
-  (setq company-minimum-prefix-length 1)
-  (setq company-selection-wrap-around t)
-  (setq company-global-modes '(not help-mode
-                                   eshell-mode
-                                   helpful-mode
-                                   gud-mode))
-  (setq company-backends '(company-files company-capf company-keywords company-yasnippet))
-  (general-def company-active-map
-    "<escape>" 'company-abort
-    "<tab>" 'company-complete
-    "C-j" 'company-select-next-or-abort
-    "C-k" 'company-select-previous-or-abort
-    "M-h" 'company-show-doc-buffer)
-
-  ;; for orderless to have faces
-  (defun just-one-face (fn &rest args)
-    (let ((orderless-match-faces [completions-common-part]))
-      (apply fn args)))
-
-  (advice-add 'company-capf--candidates :around #'just-one-face)
-#+END_SRC
-
-*** company prescient
-#+BEGIN_SRC emacs-lisp
-  (straight-use-package 'company-prescient)
-  (company-prescient-mode 1)
-  (prescient-persist-mode 1)
-#+END_SRC
 
 * UI
 ** Font
