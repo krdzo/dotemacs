@@ -122,31 +122,6 @@ Help with discovery of keybindings.
     (blackout 'which-key-mode))
 #+END_SRC
 
-** ghelp
-#+name: ghelp
-#+begin_src emacs-lisp :tangle no
-  (straight-use-package '(ghelp :type git :host github :repo "casouri/ghelp"))
-  (require 'ghelp)
-#+end_src
-
-** COMMENT helpful
-Better help than built-in help.
-#+name: helpful
-#+BEGIN_SRC emacs-lisp :tangle no
-  (straight-use-package 'helpful)
-  (add-hook 'helpful-mode-hook 'visual-line-mode)
-
-  (general-def
-    "C-z h" 'helpful-at-point
-    [remap describe-symbol] 'helpful-symbol
-    [remap describe-function] 'helpful-callable
-    [remap describe-command] 'helpful-command
-    [remap describe-variable] 'helpful-variable
-    [remap describe-key] 'helpful-key)
-
-  (setq helpful-max-buffers 2)
-#+END_SRC
-
 ** elisp-demos
 Small snippets in help buffer that show how a function is used.
 #+begin_src emacs-lisp
@@ -158,46 +133,18 @@ Small snippets in help buffer that show how a function is used.
 
 * Keybindings
 Setup keybindings for builtin features that are not tied to any mode.
-** Bind-map
-For easyer setup for keymaps.
+** Emacs
+Change builtin emacs keybingings that I can't put in any category
 #+begin_src emacs-lisp
-  (straight-use-package 'bind-map)
-#+end_src
+  (general-def
+    "C-h l" 'find-library)
 
-** Go to [] menu
-#+begin_src emacs-lisp
-  (bind-map kr-<b-menu-map
-    :keys ("M-n M-[")
-    :bindings ("b" 'beginning-of-buffer
-               "l" 'beginning-of-line-text))
+  (general-def
+    "M-;" 'comment-line
+    "C-x C-;" 'comment-dwim)
 
-  (bind-map kr->b-menu-map
-    :keys ("M-n M-]")
-    :bindings ("b" 'end-of-buffer
-               "l" 'end-of-line))
-#+end_src
-
-** (g) menu
-#+begin_src emacs-lisp
-  (bind-map kr-gmenu-map
-    :keys ("M-n M-g")
-    :bindings ("c" 'recompile
-               "C" 'compile
-               "h" 'beginning-of-line-text
-               "l" 'end-of-line
-               "f" 'find-file-at-point))
-
-#+end_src
-
-** Toggle
-#+begin_src emacs-lisp
-  (bind-map kr-toggle-map
-    :keys ("M-n M-t")
-    :bindings ("d" 'toggle-debug-on-error
-               "l" 'display-line-numbers-mode
-               "V" 'toggle-truncate-lines
-               "v" 'visual-line-mode
-               "r" 'read-only-mode))
+  (general-def 'global
+    "C-<backspace>" 'cycle-spacing)
 #+end_src
 
 ** Help
@@ -1239,17 +1186,6 @@ https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff
   (hyperbole-mode 1)
 #+end_src
 
-** COMMENT eshell
-#+begin_src emacs-lisp
-  (defun kr-meow-eshell-key-setup ()
-    (general-def eshell-mode-map
-      "C-j" 'eshell-next-input
-      "C-k" 'eshell-previous-input
-      "C-n" 'eshell-next-prompt
-      "C-p" 'eshell-previous-prompt))
-  (add-hook 'eshell-first-time-mode-hook #'kr-meow-eshell-key-setup)
-#+end_src
-
 ** devdocs
 #+begin_src emacs-lisp
   (straight-use-package 'devdocs)
@@ -2109,32 +2045,6 @@ Template for other selfdefined meow states:
     '("u" . meow-undo))
 
   (setq meow-cursor-type-paren 'hollow)
-#+end_src
-
-** input method hack
-#+begin_src emacs-lisp
-  (defvar-local kr-current-input-method nil
-    "Is input methond set in this buffer.")
-
-  (defun kr-meow-input-methond-hack ()
-    "Activate default input method in meow-insert-mode."
-    (if (and (meow-insert-mode-p) (eq kr-current-input-method t))
-        (activate-input-method default-input-method)
-      (deactivate-input-method)))
-
-  (add-hook 'meow-insert-mode-hook #'kr-meow-input-methond-hack)
-
-  (defun kr-toggle-input-method (&optional arg)
-    (interactive "P")
-    (when arg
-      (call-interactively #'toggle-input-method))
-    (setf kr-current-input-method (not kr-current-input-method))
-    (if kr-current-input-method
-        (message "Set input method in insert mode to %s." default-input-method)
-      (message "Disabled input method in insert mode.")))
-
-  (general-def
-    "C-\\" 'kr-toggle-input-method)
 #+end_src
 
 * Miscellaneous
