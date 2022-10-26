@@ -81,8 +81,6 @@ There is also ~use-package~ integration for all of these functions and they are:
 
 #+BEGIN_SRC emacs-lisp
   (straight-use-package 'general)
-  (general-def
-    "C-h l" 'find-library)
 #+END_SRC
 
 ** Garbage collector magic hack
@@ -174,17 +172,6 @@ This is manly for magit but can be used for some other funcitonality.
 #+begin_src emacs-lisp
   (general-def transient-base-map
     "<escape>" 'transient-quit-one)
-#+end_src
-
-** Emacs
-Change builtin emacs keybingings that I can't put in any category
-#+begin_src emacs-lisp
-  (general-def
-    "M-;" 'comment-line
-    "C-x C-;" 'comment-dwim)
-
-  (general-def 'global
-    "C-<backspace>" 'cycle-spacing)
 #+end_src
 
 * Emacs
@@ -286,10 +273,9 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
       (call-interactively #'describe-symbol)))
 
   (general-def
-    "C-z h" 'kr-describe-at-point)
-
-  (general-def
-    "C-h s" 'shortdoc-display-group)
+    "C-z h" 'kr-describe-at-point
+    "C-h s" 'shortdoc-display-group
+    "C-h b" 'describe-keymap)
 #+end_src
 
 ** Subword
@@ -301,7 +287,6 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 
 ** Visual line mode
 #+begin_src emacs-lisp
-  (add-hook 'prog-mode-hook 'visual-line-mode)
   (blackout 'visual-line-mode)
 #+end_src
 
@@ -921,6 +906,7 @@ Emacs builtin file menager.
           ;; dired-listing-switches "-aBhl --group-directories-first"))
 
   (general-def 'dired-mode-map
+    "K" 'dired-kill-subdir
     "<mouse-2>" 'dired-mouse-find-file
     "C-c '" 'dired-toggle-read-only)
  #+end_src
@@ -1203,11 +1189,141 @@ https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff
 
 * Programing
 
-
-** Hooks for prog mode
+** eglot
 #+begin_src emacs-lisp
-  (add-hook 'prog-mode-hook #'display-line-numbers-mode)
-  (add-hook 'prog-mode-hook #'toggle-truncate-lines)
+  (straight-use-package 'eglot)
+
+  (add-hook 'eglot-managed-mode-hook
+            #'(lambda ()
+                (setq eldoc-documentation-functions
+                      '(flymake-eldoc-function
+                        eglot-signature-eldoc-function
+                        eglot-hover-eldoc-function))
+                (setq eldoc-documentation-function
+                      'eldoc-documentation-compose)))
+
+  (setq eldoc-echo-area-prefer-doc-buffer t)
+  (setq eldoc-echo-area-display-truncation-message t)
+
+  (general-def 'eglot-mode-map
+    "C-M-." 'eglot-find-implementation)
+
+  ;; start eglot in these modes
+  (add-hook 'go-mode-hook #'eglot-ensure)
+  (add-hook 'rust-mode-hook #'eglot-ensure)
+
+
+
+
+
+  ;; trying eldoc-box
+  (straight-use-package 'eldoc-box)
+  (blackout 'eldoc-box)
+  (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
+
+  (setq x-gtk-resizechild-frames 'resize-mode)
+  (with-eval-after-load 'eldoc-box
+    (setq eldoc-box-offset `(,(+ (/ (frame-native-width) 2) 30) 16 20)))
+  (setq eldoc-box-max-pixel-width 600)
+  (setq eldoc-box-max-pixel-height 1800)
+  ;; (setq eldoc-box-cleanup-interval 0.5)
+#+end_src
+
+** Tree-sitter
+#+BEGIN_SRC emacs-lisp
+  (straight-use-package 'tree-sitter)
+  (general-add-hook '(c-mode-hook
+                      js-mode-hook
+                      python-mode-hook
+                      css-mode-hook
+                      rust-mode-hook
+                      typescript-mode-hook
+                      go-mode-hook)
+                    #'tree-sitter-hl-mode)
+  (with-eval-after-load 'tree-sitter
+    (blackout 'tree-sitter-mode))
+
+  (straight-use-package 'tree-sitter-langs)
+#+END_SRC
+
+** Project
+#+begin_src emacs-lisp
+  (straight-use-package 'project)
+
+  (define-key project-prefix-map (kbd "g") 'consult-ripgrep)
+#+end_src
+
+** Editing
+
+*** evilmatchit
+#+begin_src emacs-lisp
+  (straight-use-package 'evil-matchit)
+
+  (with-eval-after-load 'meow
+    (general-def meow-normal-state-keymap
+      "S" 'evilmi-select-items
+      "%" 'evilmi-jump-items-native))
+#+end_src
+
+*** Smartparen
+Smart paren I'm using to pair characters like quotes.
+#+begin_src emacs-lisp
+  (straight-use-package 'smartparens)
+  (require 'smartparens-config)
+  (defun indent-between-pair (&rest _ignored)
+    (newline)
+    (indent-according-to-mode)
+    (forward-line -1)
+    (indent-according-to-mode))
+  (sp-local-pair 'prog-mode "{" nil :post-handlers '((indent-between-pair "RET")))
+  (sp-local-pair 'prog-mode "[" nil :post-handlers '((indent-between-pair "RET")))
+  (sp-local-pair 'prog-mode "(" nil :post-handlers '((indent-between-pair "RET")))
+
+  (smartparens-global-mode 1)
+  (show-smartparens-global-mode 1) ; alternative to show-paren-mode
+  (set-face-background 'show-paren-match "#7d7b7b")
+  (blackout 'smartparens-mode)
+#+end_src
+
+*** Parinfer
+Parinfer is there for lisp editing.
+#+begin_src emacs-lisp
+  (straight-use-package 'parinfer-rust-mode)
+  (setq parinfer-rust-library-directory
+        (expand-file-name "./var/parinfer-rust/" user-emacs-directory))
+  (with-eval-after-load 'parinfer-rust-mode
+    (blackout 'parinfer-rust-mode)
+    (add-to-list 'parinfer-rust-treat-command-as '(meow-open-above . "indent"))
+    (add-to-list 'parinfer-rust-treat-command-as '(meow-open-below . "indent"))
+    (add-to-list 'parinfer-rust-treat-command-as '(meow-yank . "indent")))
+
+  (general-add-hook '(emacs-lisp-mode-hook lisp-mode-hook) #'parinfer-rust-mode)
+#+end_src
+
+** xref
+#+begin_src emacs-lisp
+  (straight-use-package 'xref)
+  (general-def
+    "s-<mouse-1>" 'xref-find-references-at-mouse)
+
+#+end_src
+
+** flymake
+#+begin_src emacs-lisp
+  (general-def flymake-mode-map
+    "C-z [e" 'flymake-goto-prev-error
+    "C-z ]e" 'flymake-goto-next-error)
+#+end_src
+
+** Formating
+
+Formating code buffers on save.
+
+Maybe better alternative [[https://github.com/purcell/emacs-reformatter][reformatter]]
+
+#+begin_src emacs-lisp
+  (straight-use-package 'apheleia)
+  (add-hook 'js-mode-hook 'apheleia-mode)
 #+end_src
 
 ** yasnippet
@@ -1219,7 +1335,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 
 #+begin_src emacs-lisp
   (straight-use-package 'yasnippet)
-  (setq yas-alias-to-yas/prefix-p nil)    ; don't make yas/ prefix commands
+  (setq yas-alias-to-yas/prefix-p nil)    ; don't make yas/prefix commands
 
   (add-hook 'prog-mode-hook #'yas-minor-mode)
 
@@ -1245,63 +1361,6 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
                        (cape-company-to-capf #'company-yasnippet)))))
 
   ;; (add-hook 'eglot-managed-mode-hook #'my/eglot-capf)
-#+end_src
-
-** eglot
-#+begin_src emacs-lisp
-  (straight-use-package 'eglot)
-
-  (with-eval-after-load 'go-mode
-    (add-hook 'go-mode-hook #'eglot-ensure))
-
-  (with-eval-after-load 'rust-mode
-    (add-hook 'rust-mode-hook #'eglot-ensure))
-
-  (add-hook 'eglot-managed-mode-hook
-            #'(lambda ()
-                (setq eldoc-documentation-functions
-                      '(flymake-eldoc-function
-                        eglot-signature-eldoc-function
-                        eglot-hover-eldoc-function))
-                (setq eldoc-documentation-function
-                      'eldoc-documentation-compose)))
-
-  (setq eldoc-echo-area-prefer-doc-buffer t)
-  (setq eldoc-echo-area-display-truncation-message t)
-
-  ;; trying eldoc-box
-  (straight-use-package 'eldoc-box)
-  (blackout 'eldoc-box)
-  (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
-
-  (setq x-gtk-resizechild-frames 'resize-mode)
-  (with-eval-after-load 'eldoc-box
-    (setq eldoc-box-offset `(,(+ (/ (frame-native-width) 2) 30) 16 20)))
-  (setq eldoc-box-max-pixel-width 600)
-  (setq eldoc-box-max-pixel-height 1800)
-  ;; (setq eldoc-box-cleanup-interval 0.5)
-
-  (general-def 'eglot-mode-map
-    "C-M-." 'eglot-find-implementation)
-#+end_src
-
-** xref
-#+begin_src emacs-lisp
-  (straight-use-package 'xref)
-  (general-def
-    "s-<mouse-1>" 'xref-find-references-at-mouse)
-
-#+end_src
-
-** flymake
-#+begin_src emacs-lisp
-  (general-def flymake-mode-map
-    "C-z [e" 'flymake-goto-prev-error
-    "C-z ]e" 'flymake-goto-next-error)
-  (add-hook 'flymake-mode-hook #'(lambda ()
-                                   (general-def 'meow-normal-state-keymap
-                                      "[e" "C-z [e"
-                                      "]e" "C-z ]e")))
 #+end_src
 
 ** COMMENT LSP
@@ -1380,77 +1439,6 @@ LSP corfu conf:
   (add-hook 'dap-stopped-hook #'(lambda (arg) (call-interactively #'dap-hydra)))
 #+end_src
 
-** Tree-sitter
-#+BEGIN_SRC emacs-lisp
-  (straight-use-package 'tree-sitter)
-  (general-add-hook '(c-mode-hook
-                      js-mode-hook
-                      python-mode-hook
-                      css-mode-hook
-                      rust-mode-hook
-                      typescript-mode-hook
-                      go-mode-hook)
-                    #'tree-sitter-hl-mode)
-  (with-eval-after-load 'tree-sitter
-    (blackout 'tree-sitter-mode))
-
-  (straight-use-package 'tree-sitter-langs)
-#+END_SRC
-
-** Project
-#+begin_src emacs-lisp
-  (straight-use-package 'project)
-
-  (define-key project-prefix-map (kbd "g") 'consult-ripgrep)
-#+end_src
-
-** Parentheses
-
-*** Smartparen
-Smart paren I'm using to pair characters like quotes.
-#+begin_src emacs-lisp
-  (straight-use-package 'smartparens)
-  (require 'smartparens-config)
-  (defun indent-between-pair (&rest _ignored)
-    (newline)
-    (indent-according-to-mode)
-    (forward-line -1)
-    (indent-according-to-mode))
-  (sp-local-pair 'prog-mode "{" nil :post-handlers '((indent-between-pair "RET")))
-  (sp-local-pair 'prog-mode "[" nil :post-handlers '((indent-between-pair "RET")))
-  (sp-local-pair 'prog-mode "(" nil :post-handlers '((indent-between-pair "RET")))
-  (smartparens-global-mode 1)
-  (show-smartparens-global-mode 1) ; alternative to show-paren-mode
-  (set-face-background 'show-paren-match "#7d7b7b")
-  (blackout 'smartparens-mode)
-#+end_src
-
-*** Parinfer
-Parinfer is there for lisp editing.
-#+begin_src emacs-lisp
-  (straight-use-package 'parinfer-rust-mode)
-  (setq parinfer-rust-library-directory
-        (expand-file-name "./var/parinfer-rust/" user-emacs-directory))
-  (with-eval-after-load 'parinfer-rust-mode
-    (blackout 'parinfer-rust-mode)
-    (add-to-list 'parinfer-rust-treat-command-as '(meow-open-above . "indent"))
-    (add-to-list 'parinfer-rust-treat-command-as '(meow-open-below . "indent"))
-    (add-to-list 'parinfer-rust-treat-command-as '(meow-yank . "indent")))
-
-  (general-add-hook '(emacs-lisp-mode-hook lisp-mode-hook) #'parinfer-rust-mode)
-#+end_src
-
-** Formating
-
-Formating code buffers on save.
-
-Maybe better alternative [[https://github.com/purcell/emacs-reformatter][reformatter]]
-
-#+begin_src emacs-lisp
-  (straight-use-package 'apheleia)
-  (add-hook 'js-mode-hook 'apheleia-mode)
-#+end_src
-
 ** web
 
 *** web-mode
@@ -1461,7 +1449,6 @@ Maybe better alternative [[https://github.com/purcell/emacs-reformatter][reforma
   (setq web-mode-code-indent-offset 2)
   (setq web-mode-markup-indent-offset 2)
   (setq web-mode-css-indent-offset 2)
-  (add-hook 'web-mode-hook #'visual-line-mode)
   (add-to-list 'auto-mode-alist '("\\.php?\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
 #+end_src
@@ -1505,12 +1492,34 @@ Seting ~sbcl~ to be default interpreter for lisp.
 #+begin_src emacs-lisp
   (straight-use-package 'sly)
 
-  (setq sly-contribs '(sly-fancy sly-mrepl))
+  ;; (setq sly-contribs '(sly-fancy sly-mrepl))
   (general-def 'sly-mode-map
-   "C-z h" 'ghelp-describe-at-point)
-  (general-def 'sly-mrepl-mode-map
-    "C-k" 'sly-mrepl-previous-prompt
-    "C-j" 'sly-mrepl-next-prompt)
+    "C-z h" 'sly-describe-symbol)
+
+  (with-eval-after-load 'meow
+    (add-to-list 'meow-mode-state-list '(sly-mrepl-mode . normal))
+    (add-to-list 'meow-mode-state-list '(sly-db-mode . motion))
+    (add-to-list 'meow-mode-state-list '(sly-xref-mode . motion)))
+
+
+  (add-to-list 'load-path "~/git/sly-stepper/")
+
+  (require 'sly-stepper-autoloads)
+
+  ;; (general-def 'sly-mrepl-mode-map
+  ;;   "C-k" 'sly-mrepl-previous-prompt
+  ;;   "C-j" 'sly-mrepl-next-prompt)
+  ;; (general-unbind 'sly-mrepl-mode-map
+  ;;   "C-k"
+  ;;   "C-j")
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+  (straight-use-package 'slime)
+  (straight-use-package 'slime-company)
+  (add-to-list 'load-path "~/git/slime-star/")
+
+  (setq slime-contribs '(slime-fancy slime-company slime-star))
 #+end_src
 
 *** JavaScript
@@ -1607,6 +1616,12 @@ Rest of configuration:
   (straight-use-package 'dockerfile-mode)
 #+end_src
 
+** Hooks for prog mode
+#+begin_src emacs-lisp
+  (add-hook 'prog-mode-hook #'display-line-numbers-mode)
+  (add-hook 'prog-mode-hook #'toggle-truncate-lines)
+#+end_src
+
 * Notes from old config
 
 ** Interesting packages
@@ -1660,13 +1675,12 @@ Meow is a mode for modal edditing inpired by VIM.
      ;; thing
      '("." . meow-inner-of-thing)
      '("," . meow-bounds-of-thing)
-     '("<" . meow-beginning-of-thing)
-     '(">" . meow-end-of-thing)
+     '("[" . meow-beginning-of-thing)
+     '("]" . meow-end-of-thing)
 
      '("u" . meow-undo)
      '("U" . undo-tree-redo)
      '("y" . meow-save)
-     '("Y" . kr-meow-save-line)
 
      '("p" . meow-yank)
      '("i" . meow-insert)
@@ -1709,24 +1723,18 @@ Meow is a mode for modal edditing inpired by VIM.
      '("R" . meow-swap-grab)
      '("P" . meow-sync-grab)
 
-
      '("@" . meow-goto-line)
      '("z" . meow-pop-selection)
-     '("A" . kr-meow-append-to-line)
-     '("I" . kr-meow-insert-to-line)
      '("o" . meow-open-below)
      '("O" . meow-open-above)
+     ;'("S" . meow-to-block)
      '("s" . meow-block)
-     '("S" . meow-to-block)
      '("q" . quit-window)
      '("Q" . kill-current-buffer))
 
     (meow-normal-define-key
      '("{" . backward-paragraph)
-     '("}" . forward-paragraph)
-     (cons "g" kr-gmenu-map)
-     (cons "[" kr-<b-menu-map)
-     (cons "]" kr->b-menu-map))
+     '("}" . forward-paragraph))
 
     ;; help
     (meow-normal-define-key
@@ -1740,61 +1748,41 @@ Meow is a mode for modal edditing inpired by VIM.
      '("'" . pop-to-mark-command)
      '("\"" . pop-global-mark))
     (meow-leader-define-key
-     (cons "t" kr-toggle-map)
      (cons "p" project-prefix-map)))
+
   ;; (straight-use-package '(meow :depth full
   ;;                              :fork (:host github :repo "krdzo/meow" :protocol ssh)))
   (straight-use-package 'meow)
   (require 'meow)
 
+  (meow-setup)
+  (meow-global-mode 1)
+
   (setq meow-use-clipboard t)
 
   (setq meow-keypad-leader-dispatch "C-c")
 
+  (add-hook 'ghelp-page-mode-hook 'meow-motion-mode)
   (add-to-list 'meow-mode-state-list '(helpful-mode . motion))
   (add-to-list 'meow-mode-state-list '(ghelp . motion))
-  (add-hook 'ghelp-page-mode-hook 'meow-motion-mode)
   (add-to-list 'meow-mode-state-list '(fundamental-mode . normal))
   (add-to-list 'meow-mode-state-list '(eshell-mode . normal))
-  (add-to-list 'meow-mode-state-list '(sly-mrepl-mode . normal))
-  (add-to-list 'meow-mode-state-list '(sly-db-mode . motion))
 
-  (meow-setup)
-  (meow-global-mode 1)
 #+end_src
 
-**
+** Personal extensions
+*** Advice for =meow-reverse=
 
-** Things config
+For some comands =meow-find=, =meow-till=, =meow-line=... you can press ~- (negative-argument)~ to go in reverse. We already have a meow command to go in reverse =meow-reverse= but it only works if we have a selection so I aviced it to enter =negative-argument= when there is no selection so that it can be used when there is no selection active.
+
 #+begin_src emacs-lisp
-  (meow-thing-register 'quote '(regexp "['\"]" "['\"]") '(regexp "['\"]" "['\"]"))
-  (meow-thing-register 'htag '(regexp ">" "<") '(regexp ">" "<"))
-  (meow-thing-register 'angle '(regexp "<" ">") '(regexp "<" ">"))
-  (setq meow-char-thing-table '((?r . round)
-                                (?\( . round)
-                                (?\) . round)
-                                (?\[ . square)
-                                (?\{ . curly)
-                                (?\} . curly)
-                                (?s . string)
-                                (?\' . quote)
-                                (?\" . quote)
-                                (?W . symbol)
-                                ;; (?a . window)
-                                (?b . buffer)
-                                (?p . paragraph)
-                                (?l . line)
-                                (?d . defun)
-                                (?. . sentence)))
-
-  (add-to-list 'meow-char-thing-table '(?t . htag))
-  (add-to-list 'meow-char-thing-table '(?< . angle))
-  (add-to-list 'meow-char-thing-table '(?> . angle))
+  (defun kr-meow-reverse (fun)
+    "Attemt to reverse command when there is no selection."
+    (if mark-active
+        (funcall fun)
+      (negative-argument 1)))
+  (advice-add 'meow-reverse :around #'kr-meow-reverse)
 #+end_src
-
-** config for extending meow
-
-Funciton and advices for making meow behave like I like it.
 
 *** Advice for =meow-expand=
 
@@ -1810,46 +1798,24 @@ Normally when in =normal-state= the number keys 0..9 are bount to =meow-expand-[
   (advice-add 'meow-expand :around #'kr-meow-maybe-digit)
 #+end_src
 
-*** Advice for =meow-reverse=
-
-For some comands =meow-find=, =meow-till=, =meow-line=... you can press ~- (negative-argument)~ to go in reverse. We already have a meow command to go in reverse =meow-reverse= but it only works if we have a selection so I aviced it to enter =negative-argument= when there is no selection so that it can be used when there is no selection active.
+*** Toogle motion
 
 #+begin_src emacs-lisp
-  (defun kr-meow-reverse (fun)
-    "Attemt to reverse command when there is no selection."
-    (if mark-active
-        (funcall fun)
-      (negative-argument 1)))
-  (advice-add 'meow-reverse :around #'kr-meow-reverse)
+  (defun kr-meow-motion-normal ()
+    (interactive)
+    (cond ((meow-motion-mode-p)
+           (meow-normal-mode 1)(meow-motion-mode -1))
+          (t
+           (meow-normal-mode -1)(meow-motion-mode 1))))
+
+  (general-def '(meow-motion-state-keymap meow-normal-state-keymap)
+    "|" 'kr-meow-motion-normal)
 #+end_src
 
-*** Rest
-
-Not categorized
+*** append/insert line
 
 #+begin_src emacs-lisp
-  (defun kr-meow-save-line ()
-    (interactive)
-    (meow-line 1)
-    (call-interactively #'meow-save))
-
-
-  (defun kr-meow-kill-whole-line (fun)
-    "Delete line if there is no selection but delete selection if there
-  is active selection."
-    (if mark-active
-        (meow-kill)
-      (funcall fun)))
-  (advice-add 'meow-kill-whole-line :around 'kr-meow-kill-whole-line)
-
-  (defun kr-meow-copy-line-or-selection (fun)
-    "Copy region if active. Copy line if no region is active."
-    (if mark-active
-        (funcall fun)
-      (kr-meow-save-line)))
-  (advice-add 'meow-save :around #'kr-meow-copy-line-or-selection)
-
-
+  ;; Smartparens integraion
   (defun kr-meow-append-mark ()
     "Move to end of selection and switch to insert state.
   Keep mark active."
@@ -1865,6 +1831,7 @@ Not categorized
     (activate-mark))
 
   (defun kr-meow-append-to-line ()
+    "Append to line."
     (interactive)
     (if mark-active
         (kr-meow-append-mark)
@@ -1873,25 +1840,58 @@ Not categorized
          (call-interactively #'meow-append))))
 
   (defun kr-meow-insert-to-line ()
+    "Insert to line."
     (interactive)
     (if mark-active
         (kr-meow-insert-mark)
       (progn
           (beginning-of-line-text)
           (call-interactively #'meow-insert))))
+
+  (general-def 'meow-normal-state-keymap
+    "I" 'kr-meow-insert-to-line
+    "A" 'kr-meow-append-to-line)
 #+end_src
 
-*** toogle motion
+*** meow-kill
+extend ~meow-kill~ so that it kills the whole line if mark is not active
 #+begin_src emacs-lisp
-  (defun kr-meow-motion-normal ()
-    (interactive)
-    (cond ((meow-motion-mode-p)
-           (meow-normal-mode 1)(meow-motion-mode -1))
-          (t
-           (meow-normal-mode -1)(meow-motion-mode 1))))
+  (defun kr-meow-kill-whole-line (old-fun)
+    "Delete line if there is no selection but delete selection if there
+    is active selection."
+    (if mark-active
+        (meow-kill)
+      (funcall old-fun)))
+  (advice-add 'meow-kill-whole-line :around 'kr-meow-kill-whole-line)
+#+end_src
 
-  (general-def '(meow-motion-state-keymap meow-normal-state-keymap)
-    "|" 'kr-meow-motion-normal)
+*** meow-save
+copy line on selection
+#+begin_src emacs-lisp
+  (defun kr-meow-save-line ()
+    (interactive)
+    (meow-line 1)
+    (call-interactively #'meow-save))
+
+
+  (defun kr-meow-copy-line-or-selection (fun)
+    "Copy region if active. Copy line if no region is active."
+    (if mark-active
+        (funcall fun)
+      (kr-meow-save-line)))
+  (advice-add 'meow-save :around #'kr-meow-copy-line-or-selection)
+#+end_src
+
+** COMMENT config for extending meow
+
+Funciton and advices for making meow behave like I like it.
+
+*** Rest
+
+Not categorized
+
+#+begin_src emacs-lisp
+
 
 #+end_src
 
@@ -1931,81 +1931,78 @@ For example because I use ~dired~ that is bound to =C-x d= more often then ~list
     "C-x K" 'kill-buffer)
 #+end_src
 
-** Custom states
-*** view-state
+** input method hack
 #+begin_src emacs-lisp
-  (defvar meow-view-keymap (make-sparse-keymap))
+  (defvar-local kr-current-input-method nil
+    "Is input methond set in this buffer.")
 
-  (meow-define-state view
-    "State for viewing a buffer like the builtin `view-mode'."
-    :lighter " [V]"
-    :keymap meow-view-keymap)
+  (defun kr-meow-input-methond-hack ()
+    "Activate default input method in meow-insert-mode."
+    (if (and (meow-insert-mode-p) (eq kr-current-input-method t))
+        (activate-input-method default-input-method)
+      (deactivate-input-method)))
 
-  (meow-define-keys 'view
-    '("SPC" . meow-keypad)
-    '("k" . scroll-down-line)
-    '("j" . scroll-up-line))
+  (add-hook 'meow-insert-mode-hook #'kr-meow-input-methond-hack)
 
-  ;; (add-hook 'view-mode-hook 'meow-view-mode)
+  (defun kr-toggle-input-method (&optional arg)
+    (interactive "P")
+    (when arg
+      (call-interactively #'toggle-input-method))
+    (setf kr-current-input-method (not kr-current-input-method))
+    (if kr-current-input-method
+        (message "Set input method in insert mode to %s." default-input-method)
+      (message "Disabled input method in insert mode.")))
 
-  (add-hook 'view-mode-hook #'kr-view)
-
-  (defun kr-view ()
-    (cond ((meow-view-mode-p)
-           (meow-normal-mode 1)
-           (meow-motion-mode -1))
-          (t
-           (meow-normal-mode -1)
-           (meow-motion-mode 1))))
-
-  ;; (general-def 'meow-view-keymap
-  ;;   "SPC" 'meow-keypad)
-
-  ;; (general-unbind 'view-mode-map
-  ;;   "SPC")
+  (general-def
+    "C-\\" 'kr-toggle-input-method)
 #+end_src
 
-** =meow--execute-kbd-macro= modification
-Because meow uses keyboard macros in it's functions if you change a binding for an builtin emacs funciton it changes a meow command that uses that binding. For example =meow-undo= uses ~C-/~ binding but if you change that binding to some other comand =meow-undo= will call that other command insted =undo=. See [[https://github.com/meow-edit/meow/issues/109][here]] another explanation.
-This change allows us to change an emacs binding in =normal-state= and that won't change which binding is called from an meow funcion.
-So I can bind ~C-k~ to =scroll-down-line= in =normal-state= and it wont effect the =meow-kill= command that calls the command that is globaly bound to ~C-k~.
-#+begin_src emacs-lisp :tangle no
-  (defun meow--execute-kbd-macro (kbd-macro)
-    "Execute KBD-MACRO."
-    (meow--switch-state 'insert)
-    (when-let ((ret (if (meow-normal-mode-p)
-                        ((global-key-binding (read-kbd-macro kbd-macro)))
-                      (key-binding (read-kbd-macro kbd-macro)))))
-      (cond
-       ((commandp ret)
-        (call-interactively ret))
+** COMMENT Things
+#+begin_src emacs-lisp
+  ;; Change default values
+  ;; (setq meow-char-thing-table
+  ;;       '((?r . round)
+  ;;         (?s . square)
+  ;;         (?c . curly)
+  ;;         (?. . string)
+  ;;         (?e . symbol)
+  ;;         (?w . window)
+  ;;         (?b . buffer)
+  ;;         (?p . paragraph)
+  ;;         (?l . line)
+  ;;         (?d . defun)
+  ;;         (?g . sentence)))
 
-       ((and (not meow-use-keypad-when-execute-kbd) (keymapp ret))
-        (set-transient-map ret nil nil))
-
-       ((and meow-use-keypad-when-execute-kbd (keymapp ret))
-        (meow-keypad-start-with kbd-macro))))
-    (meow--switch-state 'normal))
-
-  (meow-define-keys 'normal
-    '("C-j" . scroll-up-line)
-    '("C-k" . scroll-down-line))
+  ;; add custom values
+  (meow-thing-register 'url 'url 'url)
+  (add-to-list 'meow-char-thing-table '(?u . url))
 #+end_src
 
-Old function for if something goes wrong debugg.
-#+begin_src emacs-lisp :tangle no
-  (defun meow--execute-kbd-macro (kbd-macro)
-      "Execute KBD-MACRO."
-      (when-let ((ret (key-binding (read-kbd-macro kbd-macro))))
-        (cond
-         ((commandp ret)
-          (call-interactively ret))
+** COMMENT Things config
+#+begin_src emacs-lisp
+  (meow-thing-register 'quote '(regexp "['\"]" "['\"]") '(regexp "['\"]" "['\"]"))
+  (meow-thing-register 'htag '(regexp ">" "<") '(regexp ">" "<"))
+  (meow-thing-register 'angle '(regexp "<" ">") '(regexp "<" ">"))
+  (setq meow-char-thing-table '((?r . round)
+                                (?\( . round)
+                                (?\) . round)
+                                (?\[ . square)
+                                (?\{ . curly)
+                                (?\} . curly)
+                                (?s . string)
+                                (?\' . quote)
+                                (?\" . quote)
+                                (?W . symbol)
+                                ;; (?a . window)
+                                (?b . buffer)
+                                (?p . paragraph)
+                                (?l . line)
+                                (?d . defun)
+                                (?. . sentence)))
 
-         ((and (not meow-use-keypad-when-execute-kbd) (keymapp ret))
-          (set-transient-map ret nil nil))
-
-         ((and meow-use-keypad-when-execute-kbd (keymapp ret))
-          (meow-keypad-start-with kbd-macro)))))
+  (add-to-list 'meow-char-thing-table '(?t . htag))
+  (add-to-list 'meow-char-thing-table '(?< . angle))
+  (add-to-list 'meow-char-thing-table '(?> . angle))
 #+end_src
 
 ** COMMENT define-state
@@ -2023,7 +2020,7 @@ Template for other selfdefined meow states:
    '("Z" . meow-paren-mode))
 
   (meow-define-keys 'paren
-    (cons "SPC" meow-leader-keymap)
+    '("SPC" . meow-keypad)
     '("<escape>" . meow-normal-mode)
     '("l" . sp-forward-sexp)
     '("h" . sp-backward-sexp)
