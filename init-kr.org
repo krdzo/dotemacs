@@ -527,7 +527,7 @@ This are just rundom rules until I get time to sort them properly
 * Completion framework
 ** compleiton-style
 #+begin_src emacs-lisp
-  (setq completion-styles '(basic partial-completion substring flex))
+  (setq completion-styles '(prescient basic))
 #+end_src
 
 *** Prescient
@@ -538,10 +538,7 @@ This are just rundom rules until I get time to sort them properly
   (with-eval-after-load 'prescient
     (prescient-persist-mode 1))
 
-  (setq prescient-filter-method '(literal initialism prefix regexp fuzzy))
-
-
-
+  (setq prescient-filter-method '(literal prefix fuzzy))
 
   ;; setups are copyed from wikis
   ;; setup for vertico
@@ -567,6 +564,11 @@ This are just rundom rules until I get time to sort them properly
 
     (setq corfu-sort-function #'prescient-completion-sort)
     (setq corfu-sort-override-function #'prescient-completion-sort))
+
+  ;; setup eglot
+  (with-eval-after-load 'eglot
+    (add-to-list 'completion-category-overrides '(eglot (styles prescient))))
+
 #+end_src
 
 ** Vertico
@@ -1500,12 +1502,6 @@ Seting ~sbcl~ to be default interpreter for lisp.
     (add-to-list 'meow-mode-state-list '(sly-mrepl-mode . normal))
     (add-to-list 'meow-mode-state-list '(sly-db-mode . motion))
     (add-to-list 'meow-mode-state-list '(sly-xref-mode . motion)))
-
-
-  (add-to-list 'load-path "~/git/sly-stepper/")
-
-  (require 'sly-stepper-autoloads)
-
   ;; (general-def 'sly-mrepl-mode-map
   ;;   "C-k" 'sly-mrepl-previous-prompt
   ;;   "C-j" 'sly-mrepl-next-prompt)
