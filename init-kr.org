@@ -1035,6 +1035,13 @@ Git client in emacs
     "S-<tab>" 'magit-section-cycle
     "C-<tab>" 'tab-next)
 
+  (with-eval-after-load 'project
+    (general-def 'project-prefix-map
+      "v" 'magit-status)
+    (add-hook 'project-switch-commands '(magit-status "Magit") 100)
+    (remove-hook 'project-switch-commands '(project-vc-dir "VC-Dir")))
+#+end_src
+
 #+end_src
 
 *** Forge
@@ -1172,6 +1179,8 @@ https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff
 #+begin_src emacs-lisp
   (straight-use-package 'hyperbole)
   (hyperbole-mode 1)
+  (general-def
+    "C-h C-h" 'hyperbole)
 #+end_src
 
 ** devdocs
@@ -1552,7 +1561,20 @@ Rest of configuration:
 #+begin_src emacs-lisp
   (straight-use-package 'go-mode)
   (setq gofmt-command "goimports")
+
   (add-hook 'before-save-hook 'gofmt-before-save)
+
+
+
+  (with-eval-after-load 'project
+    (defun your-go-module-root (dir)
+      (when-let ((root (locate-dominating-file dir "go.mod")))
+        (cons 'go-module root)))
+
+    (add-hook 'project-find-functions #'your-go-module-root)
+
+    (cl-defmethod project-root ((project (head go-module)))
+      (cdr project)))
 #+end_src
 
 *** Yaml
@@ -1776,7 +1798,7 @@ For some comands =meow-find=, =meow-till=, =meow-line=... you can press ~- (nega
     "Attemt to reverse command when there is no selection."
     (if mark-active
         (funcall fun)
-      (negative-argument 1)))
+      (call-interactively #'negative-argument)))
   (advice-add 'meow-reverse :around #'kr-meow-reverse)
 #+end_src
 
@@ -2038,6 +2060,20 @@ Template for other selfdefined meow states:
     '("u" . meow-undo))
 
   (setq meow-cursor-type-paren 'hollow)
+#+end_src
+
+** Bindings for packages
+
+Binding for other packages
+*** gitgutter
+#+begin_src emacs-lisp
+  (with-eval-after-load 'git-gutter
+    (general-def
+      "C-z g n" 'git-gutter:next-hunk
+      "C-z g p" 'git-gutter:previous-hunk)
+    (meow-define-keys 'normal
+      '(">g" . "C-z g n")
+      '("<g" . "C-z g p")))
 #+end_src
 
 * Miscellaneous
