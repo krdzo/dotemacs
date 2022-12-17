@@ -539,6 +539,7 @@ This are just rundom rules until I get time to sort them properly
     (prescient-persist-mode 1))
 
   (setq prescient-filter-method '(literal prefix fuzzy))
+  (setq prescient-filter-method '(literal prefix))
 
   ;; setups are copyed from wikis
   ;; setup for vertico
@@ -583,7 +584,8 @@ This are just rundom rules until I get time to sort them properly
   (vertico-multiform-mode 1)
 
   (setq vertico-multiform-commands
-        '((consult-yank-pop indexed)
+        '((xref-find-references-at-mouse buffer)
+          (consult-yank-pop indexed)
           (project-find-regexp buffer)
           (consult-grep buffer)
           (consult-ripgrep buffer)
@@ -1547,7 +1549,11 @@ Rest of configuration:
 *** JSON
 [[*LSP][lsp-hook]]
 #+begin_src emacs-lisp
-  (straight-use-package 'json-mode)
+  (straight-use-package 'jsonian)
+  (jsonian-no-so-long-mode)
+  (with-eval-after-load 'eglot
+    (add-to-list 'eglot-server-programs
+                 `(jsonian-mode . ,(eglot-alternatives '(("vscode-json-language-server" "--stdio") ("json-languageserver" "--stdio"))))))
 #+end_src
 
 *** rust
