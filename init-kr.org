@@ -275,7 +275,8 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
   (general-def
     "C-z h" 'kr-describe-at-point
     "C-h s" 'shortdoc-display-group
-    "C-h b" 'describe-keymap)
+    "C-h b" 'describe-keymap
+    "C-h B" 'describe-bindings)
 #+end_src
 
 ** Subword
@@ -438,7 +439,7 @@ Setup PATH and other env varables.
   (require 'exec-path-from-shell)
 
   (when (memq window-system '(mac ns))
-    (dolist (var '("NPM_TOKEN" "NVM_DIR"))
+    (dolist (var '("NPM_TOKEN" "NVM_DIR" "INFOPATH"))
       (add-to-list 'exec-path-from-shell-variables var))
     (exec-path-from-shell-initialize))
 #+end_src
@@ -1056,7 +1057,7 @@ Git client in emacs
     (require 'forge))
 #+end_src
 
-*** Git-gutter
+*** COMMENT Git-gutter
 If I ever need to change to margin I can use this to setup diff-hl in margin
 https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff-hl.el
 #+begin_src emacs-lisp
@@ -1298,7 +1299,7 @@ Smart paren I'm using to pair characters like quotes.
   (blackout 'smartparens-mode)
 #+end_src
 
-*** Parinfer
+*** COMMENT Parinfer
 Parinfer is there for lisp editing.
 #+begin_src emacs-lisp
   (straight-use-package 'parinfer-rust-mode)
