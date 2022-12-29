@@ -465,70 +465,10 @@ Setup PATH and other env varables.
     (setq trash-directory  (expand-file-name "~/.Trash/")))
 #+end_src
 
-* Window management
-Setup for ~display-buffer-alist~. See [[https://www.masteringemacs.org/article/demystifying-emacs-window-managert][this]] for reference.
-
-This is maybe the most important variable to set, it makes ~switch-to-buffer~ obey ~display-buffer-alist~ rules.
-#+begin_src emacs-lisp
-  (setq switch-to-buffer-obey-display-actions t)
-#+end_src
-
-** tab-bar-mode
-Enable ~tab-bar-mode~. It helps us to keep window configurations under control.
-#+begin_src emacs-lisp
-  (tab-bar-mode 1)
-#+end_src
-
-** Per project WM/tab
-Next we create a ~display-buffer-alist~ rule so thet we group project buffers by tabs. All buffers of one project go to one tab and that tab is automatically created when we open the first buffer of a project.
-#+begin_src emacs-lisp
-  (defvar kr-package-icon "🗃")
-
-  (add-to-list 'display-buffer-alist
-               '(mp-buffer-has-project-p
-                 (display-buffer-in-tab display-buffer-reuse-window)
-                 (tab-name . kr-project-tab-name)))
-
-  (defun mp-buffer-has-project-p (buffer action)
-    "Check if a buffer is belonging to a project."
-    (with-current-buffer buffer (project-current nil)))
-
-  (defun kr-project-tab-name (buffer alist)
-      "If `tab-bar-mode' is enabled and we are in a project
-  then set the tab name to project root directory name."
-      (with-current-buffer buffer
-            (concat kr-package-icon " " (kr-project-name))))
-
-  (autoload #'project-root "project")
-  (defun kr-project-name ()
-    "Return project name.
-  Projects name is the same as the name of the projects parent direcotry."
-    (file-name-nondirectory
-         (directory-file-name (project-root (project-current nil)))))
-
-  (advice-add 'project-kill-buffers :after #'tab-close)
-#+end_src
-
-** The rest
-This are just rundom rules until I get time to sort them properly
-
-#+begin_src emacs-lisp
-  (add-to-list 'display-buffer-alist
-               `(,(rx "*" (one-or-more alpha) "*")
-                 display-buffer-reuse-window))
-
-  (add-to-list 'display-buffer-alist
-            `(,(rx (| "*xref*"
-                      "*grep*"
-                      "*Occur*"))
-              display-buffer-reuse-window
-              (inhibit-same-window . nil)))
-#+end_src
-
-* Completion framework
+* Completion
 ** compleiton-style
 #+begin_src emacs-lisp
-  (setq completion-styles '(prescient basic))
+  (setq completion-styles '(prescient basic partial-completion))
 #+end_src
 
 *** Prescient
@@ -540,7 +480,7 @@ This are just rundom rules until I get time to sort them properly
     (prescient-persist-mode 1))
 
   (setq prescient-filter-method '(literal prefix fuzzy))
-  (setq prescient-filter-method '(literal prefix))
+  (setq prescient-filter-method '(literal prefix literal-prefix))
 
   ;; setups are copyed from wikis
   ;; setup for vertico
@@ -778,7 +718,9 @@ and the second filter to the completion-style filtering (?).
    ((kr-font-available-p "Inconsolata")
     (set-frame-font "Inconsolata-12")))
 
-  (set-face-attribute 'default nil :height 115)
+  (if kr-mac-p
+      (set-face-attribute 'default nil :height 145)
+    (set-face-attribute 'default nil :height 115))
 #+end_src
 
 ** Themes
@@ -907,8 +849,8 @@ Emacs builtin file menager.
 
   (when (string= system-type "darwin")
     (setq dired-use-ls-dired t
-          insert-directory-program "/usr/local/bin/gls"))
-          ;; dired-listing-switches "-aBhl --group-directories-first"))
+          insert-directory-program (executable-find "gls")
+          dired-listing-switches "-aBhl --group-directories-first"))
 
   (general-def 'dired-mode-map
     "K" 'dired-kill-subdir
@@ -1201,7 +1143,7 @@ https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff
     "u" 'View-scroll-half-page-backward)
 #+end_src
 
-* Programing
+* Programming
 
 ** eglot
 #+begin_src emacs-lisp
@@ -1267,53 +1209,6 @@ https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff
   (define-key project-prefix-map (kbd "g") 'consult-ripgrep)
 #+end_src
 
-** Editing
-
-*** evilmatchit
-#+begin_src emacs-lisp
-  (straight-use-package 'evil-matchit)
-
-  (with-eval-after-load 'meow
-    (general-def meow-normal-state-keymap
-      "S" 'evilmi-select-items
-      "%" 'evilmi-jump-items-native))
-#+end_src
-
-*** Smartparen
-Smart paren I'm using to pair characters like quotes.
-#+begin_src emacs-lisp
-  (straight-use-package 'smartparens)
-  (require 'smartparens-config)
-  (defun indent-between-pair (&rest _ignored)
-    (newline)
-    (indent-according-to-mode)
-    (forward-line -1)
-    (indent-according-to-mode))
-  (sp-local-pair 'prog-mode "{" nil :post-handlers '((indent-between-pair "RET")))
-  (sp-local-pair 'prog-mode "[" nil :post-handlers '((indent-between-pair "RET")))
-  (sp-local-pair 'prog-mode "(" nil :post-handlers '((indent-between-pair "RET")))
-
-  (smartparens-global-mode 1)
-  (show-smartparens-global-mode 1) ; alternative to show-paren-mode
-  (set-face-background 'show-paren-match "#7d7b7b")
-  (blackout 'smartparens-mode)
-#+end_src
-
-*** COMMENT Parinfer
-Parinfer is there for lisp editing.
-#+begin_src emacs-lisp
-  (straight-use-package 'parinfer-rust-mode)
-  (setq parinfer-rust-library-directory
-        (expand-file-name "./var/parinfer-rust/" user-emacs-directory))
-  (with-eval-after-load 'parinfer-rust-mode
-    (blackout 'parinfer-rust-mode)
-    (add-to-list 'parinfer-rust-treat-command-as '(meow-open-above . "indent"))
-    (add-to-list 'parinfer-rust-treat-command-as '(meow-open-below . "indent"))
-    (add-to-list 'parinfer-rust-treat-command-as '(meow-yank . "indent")))
-
-  (general-add-hook '(emacs-lisp-mode-hook lisp-mode-hook) #'parinfer-rust-mode)
-#+end_src
-
 ** xref
 #+begin_src emacs-lisp
   (straight-use-package 'xref)
@@ -1375,82 +1270,6 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
                        (cape-company-to-capf #'company-yasnippet)))))
 
   ;; (add-hook 'eglot-managed-mode-hook #'my/eglot-capf)
-#+end_src
-
-** COMMENT LSP
-;;;
-#+NOTE: lsp more is not used because it doesn't integrate nicely with corfu mode.
-;;;
-
-#+BEGIN_SRC emacs-lisp
-  (straight-use-package 'lsp-mode)
-
-  (setq lsp-keymap-prefix "C-c l")
-  (setq lsp-completion-provider :none)  ; don't change company-backends
-  (setq read-process-output-max (* 1024 1024))
-  ;; (setq lsp-signature-auto-activate t
-  ;;       lsp-signature-doc-lines 1)
-
-  (general-add-hook '(c-mode-hook
-                      go-mode-hook
-                      js-mode-hook
-                      json-mode-hook
-                      web-mode-hook
-                      css-mode-hook
-                      python-mode-hook)
-                    #'lsp-deferred)
-  (general-add-hook 'lsp-mode-hook '(lsp-enable-which-key-integration))
-
-  (general-define-key
-     :keymaps 'kr-gmenu-map
-     :predicate 'lsp-mode
-     "r" 'lsp-rename
-     "=" 'lsp-format-buffer
-     "a" 'lsp-execute-code-action)
-  (general-define-key
-   :keymaps 'lsp-mode-map
-   "C-z h" 'lsp-describe-thing-at-point)
-
-  (with-eval-after-load 'lsp-lens
-    (blackout 'lsp-lens-mode))
-
-    ;; (setq lsp-restart 'ignore)
-    ;; (setq lsp-eldoc-enable-hover nil)
-    ;; (setq lsp-enable-file-watchers nil)
-    ;; (setq lsp-signature-auto-activate nil)
-    ;; (setq lsp-modeline-diagnostics-enable nil)
-    ;; (setq lsp-keep-workspace-alive nil)
-    ;; (setq lsp-auto-execute-action nil)
-    ;; (setq lsp-before-save-edits nil)
-#+END_SRC
-
-LSP corfu conf:
-#+begin_src emacs-lisp
-  (with-eval-after-load 'lsp-mode
-    ;; make lsp use orderless
-    (defun kr-lsp-mode-setup-completion ()
-      (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
-            '(flex orderless))) ;; Configure flex
-    (add-hook 'lsp-completion-mode-hook #'kr-lsp-mode-setup-completion))
-
-    ;; change lsp-capf funciton to make it work like other capf-s
-    ;; explanation: https://github.com/minad/cape/issues/24
-    ;; (add-hook 'lsp-completion-mode-hook
-    ;;           (lambda () (setq-local completion-at-point-functions '(lsp-completion-at-point t))))
-    ;; (add-hook 'lsp-completion-mode-hook
-    ;;   (lambda ()
-    ;;     (setq-local completion-at-point-functions
-    ;;       (list (cape-capf-properties #'lsp-completion-at-point :exclusive 'no) t)))))
-
-#+end_src
-
-** COMMENT DAP mode
-#+begin_src emacs-lisp
-  (straight-use-package 'dap-mode)
-  (add-hook 'lsp-mode-hook 'dap-mode)
-  (add-hook 'python-mode-hook #'(lambda () (require 'dap-python)))
-  (add-hook 'java-mode-hook #'(lambda () (require 'dap-java)))
-  (add-hook 'dap-stopped-hook #'(lambda (arg) (call-interactively #'dap-hydra)))
 #+end_src
 
 ** web
@@ -2138,4 +1957,149 @@ Disable anoying background in LSP help buffer
 #+begin_src emacs-lisp
   (with-eval-after-load 'markdown-mode
     (set-face-background 'markdown-code-face nil))
+#+end_src
+
+* COMMENT Disabled
+Some section that are disabled until I find time to setup them.
+
+** Treesitter builtin
+#+begin_src emacs-lisp
+  (require 'treesit)
+  (setq treesit-extra-load-path (list (expand-file-name "dist/" "~/git/tree-sitter-module/")))
+#+end_src
+
+** Window management
+Setup for ~display-buffer-alist~. See [[https://www.masteringemacs.org/article/demystifying-emacs-window-managert][this]] for reference.
+
+This is maybe the most important variable to set, it makes ~switch-to-buffer~ obey ~display-buffer-alist~ rules.
+#+begin_src emacs-lisp
+  (setq switch-to-buffer-obey-display-actions t)
+#+end_src
+
+*** tab-bar-mode
+Enable ~tab-bar-mode~. It helps us to keep window configurations under control.
+#+begin_src emacs-lisp
+  (tab-bar-mode 1)
+#+end_src
+
+*** Per project WM/tab
+Next we create a ~display-buffer-alist~ rule so thet we group project buffers by tabs. All buffers of one project go to one tab and that tab is automatically created when we open the first buffer of a project.
+#+begin_src emacs-lisp
+  (defvar kr-package-icon "🗃")
+
+  (add-to-list 'display-buffer-alist
+               '(mp-buffer-has-project-p
+                 (display-buffer-in-tab display-buffer-reuse-window)
+                 (tab-name . kr-project-tab-name)))
+
+  (defun mp-buffer-has-project-p (buffer action)
+    "Check if a buffer is belonging to a project."
+    (with-current-buffer buffer (project-current nil)))
+
+  (defun kr-project-tab-name (buffer alist)
+      "If `tab-bar-mode' is enabled and we are in a project
+  then set the tab name to project root directory name."
+      (with-current-buffer buffer
+            (concat kr-package-icon " " (kr-project-name))))
+
+  (autoload #'project-root "project")
+  (defun kr-project-name ()
+    "Return project name.
+  Projects name is the same as the name of the projects parent direcotry."
+    (file-name-nondirectory
+         (directory-file-name (project-root (project-current nil)))))
+
+  (advice-add 'project-kill-buffers :after #'tab-close)
+#+end_src
+
+*** The rest
+This are just rundom rules until I get time to sort them properly
+
+#+begin_src emacs-lisp
+  (add-to-list 'display-buffer-alist
+               `(,(rx "*" (one-or-more alpha) "*")
+                 display-buffer-reuse-window))
+
+  (add-to-list 'display-buffer-alist
+            `(,(rx (| "*xref*"
+                      "*grep*"
+                      "*Occur*"))
+              display-buffer-reuse-window
+              (inhibit-same-window . nil)))
+#+end_src
+
+** LSP
+;;;
+#+NOTE: lsp more is not used because it doesn't integrate nicely with corfu mode.
+;;;
+
+#+BEGIN_SRC emacs-lisp
+  (straight-use-package 'lsp-mode)
+
+  (setq lsp-keymap-prefix "C-c l")
+  (setq lsp-completion-provider :none)  ; don't change company-backends
+  (setq read-process-output-max (* 1024 1024))
+  ;; (setq lsp-signature-auto-activate t
+  ;;       lsp-signature-doc-lines 1)
+
+  (general-add-hook '(c-mode-hook
+                      go-mode-hook
+                      js-mode-hook
+                      json-mode-hook
+                      web-mode-hook
+                      css-mode-hook
+                      python-mode-hook)
+                    #'lsp-deferred)
+  (general-add-hook 'lsp-mode-hook '(lsp-enable-which-key-integration))
+
+  (general-define-key
+     :keymaps 'kr-gmenu-map
+     :predicate 'lsp-mode
+     "r" 'lsp-rename
+     "=" 'lsp-format-buffer
+     "a" 'lsp-execute-code-action)
+  (general-define-key
+   :keymaps 'lsp-mode-map
+   "C-z h" 'lsp-describe-thing-at-point)
+
+  (with-eval-after-load 'lsp-lens
+    (blackout 'lsp-lens-mode))
+
+    ;; (setq lsp-restart 'ignore)
+    ;; (setq lsp-eldoc-enable-hover nil)
+    ;; (setq lsp-enable-file-watchers nil)
+    ;; (setq lsp-signature-auto-activate nil)
+    ;; (setq lsp-modeline-diagnostics-enable nil)
+    ;; (setq lsp-keep-workspace-alive nil)
+    ;; (setq lsp-auto-execute-action nil)
+    ;; (setq lsp-before-save-edits nil)
+#+END_SRC
+
+LSP corfu conf:
+#+begin_src emacs-lisp
+  (with-eval-after-load 'lsp-mode
+    ;; make lsp use orderless
+    (defun kr-lsp-mode-setup-completion ()
+      (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+            '(flex orderless))) ;; Configure flex
+    (add-hook 'lsp-completion-mode-hook #'kr-lsp-mode-setup-completion))
+
+    ;; change lsp-capf funciton to make it work like other capf-s
+    ;; explanation: https://github.com/minad/cape/issues/24
+    ;; (add-hook 'lsp-completion-mode-hook
+    ;;           (lambda () (setq-local completion-at-point-functions '(lsp-completion-at-point t))))
+    ;; (add-hook 'lsp-completion-mode-hook
+    ;;   (lambda ()
+    ;;     (setq-local completion-at-point-functions
+    ;;       (list (cape-capf-properties #'lsp-completion-at-point :exclusive 'no) t)))))
+
+#+end_src
+
+** DAP mode
+#+begin_src emacs-lisp
+  (straight-use-package 'dap-mode)
+  (add-hook 'lsp-mode-hook 'dap-mode)
+  (add-hook 'python-mode-hook #'(lambda () (require 'dap-python)))
+  (add-hook 'java-mode-hook #'(lambda () (require 'dap-java)))
+  (add-hook 'dap-stopped-hook #'(lambda (arg) (call-interactively #'dap-hydra)))
 #+end_src
