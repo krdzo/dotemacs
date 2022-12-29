@@ -758,6 +758,91 @@ alternative package ~undo-hl~.
     (blackout 'goggles-mode))
 #+end_src
 
+* UX
+** jumplist
+
+#+begin_src emacs-lisp
+  (straight-use-package 'jumplist)
+
+  (general-def
+    "s-[" 'jumplist-previous
+    "s-]" 'jumplist-next)
+
+  (require 'jumplist)
+  (custom-set-variables
+   '(jumplist-hook-commands
+     '(xref-find-definitions xref-find-references xref-go-back xref-go-forward
+       meow-beginning-of-thing meow-end-of-thing
+       meow-search
+       mouse-set-point
+       dired-jump
+       switch-to-buffer
+       isearch-forward end-of-buffer beginning-of-buffer
+       find-file))
+   '(jumplist-ex-mode t))
+#+end_src
+
+** Editing
+
+*** evilmatchit
+#+begin_src emacs-lisp
+  (straight-use-package 'evil-matchit)
+
+  (with-eval-after-load 'meow
+    (general-def meow-normal-state-keymap
+      "%" 'evilmi-jump-items-native))
+#+end_src
+
+*** Smartparen
+Smart paren I'm using to pair characters like quotes.
+#+begin_src emacs-lisp
+  (straight-use-package 'smartparens)
+  (require 'smartparens-config)
+  (defun indent-between-pair (&rest _ignored)
+    (newline)
+    (indent-according-to-mode)
+    (forward-line -1)
+    (indent-according-to-mode))
+  (sp-local-pair 'prog-mode "{" nil :post-handlers '((indent-between-pair "RET")))
+  (sp-local-pair 'prog-mode "[" nil :post-handlers '((indent-between-pair "RET")))
+  (sp-local-pair 'prog-mode "(" nil :post-handlers '((indent-between-pair "RET")))
+
+  (smartparens-global-mode 1)
+  (show-smartparens-global-mode 1) ; alternative to show-paren-mode
+  (set-face-background 'show-paren-match "#7d7b7b")
+  (blackout 'smartparens-mode)
+#+end_src
+
+*** Expand region
+#+begin_src emacs-lisp
+  (straight-use-package 'expand-region)
+
+  (general-def 'meow-normal-state-keymap
+    "S" 'er/expand-region)
+#+end_src
+
+*** Embrace
+#+begin_src emacs-lisp
+  (straight-use-package 'embrace)
+  (general-def
+    "C" 'embrace-commander)
+#+end_src
+
+*** COMMENT Parinfer
+Parinfer is there for lisp editing.
+#+begin_src emacs-lisp
+  (straight-use-package 'parinfer-rust-mode)
+  (setq parinfer-rust-library-directory
+        (expand-file-name "./etc/parinfer-rust/" user-emacs-directory))
+  (with-eval-after-load 'parinfer-rust-mode
+    (blackout 'parinfer-rust-mode)
+    (add-to-list 'parinfer-rust-treat-command-as '(meow-open-above . "indent"))
+    (add-to-list 'parinfer-rust-treat-command-as '(meow-open-below . "indent"))
+    (add-to-list 'parinfer-rust-treat-command-as '(meow-yank . "indent")))
+
+  (general-add-hook '(emacs-lisp-mode-hook lisp-mode-hook) #'parinfer-rust-mode)
+#+end_src
+
 * Uncategorized packages
 Here are packages that don't belong to any category.
 
@@ -1466,20 +1551,6 @@ Rest of configuration:
   (add-hook 'prog-mode-hook #'toggle-truncate-lines)
 #+end_src
 
-* Notes from old config
-
-** Interesting packages
-Remainder for some cool packages:
-- wgrep
-- emacs-window-layout
-- aweshell
-- sudo-edit
-- quickrun
-- crux
-- format-all
-- instant-rename-tag
-- epaint
-
 * meow
 Meow is a mode for modal edditing inpired by VIM.
 
@@ -1958,6 +2029,20 @@ Disable anoying background in LSP help buffer
   (with-eval-after-load 'markdown-mode
     (set-face-background 'markdown-code-face nil))
 #+end_src
+
+* Notes from old config
+
+** Interesting packages
+Remainder for some cool packages:
+- wgrep
+- emacs-window-layout
+- aweshell
+- sudo-edit
+- quickrun
+- crux
+- format-all
+- instant-rename-tag
+- epaint
 
 * COMMENT Disabled
 Some section that are disabled until I find time to setup them.
