@@ -758,6 +758,25 @@ alternative package ~undo-hl~.
     (blackout 'goggles-mode))
 #+end_src
 
+** hl-todo
+#+begin_src emacs-lisp
+  (straight-use-package 'hl-todo)
+
+  (add-hook 'prog-mode-hook 'hl-todo-mode)
+
+  (general-def kr-<b-menu-map
+    "t" 'hl-todo-previous)
+  (general-def kr->b-menu-map
+    "t" 'hl-todo-next)
+  (setq hl-todo-highlight-punctuation ":")
+  (setq hl-todo-keyword-faces
+      '(("TODO"   . "#FF4500")
+        ("FIXME"  . "#FF0000")
+        ("DEBUG"  . "#A020F0")
+        ("GOTCHA" . "#FF4500")
+        ("STUB"   . "#1E90FF")))
+#+end_src
+
 * UX
 ** jumplist
 
@@ -824,7 +843,7 @@ Smart paren I'm using to pair characters like quotes.
 *** Embrace
 #+begin_src emacs-lisp
   (straight-use-package 'embrace)
-  (general-def
+  (general-def meow-normal-state-keymap
     "C" 'embrace-commander)
 #+end_src
 
@@ -841,45 +860,6 @@ Parinfer is there for lisp editing.
     (add-to-list 'parinfer-rust-treat-command-as '(meow-yank . "indent")))
 
   (general-add-hook '(emacs-lisp-mode-hook lisp-mode-hook) #'parinfer-rust-mode)
-#+end_src
-
-* Uncategorized packages
-Here are packages that don't belong to any category.
-
-** ibuffer
-#+begin_src emacs-lisp
-  (general-def
-    [remap list-buffers] 'ibuffer)
-#+end_src
-
-** hydra
-#+begin_src emacs-lisp
-  (straight-use-package 'hydra)
-#+end_src
-
-** olivetti
-#+begin_src emacs-lisp
-  (straight-use-package 'olivetti)
-  (setq olivetti-body-width 90)
-#+end_src
-
-** hl-todo
-#+begin_src emacs-lisp
-  (straight-use-package 'hl-todo)
-
-  (add-hook 'prog-mode-hook 'hl-todo-mode)
-
-  (general-def kr-<b-menu-map
-    "t" 'hl-todo-previous)
-  (general-def kr->b-menu-map
-    "t" 'hl-todo-next)
-  (setq hl-todo-highlight-punctuation ":")
-  (setq hl-todo-keyword-faces
-      '(("TODO"   . "#FF4500")
-        ("FIXME"  . "#FF0000")
-        ("DEBUG"  . "#A020F0")
-        ("GOTCHA" . "#FF4500")
-        ("STUB"   . "#1E90FF")))
 #+end_src
 
 ** undo-tree
@@ -903,12 +883,9 @@ Here are packages that don't belong to any category.
   (blackout 'undo-tree-mode)
 #+end_src
 
-** wgrep
+** hydra
 #+begin_src emacs-lisp
-  (straight-use-package 'wgrep)
-  (require 'wgrep)
-
-  (set-face-background 'wgrep-face "#B6268")
+  (straight-use-package 'hydra)
 #+end_src
 
 * Apps
@@ -1205,6 +1182,13 @@ https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff
     (blackout 'org-indent-mode))
 #+end_src
 
+** olivetti
+Closely related to =org-mode= but not really so it goes here with org mode
+#+begin_src emacs-lisp
+  (straight-use-package 'olivetti)
+  (setq olivetti-body-width 90)
+#+end_src
+
 ** COMMENT Hyperbole
 #+begin_src emacs-lisp
   (straight-use-package 'hyperbole)
@@ -1226,6 +1210,20 @@ https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff
   (general-def 'Man-mode-map
     "d" 'View-scroll-half-page-forward
     "u" 'View-scroll-half-page-backward)
+#+end_src
+
+** ibuffer
+#+begin_src emacs-lisp
+  (general-def
+    [remap list-buffers] 'ibuffer)
+#+end_src
+
+** wgrep
+#+begin_src emacs-lisp
+  (straight-use-package 'wgrep)
+  (require 'wgrep)
+
+  (set-face-background 'wgrep-face "#B6268")
 #+end_src
 
 * Programming
