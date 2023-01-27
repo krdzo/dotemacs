@@ -396,14 +396,10 @@ Set =serbian-latin= to default input method.
 
 #+end_src
 
-** Anzu
+** iSearch
+
 #+begin_src emacs-lisp
-  (straight-use-package 'anzu)
-  (global-anzu-mode 1)
-  (add-hook 'anzu-mode-hook
-            #'(lambda () (blackout 'anzu-mode)))
-  (with-eval-after-load 'anzu-mode
-    (blackout 'anzu-mode))
+  (setq isearch-lazy-count t)
 #+end_src
 
 ** auto-insert
