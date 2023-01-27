@@ -461,7 +461,67 @@ Setup PATH and other env varables.
     (setq trash-directory  (expand-file-name "~/.Trash/")))
 #+end_src
 
-* Completion
+* COMMENT Window management
+Setup for ~display-buffer-alist~. See [[https://www.masteringemacs.org/article/demystifying-emacs-window-managert][this]] for reference.
+
+This is maybe the most important variable to set, it makes ~switch-to-buffer~ obey ~display-buffer-alist~ rules.
+#+begin_src emacs-lisp
+  (setq switch-to-buffer-obey-display-actions t)
+#+end_src
+
+** tab-bar-mode
+Enable ~tab-bar-mode~. It helps us to keep window configurations under control.
+#+begin_src emacs-lisp
+  (tab-bar-mode 1)
+#+end_src
+
+** Per project WM/tab
+Next we create a ~display-buffer-alist~ rule so thet we group project buffers by tabs. All buffers of one project go to one tab and that tab is automatically created when we open the first buffer of a project.
+#+begin_src emacs-lisp
+  (defvar kr-package-icon "🗃")
+
+  (add-to-list 'display-buffer-alist
+               '(mp-buffer-has-project-p
+                 (display-buffer-in-tab display-buffer-reuse-window)
+                 (tab-name . kr-project-tab-name)))
+
+  (defun mp-buffer-has-project-p (buffer action)
+    "Check if a buffer is belonging to a project."
+    (with-current-buffer buffer (project-current nil)))
+
+  (defun kr-project-tab-name (buffer alist)
+      "If `tab-bar-mode' is enabled and we are in a project
+  then set the tab name to project root directory name."
+      (with-current-buffer buffer
+            (concat kr-package-icon " " (kr-project-name))))
+
+  (autoload #'project-root "project")
+  (defun kr-project-name ()
+    "Return project name.
+  Projects name is the same as the name of the projects parent direcotry."
+    (file-name-nondirectory
+         (directory-file-name (project-root (project-current nil)))))
+
+  (advice-add 'project-kill-buffers :after #'tab-close)
+#+end_src
+
+** The rest
+This are just rundom rules until I get time to sort them properly
+
+#+begin_src emacs-lisp
+  (add-to-list 'display-buffer-alist
+               `(,(rx "*" (one-or-more alpha) "*")
+                 display-buffer-reuse-window))
+
+  (add-to-list 'display-buffer-alist
+            `(,(rx (| "*xref*"
+                      "*grep*"
+                      "*Occur*"))
+              display-buffer-reuse-window
+              (inhibit-same-window . nil)))
+#+end_src
+
+* Completion framework
 ** compleiton-style
 #+begin_src emacs-lisp
   (setq completion-styles '(prescient basic partial-completion))
@@ -503,10 +563,17 @@ Setup PATH and other env varables.
     (setq corfu-sort-function #'prescient-completion-sort)
     (setq corfu-sort-override-function #'prescient-completion-sort))
 
+  (add-to-list 'completion-category-overrides '(file (styles basic partial-completion)))
   ;; setup eglot
   (with-eval-after-load 'eglot
-    (add-to-list 'completion-category-overrides '(eglot (styles prescient))))
+    (add-to-list 'completion-category-overrides '(eglot (styles prescient basic))))
 
+  ;; (defun kr-mini-p-styles ()
+  ;;   (if (minibufferp)
+  ;;       (setq prescient-filter-method '(literal prefix))
+  ;;     (setq prescient-filter-method '(literal prefix fuzzy))))
+
+  ;; (add-hook 'minibuffer-mode-hook #'kr-mini-p-styles)
 #+end_src
 
 ** Vertico
@@ -726,9 +793,9 @@ and the second filter to the completion-style filtering (?).
   (load-theme 'doom-snazzy t)
 
   ;; global-hl-line-mode and region have the same color so i change it here
-  (set-face-attribute 'region nil :background "#454545")
-  (set-face-attribute 'secondary-selection nil :background "#701818")
-  (set-face-attribute 'highlight nil :background "#454545")
+  ;; (set-face-attribute 'region nil :background "#454545")
+  ;; (set-face-attribute 'secondary-selection nil :background "#701818")
+  ;; (set-face-attribute 'highlight nil :background "#454545")
 
   ;; tab-bar-mode face
   (set-face-attribute 'tab-bar nil :background "#1e2029")
@@ -1189,6 +1256,7 @@ Closely related to =org-mode= but not really so it goes here with org mode
 #+begin_src emacs-lisp
   (straight-use-package 'hyperbole)
   (hyperbole-mode 1)
+
   (general-def
     "C-h C-h" 'hyperbole)
 #+end_src
@@ -1286,6 +1354,74 @@ Closely related to =org-mode= but not really so it goes here with org mode
   (straight-use-package 'project)
 
   (define-key project-prefix-map (kbd "g") 'consult-ripgrep)
+#+end_src
+
+** Editing
+
+*** evilmatchit
+#+begin_src emacs-lisp
+  (straight-use-package 'evil-matchit)
+
+  (with-eval-after-load 'meow
+    (general-def meow-normal-state-keymap
+      "S" 'evilmi-select-items
+      "%" 'evilmi-jump-items-native))
+#+end_src
+
+*** Smartparen
+Smart paren I'm using to pair characters like quotes.
+#+begin_src emacs-lisp
+  (straight-use-package 'smartparens)
+  (require 'smartparens-config)
+  (defun indent-between-pair (&rest _ignored)
+    (newline)
+    (indent-according-to-mode)
+    (forward-line -1)
+    (indent-according-to-mode))
+  (sp-local-pair 'prog-mode "{" nil :post-handlers '((indent-between-pair "RET")))
+  (sp-local-pair 'prog-mode "[" nil :post-handlers '((indent-between-pair "RET")))
+  (sp-local-pair 'prog-mode "(" nil :post-handlers '((indent-between-pair "RET")))
+
+  (smartparens-global-mode 1)
+  (show-smartparens-global-mode 1) ; alternative to show-paren-mode
+  (set-face-background 'show-paren-match "#7d7b7b")
+  (blackout 'smartparens-mode)
+#+end_src
+
+*** Parinfer
+Parinfer is there for lisp editing.
+#+begin_src emacs-lisp
+  (straight-use-package 'parinfer-rust-mode)
+  (setq parinfer-rust-library-directory
+        (expand-file-name "./var/parinfer-rust/" user-emacs-directory))
+  (with-eval-after-load 'parinfer-rust-mode
+    (blackout 'parinfer-rust-mode)
+    (add-to-list 'parinfer-rust-treat-command-as '(meow-open-above . "indent"))
+    (add-to-list 'parinfer-rust-treat-command-as '(meow-open-below . "indent"))
+    (add-to-list 'parinfer-rust-treat-command-as '(meow-yank . "indent")))
+
+  (general-add-hook '(emacs-lisp-mode-hook lisp-mode-hook) #'parinfer-rust-mode)
+#+end_src
+
+*** Puni
+#+begin_src emacs-lisp
+  (straight-use-package 'puni)
+  (general-def 'meow-normal-state-keymap
+    "D" 'puni-kill-line
+    ">" 'k-compine-slurp-and-barf-forward
+    "<" 'k-compine-slurp-and-barf-back)
+
+  (defun k-compine-slurp-and-barf-forward (arg)
+    (interactive "p")
+    (if (> arg 0)
+        (puni-slurp-forward arg)
+      (puni-barf-forward (- arg))))
+
+  (defun k-compine-slurp-and-barf-back (arg)
+    (interactive "p")
+    (if (> arg 0)
+        (puni-slurp-backward arg)
+      (puni-barf-backward (- arg))))
 #+end_src
 
 ** xref
@@ -1830,9 +1966,10 @@ For example because I use ~dired~ that is bound to =C-x d= more often then ~list
     ;; C-x r
     "C-x r" 'revert-buffer
     "C-x C-r" ctl-x-r-map
-    ;; C-x
+    ;; C-x c
     "C-x c" 'save-buffers-kill-terminal
-    "C-x C-c" (lambda () (interactive) (message "Quit Stop!")))
+    "C-x C-c" (lambda () (interactive) (message "Quit Stop!"))
+    "C-h h" 'help-for-help)
 
   ;; some convinience bindings
   (general-def
