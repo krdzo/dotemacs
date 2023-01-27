@@ -447,12 +447,18 @@ Setup PATH and other env varables.
     (setq trash-directory  (expand-file-name "~/.Trash/")))
 #+end_src
 
-* COMMENT Window management
+* Window management
 Setup for ~display-buffer-alist~. See [[https://www.masteringemacs.org/article/demystifying-emacs-window-managert][this]] for reference.
 
 This is maybe the most important variable to set, it makes ~switch-to-buffer~ obey ~display-buffer-alist~ rules.
 #+begin_src emacs-lisp
-  (setq switch-to-buffer-obey-display-actions t)
+  (setq switch-to-buffer-obey-display-actions nil)
+  (defun kr-swith-to-buffer-obey ()
+    (interactive)
+    (let ((switch-to-buffer-obey-display-actions t))
+      (call-interactively 'switch-to-buffer)))
+  (general-def
+    "C-x C-S-b" 'kr-swith-to-buffer-obey)
 #+end_src
 
 ** tab-bar-mode
@@ -1687,16 +1693,16 @@ Meow is a mode for modal edditing inpired by VIM.
      '("n" . meow-search)
      '("/" . meow-visit)
 
-     '("D" . meow-kill)
+     '("D" . puni-kill-line)
      '("d" . meow-kill-whole-line)
      '("x" . meow-backward-delete)
      '("X" . meow-delete)
 
      '("e" . meow-next-word)
-     '("E" . meow-next-symbol)
+     '("E" . puni-forward-sexp)
      '(";" . meow-reverse)
      '("b" . meow-back-word)
-     '("B" . meow-back-symbol)
+     '("B" . puni-backward-sexp)
      '("v" . meow-line)
      '("f" . meow-find)
      '("t" . meow-till)
@@ -1798,6 +1804,34 @@ Normally when in =normal-state= the number keys 0..9 are bount to =meow-expand-[
 
 *** append/insert line
 
+Insert or append on line.
+
+#+begin_src emacs-lisp
+  (defun kr-meow-append-to-line ()
+    "Append to line."
+    (interactive)
+    (if mark-active
+        (embrace-add)
+      (progn
+        (end-of-line)
+        (call-interactively #'meow-append))))
+
+  (defun kr-meow-insert-to-line ()
+    "Insert to line."
+    (interactive)
+    (if mark-active
+        (embrace-add)
+      (progn
+        (beginning-of-line-text)
+        (call-interactively #'meow-insert))))
+
+  (general-def 'meow-normal-state-keymap
+    "I" 'kr-meow-insert-to-line
+    "A" 'kr-meow-append-to-line)
+#+end_src
+
+This makes it work with =smartparens= surround feature.
+
 #+begin_src emacs-lisp
   ;; Smartparens integraion
   (defun kr-meow-append-mark ()
@@ -1814,27 +1848,6 @@ Normally when in =normal-state= the number keys 0..9 are bount to =meow-expand-[
     (call-interactively #'meow-insert)
     (activate-mark))
 
-  (defun kr-meow-append-to-line ()
-    "Append to line."
-    (interactive)
-    (if mark-active
-        (kr-meow-append-mark)
-      (progn
-         (end-of-line)
-         (call-interactively #'meow-append))))
-
-  (defun kr-meow-insert-to-line ()
-    "Insert to line."
-    (interactive)
-    (if mark-active
-        (kr-meow-insert-mark)
-      (progn
-          (beginning-of-line-text)
-          (call-interactively #'meow-insert))))
-
-  (general-def 'meow-normal-state-keymap
-    "I" 'kr-meow-insert-to-line
-    "A" 'kr-meow-append-to-line)
 #+end_src
 
 *** meow-kill
@@ -1917,6 +1930,10 @@ For example because I use ~dired~ that is bound to =C-x d= more often then ~list
 #+end_src
 
 ** input method hack
+
+Make =C-\= work nice with =meow-normal= and =meow-insert= modes.
+It switches input method when going from normal to insert mode.
+
 #+begin_src emacs-lisp
   (defvar-local kr-current-input-method nil
     "Is input methond set in this buffer.")
