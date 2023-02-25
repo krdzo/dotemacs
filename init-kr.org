@@ -1826,7 +1826,10 @@ Insert or append on line.
     "Append to line."
     (interactive)
     (if mark-active
-        (embrace-add)
+        (progn
+          (unless (= (point) (region-end))
+            (meow-reverse))
+          (embrace-add))
       (progn
         (end-of-line)
         (call-interactively #'meow-append))))
@@ -1835,12 +1838,16 @@ Insert or append on line.
     "Insert to line."
     (interactive)
     (if mark-active
+        (progn
+          (unless (= (point) (region-beginning))
+            (meow-reverse))
+               (embrace-add))
         (embrace-add)
       (progn
         (beginning-of-line-text)
         (call-interactively #'meow-insert))))
-  (elpaca nil
 
+  (elpaca nil
     (general-def 'meow-normal-state-keymap
       "I" 'kr-meow-insert-to-line
       "A" 'kr-meow-append-to-line))
