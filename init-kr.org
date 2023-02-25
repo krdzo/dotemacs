@@ -468,6 +468,95 @@ Setup PATH and other env varables.
     (setq trash-directory  (expand-file-name "~/.Trash/")))
 #+end_src
 
+* Window management
+Setup for ~display-buffer-alist~. See [[https://www.masteringemacs.org/article/demystifying-emacs-window-managert][this]] for reference.
+
+This is maybe the most important variable to set, it makes ~switch-to-buffer~ obey ~display-buffer-alist~ rules.
+#+begin_src emacs-lisp
+  (setq switch-to-buffer-obey-display-actions t)
+
+  (defun kr-swith-to-buffer-obey ()
+    (interactive)
+    (let ((switch-to-buffer-obey-display-actions nil))
+      (call-interactively 'switch-to-buffer)))
+  (elpaca nil
+      (general-def
+        "C-x C-S-b" 'kr-swith-to-buffer-obey))
+#+end_src
+
+** COMMENT tab-bar-mode
+Enable ~tab-bar-mode~. It helps us to keep window configurations under control.
+#+begin_src emacs-lisp
+  (tab-bar-mode 1)
+#+end_src
+
+** COMMENT Per project WM/tab
+Next we create a ~display-buffer-alist~ rule so thet we group project buffers by tabs. All buffers of one project go to one tab and that tab is automatically created when we open the first buffer of a project.
+#+begin_src emacs-lisp
+  (defvar kr-package-icon "🗃")
+
+  (add-to-list 'display-buffer-alist
+               '(mp-buffer-has-project-p
+                 (display-buffer-in-tab display-buffer-reuse-window)
+                 (tab-name . kr-project-tab-name)))
+
+  (defun mp-buffer-has-project-p (buffer action)
+    "Check if a buffer is belonging to a project."
+    (with-current-buffer buffer (project-current nil)))
+
+  (defun kr-project-tab-name (buffer alist)
+      "If `tab-bar-mode' is enabled and we are in a project
+  then set the tab name to project root directory name."
+      (with-current-buffer buffer
+            (concat kr-package-icon " " (kr-project-name))))
+
+  (autoload #'project-root "project")
+  (defun kr-project-name ()
+    "Return project name.
+  Projects name is the same as the name of the projects parent direcotry."
+    (file-name-nondirectory
+         (directory-file-name (project-root (project-current nil)))))
+
+  (advice-add 'project-kill-buffers :after #'tab-close)
+#+end_src
+
+** COMMENT The rest
+
+This are just rundom rules until I get time to sort them properly
+
+#+begin_src emacs-lisp
+  (add-to-list 'display-buffer-alist
+               `(,(rx "*" (one-or-more alpha) "*")
+                 display-buffer-reuse-window))
+
+  (add-to-list 'display-buffer-alist
+            `(,(rx (| "*xref*"
+                      "*grep*"
+                      "*Occur*"))
+              display-buffer-reuse-window
+              (inhibit-same-window . nil)))
+#+end_src
+
+** toggle window select
+Function that toggles if a window can be selected with ~~other-window~ =C-x o= function.
+#+begin_src emacs-lisp
+  (defun kr-disable-window-select ()
+    "Makes it so that you cant C-x o window in which this command is called."
+    (interactive)
+    (if (not (window-parameter (selected-window) 'no-other-window))
+        (set-window-parameter (selected-window) 'no-other-window t)
+      (set-window-parameter (selected-window) 'no-other-window nil)))
+#+end_src
+
+** sly
+Always open sly REPL in other window
+#+begin_src emacs-lisp
+  (add-to-list 'display-buffer-alist
+               `("*sly-mrepl for sbcl*"
+                 nil
+                 (inhibit-same-window . t)))
+#+end_src
+
 * Completion framework
 ** compleiton-style
 Enable =tab= completion
