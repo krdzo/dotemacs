@@ -1,38 +1,53 @@
 #+title: DotEmacs
 #+author: Krdzo
 #+startup: fold
+* Bootstrap elpaca
 
-* Bootstrap Straight.el
+Use elpaca package menager.
 
-NOTE: for ~straight-cache-autoloads~ you must run ~straight-prune-build~ ocaisonaly so that you keep you straight config clean.
 #+begin_src emacs-lisp
-  (setq straight-vc-git-default-clone-depth 1)
-  (setq straight-recipes-gnu-elpa-use-mirror t)
-  (setq straight-check-for-modifications '(check-on-save find-when-checking))
-  (defvar bootstrap-version)
-  (let* ((straight-repo-dir
-          (expand-file-name "straight/repos" user-emacs-directory))
-         (bootstrap-file
-          (concat straight-repo-dir "/straight.el/bootstrap.el"))
-         (bootstrap-version 5))
-    (unless (file-exists-p bootstrap-file)
-      (shell-command
-       (concat
-        "mkdir -p " straight-repo-dir " && "
-        "git -C " straight-repo-dir " clone "
-        "https://github.com/raxod502/straight.el.git && "
-        "git -C " straight-repo-dir " checkout 2d407bc")))
-    (load bootstrap-file nil 'nomessage))
+  (defvar elpaca-installer-version 0.2)
+  (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
+  (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
+  (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
+                                :ref nil
+                                :files (:defaults (:exclude "extensions"))
+                                :build (:not elpaca--activate-package)))
+  (when-let ((repo  (expand-file-name "repos/elpaca/" elpaca-directory))
+             (build (expand-file-name "elpaca/" elpaca-builds-directory))
+             (order (cdr elpaca-order))
+             ((add-to-list 'load-path (if (file-exists-p build) build repo)))
+             ((not (file-exists-p repo))))
+    (condition-case-unless-debug err
+        (if-let ((buffer (pop-to-buffer-same-window "*elpaca-installer*"))
+                 ((zerop (call-process "git" nil buffer t "clone"
+                                       (plist-get order :repo) repo)))
+                 (default-directory repo)
+                 ((zerop (call-process "git" nil buffer t "checkout"
+                                       (or (plist-get order :ref) "--"))))
+                 (emacs (concat invocation-directory invocation-name))
+                 ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                       "--eval" "(byte-recompile-directory \".\" 0 'force)"))))
+            (progn (require 'elpaca)
+                   (elpaca-generate-autoloads "elpaca" repo)
+                   (kill-buffer buffer))
+          (error "%s" (with-current-buffer buffer (buffer-string))))
+      ((error) (warn "%s" err) (delete-directory repo 'recursive))))
+  (require 'elpaca-autoloads)
+  (add-hook 'after-init-hook #'elpaca-process-queues)
+  (elpaca `(,@elpaca-order))
 
-  ;; This is a variable that has been renamed but straight still refers when
-  ;; doing :sraight (:no-native-compile t)
-  ;; (setq comp-deferred-compilation-black-list nil)
+  ;; Install use-package support
+  (elpaca elpaca-use-package
+    ;; Enable :elpaca use-package keyword.
+    (elpaca-use-package-mode)
+    ;; Assume :elpaca t unless otherwise specified.
+    (setq elpaca-use-package-by-default t))
+  (elpaca-wait)
 
-  ;; adding syntax highlight for straight-use-package
-  (add-hook 'emacs-lisp-mode-hook
-            #'(lambda ()
-                (font-lock-add-keywords nil
-                  '(("\\_<straight-use-package\\_>" . font-lock-keyword-face)))))
+  ;; (setq use-package-always-defer t)
+
+  (setq vc-follow-symlinks t)
 #+end_src
 
 * Utilities
@@ -52,7 +67,7 @@ I like to know how fast Emacs has started.
 ** Blackout
 For keeping mode line clean.
 #+begin_src emacs-lisp
-  (straight-use-package 'blackout)
+  (use-package blackout)
 #+end_src
 
 ** General
@@ -66,51 +81,55 @@ There is also ~use-package~ integration for all of these functions and they are:
 [[https://github.com/noctuid/general.el#general-keyword][:ghook]] and [[https://github.com/noctuid/general.el#general-keyword][:gfhook]] for ~general-add-hook~
 
 #+BEGIN_SRC emacs-lisp
-  (straight-use-package 'general)
+  (use-package general)
 #+END_SRC
 
 ** Garbage collector magic hack
 What the title says.
 #+BEGIN_SRC emacs-lisp
-  (straight-use-package 'gcmh)
-  (gcmh-mode 1)
-  (setq gcmh-idle-delay 5)
-  (blackout 'gcmh-mode)
+  (use-package gcmh
+    :config
+    (gcmh-mode 1)
+    (setq gcmh-idle-delay 5)
+    (blackout 'gcmh-mode))
 #+END_SRC
 
 ** no littering
 Helping me so that I don't have to configure Emacs not to clutter .emacs.d.
 #+begin_src emacs-lisp
-  (straight-use-package 'no-littering)
+  (use-package no-littering
+    :demand t
+    :config
+    (setq auto-save-file-name-transforms
+          `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
+    (setq custom-file (no-littering-expand-etc-file-name "custom.el"))
+    ;; here because it needs to be after no-littering
+    ;; should be moved somewhere else
+    (when (file-exists-p custom-file)
+      (load-file custom-file))
 
-  (setq auto-save-file-name-transforms
-        `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
-  (setq custom-file (no-littering-expand-etc-file-name "custom.el"))
-  ;; here because it needs to be after no-littering
-  ;; should be moved somewhere else
-  (when (file-exists-p custom-file)
-    (load-file custom-file))
-
-  (with-eval-after-load 'recentf
-    (add-to-list 'recentf-exclude no-littering-var-directory)
-    (add-to-list 'recentf-exclude no-littering-etc-directory))
+    (with-eval-after-load 'recentf
+      (add-to-list 'recentf-exclude no-littering-var-directory)
+      (add-to-list 'recentf-exclude no-littering-etc-directory)))
 #+end_src
 
 ** which-key
 Help with discovery of keybindings.
 #+BEGIN_SRC emacs-lisp
-  (straight-use-package 'which-key)
-  (setq which-key-idle-delay 0.5)
-  (add-hook 'after-init-hook 'which-key-mode)
-  (with-eval-after-load 'which-key
-    (blackout 'which-key-mode))
+  (use-package which-key
+    :config
+    (setq which-key-idle-delay 0.5)
+    (which-key-mode 1)
+    (with-eval-after-load 'which-key
+      (blackout 'which-key-mode)))
 #+END_SRC
 
 ** elisp-demos
 Small snippets in help buffer that show how a function is used.
 #+begin_src emacs-lisp
-  (straight-use-package 'elisp-demos)
-  (advice-add 'describe-function-1 :after #'elisp-demos-advice-describe-function-1)
+  (use-package elisp-demos
+    :config
+    (advice-add 'describe-function-1 :after #'elisp-demos-advice-describe-function-1))
   ;; (with-eval-after-load 'helpful
   ;;   (advice-add 'helpful-update :after #'elisp-demos-advice-helpful-update))
 #+end_src
@@ -120,44 +139,48 @@ Setup keybindings for builtin features that are not tied to any mode.
 ** Emacs
 Change builtin emacs keybingings that I can't put in any category
 #+begin_src emacs-lisp
-  (general-def
-    "C-h l" 'find-library)
+  (elpaca nil
+    (general-def
+      "C-h l" 'find-library)
 
-  (general-def
-    "M-;" 'comment-line
-    "C-x C-;" 'comment-dwim)
+    (general-def
+      "M-;" 'comment-line
+      "C-x C-;" 'comment-dwim)
 
-  (general-def 'global
-    "C-<backspace>" 'cycle-spacing)
+    (general-def 'global
+      "C-<backspace>" 'cycle-spacing))
 #+end_src
 
 ** Help
 Help at point key is =C-z h=. Every mode that implements a help at point needs to change it to point to it's "help-at-point" function
 #+begin_src emacs-lisp :noweb yes
-  (define-key global-map (kbd "C-z") nil)
-  (general-def
-    "C-z h" 'describe-symbol)
+  (elpaca nil
+    (define-key global-map (kbd "C-z") nil)
+    (general-def
+      "C-z h" 'describe-symbol))
   <<helpful>>
   <<ghelp>>
 #+end_src
 
 ** Buffer
 #+begin_src emacs-lisp
-  (defun kr-go-to-scratch ()
-    (interactive)
-    (switch-to-buffer "*scratch*"))
+  (elpaca nil
+    (defun kr-go-to-scratch ()
+      (interactive)
+      (switch-to-buffer "*scratch*"))
 
-  (general-def
-    "C-c q s" 'kr-go-to-scratch
-    "C-c q r" 'revert-buffer)
+    (general-def
+      "C-c q s" 'kr-go-to-scratch
+      "C-c q r" 'revert-buffer))
 #+end_src
 
 ** transient mode
 
 This is manly for magit but can be used for some other funcitonality.
 #+begin_src emacs-lisp
-  (general-def transient-base-map
-    "<escape>" 'transient-quit-one)
+  (elpaca nil
+    (general-def transient-base-map
+      "<escape>" 'transient-quit-one))
 #+end_src
 
 * Emacs
@@ -173,48 +196,39 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 #+BEGIN_SRC emacs-lisp
   (setq use-file-dialog nil)
   (setq initial-scratch-message nil
-         sentence-end-double-space nil
-         ring-bell-function 'ignore
-         frame-resize-pixelwise t)
-  (setq help-window-select t)
+        sentence-end-double-space nil
+        ring-bell-function 'ignore
+        frame-resize-pixelwise t)
 
-    ;; (setq user-full-name "Luca Cambiaghi"
-    ;;       user-mail-address "luca.cambiaghi@me.com")
+  ;; (setq user-full-name "Luca Cambiaghi"
+  ;;       user-mail-address "luca.cambiaghi@me.com")
 
-    ;; always allow 'y' instead of 'yes'.
+  ;; always allow 'y' instead of 'yes'.
   (defalias 'yes-or-no-p 'y-or-n-p)
 
-    ;; default to utf-8 for all the things
+  ;; default to utf-8 for all the things
   (set-language-environment "UTF-8")
 
-    ;; follow symlinks
-  (setq vc-follow-symlinks t)
-
-    ;; don't show any extra window chrome
+  ;; don't show any extra window chrome
   (when (window-system)
     (tool-bar-mode -1)
     (toggle-scroll-bar -1))
 
-    ;; less noise when compiling elisp
-    ;; (setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
-    ;; (setq native-comp-async-report-warnings-errors nil)
-  (setq load-prefer-newer t)
+  ;; less noise when compiling elisp
+  ;; (setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
+  ;; (setq native-comp-async-report-warnings-errors nil)
 
-    ;; use common convention for indentation by default
+  ;; use common convention for indentation by default
   (setq-default indent-tabs-mode nil)
   (setq-default tab-width 4)
 
-    ;; Enable indentation+completion using the TAB key.
-    ;; Completion is often bound to M-TAB.
-  (setq tab-always-indent 'complete)
-
-    ;; Delete files to trash
+  ;; Delete files to trash
   (setq delete-by-moving-to-trash t)
 
-    ;; Uniquify buffer names
+  ;; Uniquify buffer names
   (setq-default uniquify-buffer-name-style 'forward)
 
-    ;; Better scrolling behaviour
+  ;; Better scrolling behaviour
   (setq-default
    hscroll-step 1
    scroll-margin 4
@@ -223,23 +237,21 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
    auto-window-vscroll nil
    mouse-wheel-scroll-amount '(1)
    mouse-wheel-tilt-scroll t
-   mouse-wheel-flip-direction t
    scroll-conservatively most-positive-fixnum)
 
   ;; Better interaction with clipboard
   (setq-default save-interprogram-paste-before-kill t)
 
   ;; Some usefull builtin minor modes
-  (blink-cursor-mode 0)
   (column-number-mode 1)
   (global-auto-revert-mode 1)
 
-    ;; Maybe gives some optimization
+  ;; Maybe gives some optimization
   (add-hook 'focus-out-hook #'garbage-collect)
 
   (tooltip-mode -1)
 
-    ;; delete whitespace
+  ;; delete whitespace
   (add-hook 'before-save-hook #'whitespace-cleanup)
 
   (setq view-read-only t)
@@ -247,50 +259,56 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 
 ** help
 #+begin_src emacs-lisp
-  (add-hook 'help-mode-hook 'visual-line-mode)
+  (elpaca nil
+    (add-hook 'help-mode-hook 'visual-line-mode)
 
-  (defun kr-describe-at-point (symbol)
-    "Call `describe-symbol' for the SYMBOL at point."
-    (interactive (list (symbol-at-point)))
-    (if (and symbol (or (fboundp symbol)
-                        (boundp symbol)
-                        (facep symbol)))
-        (describe-symbol symbol)
-      (call-interactively #'describe-symbol)))
+    (defun kr-describe-at-point (symbol)
+      "Call `describe-symbol' for the SYMBOL at point."
+      (interactive (list (symbol-at-point)))
+      (if (and symbol (or (fboundp symbol)
+                          (boundp symbol)
+                          (facep symbol)))
+          (describe-symbol symbol)
+        (call-interactively #'describe-symbol)))
 
-  (general-def
-    "C-z h" 'kr-describe-at-point
-    "C-h s" 'shortdoc-display-group
-    "C-h b" 'describe-keymap
-    "C-h B" 'describe-bindings)
+    (general-def
+      "C-z h" 'kr-describe-at-point
+      "C-h s" 'shortdoc-display-group
+      "C-h b" 'describe-keymap
+      "C-h B" 'describe-bindings)
+
+    (setq help-window-select t))
 #+end_src
 
 ** Subword
 
 #+begin_src emacs-lisp
-  (global-subword-mode 1)
-  (blackout 'subword-mode)
+  (elpaca nil
+    (global-subword-mode 1)
+    (blackout 'subword-mode))
 #+end_src
 
 ** Visual line mode
 #+begin_src emacs-lisp
-  (blackout 'visual-line-mode)
+  (elpaca nil
+    (blackout 'visual-line-mode))
 #+end_src
 
 ** eldoc
 #+begin_src emacs-lisp
-  (straight-use-package 'eldoc)
-  (general-add-hook 'emacs-lisp-mode-hook 'eldoc-mode)
-  (with-eval-after-load 'eldoc
-    (blackout 'eldoc-mode))
+  (elpaca 'eldoc
+    (general-add-hook 'emacs-lisp-mode-hook 'eldoc-mode)
+    (with-eval-after-load 'eldoc
+      (blackout 'eldoc-mode)))
 #+end_src
 
 ** recentf
 #+begin_src emacs-lisp
-  (recentf-mode 1)
-  (setq recentf-max-saved-items 75)
-  (setq recentf-exclude `(,(expand-file-name "straight/build/" user-emacs-directory)
-                          ,(expand-file-name "eln-cache/" user-emacs-directory)))
+  (elpaca nil
+    (recentf-mode 1)
+    (setq recentf-max-saved-items 75)
+    (setq recentf-exclude `(,(expand-file-name "straight/build/" user-emacs-directory)
+                            ,(expand-file-name "eln-cache/" user-emacs-directory))))
   ;;                         ,(expand-file-name "etc/" user-emacs-directory)
   ;;                         ,(expand-file-name "var/" user-emacs-directory)
 #+end_src
@@ -300,7 +318,7 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
   (save-place-mode 1)
 #+end_src
 
-** Configurating so-long.el
+** COMMENT Configurating so-long.el
 When emacs load files with long lines it can block or crash so this minor mode
 is there to prevent it from doing that.
 
@@ -328,7 +346,7 @@ I making a custom input method for Serbian language because all the other method
   (quail-define-package
    "serbian-latin" "Serbian" "SR" nil
    "Sensible Serbian keyboard layout."
-    nil t nil nil nil nil nil nil nil nil t)
+   nil t nil nil nil nil nil nil nil nil t)
 
   (quail-define-rules
    ("x" ?š)
@@ -364,10 +382,11 @@ Set =serbian-latin= to default input method.
 
 ** Ediff
 #+begin_src emacs-lisp
+  (require 'ediff)
   ;; (winner-mode 1)
   (add-hook 'ediff-after-quit-hook-internal 'winner-undo)
-  (general-setq ediff-window-setup-function 'ediff-setup-windows-plain)
-  (general-setq ediff-split-window-function 'split-window-horizontally)
+  (customize-set-variable ediff-window-setup-function 'ediff-setup-windows-plain)
+  (customize-set-variable ediff-split-window-function 'split-window-horizontally)
 
   (defvar my-ediff-last-windows nil)
 
@@ -417,13 +436,13 @@ Check if we  run on Mac
 *** exec-path
 Setup PATH and other env varables.
 #+begin_src emacs-lisp
-  (straight-use-package 'exec-path-from-shell)
-  (require 'exec-path-from-shell)
+  (elpaca 'exec-path-from-shell
+    (require 'exec-path-from-shell)
 
-  (when (memq window-system '(mac ns))
-    (dolist (var '("NPM_TOKEN" "NVM_DIR" "INFOPATH"))
-      (add-to-list 'exec-path-from-shell-variables var))
-    (exec-path-from-shell-initialize))
+    (when (memq window-system '(mac ns))
+      (dolist (var '("NPM_TOKEN" "NVM_DIR" "INFOPATH"))
+        (add-to-list 'exec-path-from-shell-variables var))
+      (exec-path-from-shell-initialize)))
 #+end_src
 
 *** rest
@@ -434,10 +453,11 @@ Setup PATH and other env varables.
 
 
 #+begin_src emacs-lisp
-  (when kr-mac-p
+  (elpaca nil
+    (when kr-mac-p
       (general-def 'global-map
         "C-<tab>" 'tab-next
-        "C-S-<tab>" 'tab-previous))
+        "C-S-<tab>" 'tab-previous)))
 
   (setq ns-command-modifier 'super)
   (setq ns-option-modifier 'meta)
@@ -447,118 +467,57 @@ Setup PATH and other env varables.
     (setq trash-directory  (expand-file-name "~/.Trash/")))
 #+end_src
 
-* Window management
-Setup for ~display-buffer-alist~. See [[https://www.masteringemacs.org/article/demystifying-emacs-window-managert][this]] for reference.
-
-This is maybe the most important variable to set, it makes ~switch-to-buffer~ obey ~display-buffer-alist~ rules.
-#+begin_src emacs-lisp
-  (setq switch-to-buffer-obey-display-actions nil)
-  (defun kr-swith-to-buffer-obey ()
-    (interactive)
-    (let ((switch-to-buffer-obey-display-actions t))
-      (call-interactively 'switch-to-buffer)))
-  (general-def
-    "C-x C-S-b" 'kr-swith-to-buffer-obey)
-#+end_src
-
-** tab-bar-mode
-Enable ~tab-bar-mode~. It helps us to keep window configurations under control.
-#+begin_src emacs-lisp
-  (tab-bar-mode 1)
-#+end_src
-
-** Per project WM/tab
-Next we create a ~display-buffer-alist~ rule so thet we group project buffers by tabs. All buffers of one project go to one tab and that tab is automatically created when we open the first buffer of a project.
-#+begin_src emacs-lisp
-  (defvar kr-package-icon "🗃")
-
-  (add-to-list 'display-buffer-alist
-               '(mp-buffer-has-project-p
-                 (display-buffer-in-tab display-buffer-reuse-window)
-                 (tab-name . kr-project-tab-name)))
-
-  (defun mp-buffer-has-project-p (buffer action)
-    "Check if a buffer is belonging to a project."
-    (with-current-buffer buffer (project-current nil)))
-
-  (defun kr-project-tab-name (buffer alist)
-      "If `tab-bar-mode' is enabled and we are in a project
-  then set the tab name to project root directory name."
-      (with-current-buffer buffer
-            (concat kr-package-icon " " (kr-project-name))))
-
-  (autoload #'project-root "project")
-  (defun kr-project-name ()
-    "Return project name.
-  Projects name is the same as the name of the projects parent direcotry."
-    (file-name-nondirectory
-         (directory-file-name (project-root (project-current nil)))))
-
-  (advice-add 'project-kill-buffers :after #'tab-close)
-#+end_src
-
-** The rest
-This are just rundom rules until I get time to sort them properly
-
-#+begin_src emacs-lisp
-  (add-to-list 'display-buffer-alist
-               `(,(rx "*" (one-or-more alpha) "*")
-                 display-buffer-reuse-window))
-
-  (add-to-list 'display-buffer-alist
-            `(,(rx (| "*xref*"
-                      "*grep*"
-                      "*Occur*"))
-              display-buffer-reuse-window
-              (inhibit-same-window . nil)))
-#+end_src
-
 * Completion framework
 ** compleiton-style
+Enable =tab= completion
+#+begin_src emacs-lisp
+  (setq tab-always-indent 'complete)
+#+end_src
+
 #+begin_src emacs-lisp
   (setq completion-styles '(prescient basic partial-completion))
 #+end_src
 
 *** Prescient
 #+begin_src emacs-lisp
-  (straight-use-package 'prescient)
+  (elpaca 'prescient
 
-  (add-to-list 'completion-styles 'prescient)
-  (with-eval-after-load 'prescient
-    (prescient-persist-mode 1))
+    (add-to-list 'completion-styles 'prescient)
+    (with-eval-after-load 'prescient
+      (prescient-persist-mode 1))
 
-  (setq prescient-filter-method '(literal prefix fuzzy))
-  (setq prescient-filter-method '(literal prefix literal-prefix))
+    (setq prescient-filter-method '(literal prefix fuzzy))
+    (setq prescient-filter-method '(literal prefix literal-prefix))
 
-  ;; setups are copyed from wikis
-  ;; setup for vertico
-  (with-eval-after-load 'vertico
-    (setq vertico-sort-function #'prescient-completion-sort)
+    ;; setups are copyed from wikis
+    ;; setup for vertico
+    (with-eval-after-load 'vertico
+      (setq vertico-sort-function #'prescient-completion-sort)
 
-    (defun vertico-prescient-remember ()
-      "Remember the chosen candidate with Prescient."
-      (when (>= vertico--index 0)
-        (prescient-remember
-         (substring-no-properties
-          (nth vertico--index vertico--candidates)))))
-    (advice-add #'vertico-insert :after #'vertico-prescient-remember))
+      (defun vertico-prescient-remember ()
+        "Remember the chosen candidate with Prescient."
+        (when (>= vertico--index 0)
+          (prescient-remember
+           (substring-no-properties
+            (nth vertico--index vertico--candidates)))))
+      (advice-add #'vertico-insert :after #'vertico-prescient-remember))
 
-  ;; setup for corfu
-  (with-eval-after-load 'corfu
-    (defun dima-corfu-prescient-remember (&rest _)
-      "Advice for `corfu--insert.'"
-      (when (>= corfu--index 0)
-        (prescient-remember (nth corfu--index corfu--candidates))))
+    ;; setup for corfu
+    (with-eval-after-load 'corfu
+      (defun dima-corfu-prescient-remember (&rest _)
+        "Advice for `corfu--insert.'"
+        (when (>= corfu--index 0)
+          (prescient-remember (nth corfu--index corfu--candidates))))
 
-    (advice-add #'corfu--insert :before #'dima-corfu-prescient-remember)
+      (advice-add #'corfu--insert :before #'dima-corfu-prescient-remember)
 
-    (setq corfu-sort-function #'prescient-completion-sort)
-    (setq corfu-sort-override-function #'prescient-completion-sort))
+      (setq corfu-sort-function #'prescient-completion-sort)
+      (setq corfu-sort-override-function #'prescient-completion-sort))
 
-  (add-to-list 'completion-category-overrides '(file (styles basic partial-completion)))
-  ;; setup eglot
-  (with-eval-after-load 'eglot
-    (add-to-list 'completion-category-overrides '(eglot (styles prescient basic))))
+    (add-to-list 'completion-category-overrides '(file (styles basic partial-completion)))
+    ;; setup eglot
+    (with-eval-after-load 'eglot
+      (add-to-list 'completion-category-overrides '(eglot (styles prescient basic)))))
 
   ;; (defun kr-mini-p-styles ()
   ;;   (if (minibufferp)
@@ -570,129 +529,126 @@ This are just rundom rules until I get time to sort them properly
 
 ** Vertico
 #+begin_src emacs-lisp
-  (straight-use-package '(vertico :files (:defaults "extensions/*")))
-  (vertico-mode 1)
+  (elpaca '(vertico :files (:defaults "extensions/*"))
+    (vertico-mode 1)
 
-  (vertico-mouse-mode 1)
+    (vertico-mouse-mode 1)
 
-  (setq vertico-cycle t)
+    (setq vertico-cycle t)
 
-  (vertico-multiform-mode 1)
+    (vertico-multiform-mode 1)
 
-  (setq vertico-multiform-commands
-        '((xref-find-references-at-mouse buffer)
-          (xref-find-references buffer)
-          (consult-yank-pop indexed)
-          (project-find-regexp buffer)
-          (consult-grep buffer)
-          (consult-ripgrep buffer)
-          (consult-imenu buffer)
-          (imenu buffer)))
+    (setq vertico-multiform-commands
+          '((xref-find-references-at-mouse buffer)
+            (xref-find-references buffer)
+            (consult-yank-pop indexed)
+            (project-find-regexp buffer)
+            (consult-grep buffer)
+            (consult-ripgrep buffer)
+            (consult-imenu buffer)
+            (imenu buffer)))
 
-  ;; (setq vertico-multiform-categories
-  ;;       '((file reverse)))
+    ;; (setq vertico-multiform-categories
+    ;;       '((file reverse)))
 
-  (add-hook 'minibuffer-setup-hook #'vertico-repeat-save)
-  (add-hook 'rfn-eshadow-update-overlay-hook 'vertico-directory-tidy) ; Correct file path when changed)
+    (add-hook 'minibuffer-setup-hook #'vertico-repeat-save)
+    (add-hook 'rfn-eshadow-update-overlay-hook 'vertico-directory-tidy) ; Correct file path when changed)
 
-  (general-def
-    "M-c" 'vertico-repeat)
-  (general-def 'vertico-map
-    "C-j" 'vertico-next
-    "C-k" 'vertico-previous
-    "C-<backspace>" 'vertico-directory-delete-word
-    "<backspace>" 'vertico-directory-delete-char
-    "<enter>" 'vertico-directory-enter)
+    (general-def
+      "M-c" 'vertico-repeat)
+    (general-def 'vertico-map
+      "C-j" 'vertico-next
+      "C-k" 'vertico-previous
+      "C-<backspace>" 'vertico-directory-delete-word
+      "<backspace>" 'vertico-directory-delete-char
+      "<enter>" 'vertico-directory-enter)
 
-  (general-def 'vertico-reverse-map
-    "C-k" 'vertico-next
-    "C-j" 'vertico-previous)
+    (general-def 'vertico-reverse-map
+      "C-k" 'vertico-next
+      "C-j" 'vertico-previous)
 
-  (setq read-extended-command-predicate
-        #'command-completion-default-include-p)
+    (setq read-extended-command-predicate
+          #'command-completion-default-include-p)
 
-  (setq enable-recursive-minibuffers t)
+    (setq enable-recursive-minibuffers t))
 
 #+end_src
 
 ** corfu
 
-Completion emacs builtin options:
-#+begin_src emacs-lisp
-  ;; Enable indentation+completion using the TAB key.
-  (setq tab-always-indent 'complete)
-#+end_src
-
 corfu config:
 #+begin_src emacs-lisp
-  (straight-use-package '(corfu :files (:defaults "extensions/corfu-info.el"
-                                                  "extensions/corfu-history.el")))
+  (elpaca '(corfu :files (:defaults "extensions/corfu-info.el"
+                                    "extensions/corfu-history.el"))
 
-  (setq corfu-cycle t)
-  (setq corfu-auto t)
-  (setq corfu-auto-prefix 1)
-  (setq corfu-auto-delay 0.1)
-  (setq corfu-max-width 50)
-  (setq corfu-min-width corfu-max-width)
-  (setq corfu-preselect-first t)
+    (setq corfu-cycle t)
+    (setq corfu-auto t)
+    (setq corfu-auto-prefix 1)
+    (setq corfu-auto-delay 0.1)
+    (setq corfu-max-width 50)
+    (setq corfu-min-width corfu-max-width)
+    (setq corfu-preselect-first t)
 
-  (global-corfu-mode 1)
+    (global-corfu-mode 1)
 
-  (general-def 'corfu-map
-    "S-SPC" 'corfu-insert-separator
-    "M-h" 'corfu-info-documentation
-    "C-j" 'corfu-next
-    "C-k" 'corfu-previous)
+    (general-def 'corfu-map
+      "S-SPC" 'corfu-insert-separator
+      "M-h" 'corfu-info-documentation
+      "C-j" 'corfu-next
+      "C-k" 'corfu-previous))
 #+end_src
 
 Modify corfu-complete to try to complete common and if it can't then start corfu-next.
 #+begin_src emacs-lisp :tangle no
-  (defun kr-corfu-complete-dwim (old-fn)
-    "Call `corfu-complete' one then `corfu-next'"
-    (if (member last-command '(corfu-complete corfu-next))
-        (call-interactively #'corfu-next)
-      (call-interactively old-fn)))
-  ;; (advice-add 'corfu-complete :around #'kr-corfu-complete-dwim)
-  ;; (advice-remove 'corfu-complete #'kr-corfu-complete-dwim)
+  (elpaca nil
+    (defun kr-corfu-complete-dwim (old-fn)
+      "Call `corfu-complete' one then `corfu-next'"
+      (if (member last-command '(corfu-complete corfu-next))
+          (call-interactively #'corfu-next)
+        (call-interactively old-fn)))
+    ;; (advice-add 'corfu-complete :around #'kr-corfu-complete-dwim)
+    ;; (advice-remove 'corfu-complete #'kr-corfu-complete-dwim)
 
-  (general-def 'corfu-map
-    "<tab>" 'corfu-complete)
+    (general-def 'corfu-map
+      "<tab>" 'corfu-complete))
 #+end_src
 
 Make corfu work with meow
 #+begin_src emacs-lisp
-  (with-eval-after-load 'meow
-    (defun kr-meow--corfu-maybe-abort-advice ()
-     "Adviced for `meow-insert-exit'."
-     (when corfu--candidates
-       (corfu-quit)))
-    (add-hook 'meow-insert-exit-hook #'kr-meow--corfu-maybe-abort-advice))
+  (elpaca nil
+    (with-eval-after-load 'meow
+      (defun kr-meow--corfu-maybe-abort-advice ()
+        "Adviced for `meow-insert-exit'."
+        (when corfu--candidates
+          (corfu-quit)))
+      (add-hook 'meow-insert-exit-hook #'kr-meow--corfu-maybe-abort-advice)))
 #+end_src
 
 Make Corfu work from minibuffer:
 #+begin_src emacs-lisp
-  (defun corfu-enable-always-in-minibuffer ()
-    "Enable Corfu in the minibuffer if Vertico/Mct are not active."
-    (unless (or (bound-and-true-p mct--active)
-                (bound-and-true-p vertico--input))
-      ;; (setq-local corfu-auto nil) Enable/disable auto completion
-      (corfu-mode 1)))
-  (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1)
+  (elpaca nil
+    (defun corfu-enable-always-in-minibuffer ()
+      "Enable Corfu in the minibuffer if Vertico/Mct are not active."
+      (unless (or (bound-and-true-p mct--active)
+                  (bound-and-true-p vertico--input))
+        ;; (setq-local corfu-auto nil) Enable/disable auto completion
+        (corfu-mode 1)))
+    (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1))
 #+end_src
 
 ** cape
 #+begin_src emacs-lisp
-  (straight-use-package 'cape)
+  (elpaca 'cape
 
-  (add-hook 'completion-at-point-functions #'cape-file)
+    (add-hook 'completion-at-point-functions #'cape-file))
 #+end_src
 
 ** marginalia
 #+BEGIN_SRC emacs-lisp
-  (straight-use-package 'marginalia)
-  (marginalia-mode 1)
-  (setq marginalia-annotators '(marginalia-annotators-heavy
-                                marginalia-annotators-light nil))
+  (elpaca 'marginalia
+    (marginalia-mode 1)
+    (setq marginalia-annotators '(marginalia-annotators-heavy
+                                  marginalia-annotators-light nil)))
 #+END_SRC
 
 ** Consult
@@ -701,25 +657,25 @@ To search for multiple words with ~consult-ripgrep~ you should search e.g. for
 and the second filter to the completion-style filtering (?).
 
 #+BEGIN_SRC emacs-lisp
-  (straight-use-package 'consult)
+  (elpaca 'consult
 
-  (setq xref-show-xrefs-function #'consult-xref
-        xref-show-definitions-function #'consult-xref)
+    (setq xref-show-xrefs-function #'consult-xref
+          xref-show-definitions-function #'consult-xref)
 
-  (general-def
-     [remap switch-to-buffer] 'consult-buffer
-     [remap apropos-command] 'consult-apropos
-     [remap yank-pop] 'consult-yank-pop
-     "C-s" 'consult-line)
+    (general-def
+      [remap switch-to-buffer] 'consult-buffer
+      [remap apropos-command] 'consult-apropos
+      [remap yank-pop] 'consult-yank-pop
+      "C-s" 'consult-line)
 
-  (general-def mode-specific-map
-    "i" 'consult-imenu)
+    (general-def mode-specific-map
+      "i" 'consult-imenu)
 
-  (setq consult-preview-key 'any)
-  (with-eval-after-load 'consult
-   (consult-customize
-    consult-buffer
-    :preview-key (kbd "C-o")))
+    (setq consult-preview-key 'any)
+    (with-eval-after-load 'consult
+      (consult-customize
+       consult-buffer
+       :preview-key "C-o")))
 #+END_SRC
 
 ** embark
@@ -728,33 +684,35 @@ and the second filter to the completion-style filtering (?).
   + You can run ~embark-export-snapshot~ with =C-l S=
 
 #+BEGIN_SRC emacs-lisp
-  (straight-use-package 'embark)
-  (general-def 'minibuffer-mode-map
-    "C-," 'embark-act)
+  (elpaca 'embark
+    (general-def 'minibuffer-mode-map
+      "C-," 'embark-act))
 #+END_SRC
 
 *** embark-consult
 #+begin_src emacs-lisp
-  (straight-use-package 'embark-consult)
+  (elpaca 'embark-consult
 
-  (general-add-hook 'minibuffer-setup-hook
-                    #'(lambda () (require 'embark-consult))
-                    nil
-                    nil
-                    t)
+    (general-add-hook 'minibuffer-setup-hook
+                      #'(lambda () (require 'embark-consult))
+                      nil
+                      nil
+                      t))
 #+end_src
 
 ** dabbrev
 #+begin_src emacs-lisp
-  (general-def
-    "M-/" 'dabbrev-completion
-    "C-M-/" 'dabbrev-expand)
+  (elpaca nil
+    (general-def
+      "M-/" 'dabbrev-completion
+      "C-M-/" 'dabbrev-expand))
 #+end_src
 
 ** abbrev
 #+begin_src emacs-lisp
-  (with-eval-after-load 'abbrev
-    (blackout 'abbrev-mode))
+  (elpaca nil
+    (with-eval-after-load 'abbrev
+      (blackout 'abbrev-mode)))
 #+end_src
 
 * UI
@@ -774,29 +732,32 @@ and the second filter to the completion-style filtering (?).
    ((kr-font-available-p "Inconsolata")
     (set-frame-font "Inconsolata-12")))
 
-  (if kr-mac-p
-      (set-face-attribute 'default nil :height 145)
-    (set-face-attribute 'default nil :height 115))
+  (elpaca nil
+    (if kr-mac-p
+        (set-face-attribute 'default nil :height 145)
+      (set-face-attribute 'default nil :height 115)))
 #+end_src
 
 ** Themes
 
 #+begin_src emacs-lisp
-  (straight-use-package 'doom-themes)
-  (load-theme 'doom-snazzy t)
+  (use-package doom-themes
+    :demand t
+    :config
+    (load-theme 'doom-snazzy t)
 
-  ;; global-hl-line-mode and region have the same color so i change it here
-  ;; (set-face-attribute 'region nil :background "#454545")
-  ;; (set-face-attribute 'secondary-selection nil :background "#701818")
-  ;; (set-face-attribute 'highlight nil :background "#454545")
+    ;; global-hl-line-mode and region have the same color so i change it here
+    ;; (set-face-attribute 'region nil :background "#454545")
+    ;; (set-face-attribute 'secondary-selection nil :background "#701818")
+    ;; (set-face-attribute 'highlight nil :background "#454545")
 
-  ;; tab-bar-mode face
-  (set-face-attribute 'tab-bar nil :background "#1e2029")
-  (set-face-attribute 'tab-bar-tab nil
-                      :foreground "#ffffff"
-                      :background "#282a36"
-                      :overline "gray90"
-                      :box nil)
+    ;; tab-bar-mode face
+    (set-face-attribute 'tab-bar nil :background "#1e2029")
+    (set-face-attribute 'tab-bar-tab nil
+                        :foreground "#ffffff"
+                        :background "#282a36"
+                        :overline "gray90"
+                        :box nil))
 #+end_src
 
 ** Start-up maximized
@@ -808,99 +769,99 @@ and the second filter to the completion-style filtering (?).
 ** Goggles
 alternative package ~undo-hl~.
 #+begin_src emacs-lisp
-  (straight-use-package 'goggles)
-  (general-add-hook '(prog-mode-hook text-mode-hook) 'goggles-mode)
-  (with-eval-after-load 'goggles
-    (blackout 'goggles-mode))
+  (use-package goggles
+    :hook ((prog-mode text-mode) . goggles-mode)
+    :config
+    (with-eval-after-load 'goggles
+      (blackout 'goggles-mode)))
 #+end_src
 
 ** hl-todo
 #+begin_src emacs-lisp
-  (straight-use-package 'hl-todo)
+  (use-package hl-todo
+    :hook (prog-mode . hl-todo-mode)
+    :config
 
-  (add-hook 'prog-mode-hook 'hl-todo-mode)
-
-  (general-def kr-<b-menu-map
-    "t" 'hl-todo-previous)
-  (general-def kr->b-menu-map
-    "t" 'hl-todo-next)
-  (setq hl-todo-highlight-punctuation ":")
-  (setq hl-todo-keyword-faces
-      '(("TODO"   . "#FF4500")
-        ("FIXME"  . "#FF0000")
-        ("DEBUG"  . "#A020F0")
-        ("GOTCHA" . "#FF4500")
-        ("STUB"   . "#1E90FF")))
+    (general-def kr-<b-menu-map
+      "t" 'hl-todo-previous)
+    (general-def kr->b-menu-map
+      "t" 'hl-todo-next)
+    (setq hl-todo-highlight-punctuation ":")
+    (setq hl-todo-keyword-faces
+          '(("TODO"   . "#FF4500")
+            ("FIXME"  . "#FF0000")
+            ("DEBUG"  . "#A020F0")
+            ("GOTCHA" . "#FF4500")
+            ("STUB"   . "#1E90FF"))))
 #+end_src
 
 * UX
 ** jumplist
 
 #+begin_src emacs-lisp
-  (straight-use-package 'jumplist)
+  (elpaca 'jumplist
+    (general-def
+      "s-[" 'jumplist-previous
+      "s-]" 'jumplist-next)
 
-  (general-def
-    "s-[" 'jumplist-previous
-    "s-]" 'jumplist-next)
-
-  (require 'jumplist)
-  (custom-set-variables
-   '(jumplist-hook-commands
-     '(xref-find-definitions xref-find-references xref-go-back xref-go-forward
-       meow-beginning-of-thing meow-end-of-thing
-       meow-search
-       mouse-set-point
-       dired-jump
-       switch-to-buffer
-       isearch-forward end-of-buffer beginning-of-buffer
-       find-file))
-   '(jumplist-ex-mode t))
+    (require 'jumplist)
+    (custom-set-variables
+     '(jumplist-hook-commands
+       '(xref-find-definitions xref-find-references xref-go-back xref-go-forward
+                               meow-beginning-of-thing meow-end-of-thing
+                               meow-search
+                               mouse-set-point
+                               dired-jump
+                               switch-to-buffer
+                               isearch-forward end-of-buffer beginning-of-buffer
+                               find-file))
+     '(jumplist-ex-mode t)))
 #+end_src
 
 ** Editing
 
 *** evilmatchit
 #+begin_src emacs-lisp
-  (straight-use-package 'evil-matchit)
-
-  (with-eval-after-load 'meow
-    (general-def meow-normal-state-keymap
-      "%" 'evilmi-jump-items-native))
+  (elpaca 'evil-matchit
+    (with-eval-after-load 'meow
+      (general-def meow-normal-state-keymap
+        "%" 'evilmi-jump-items-native)))
 #+end_src
 
 *** Smartparen
 Smart paren I'm using to pair characters like quotes.
 #+begin_src emacs-lisp
-  (straight-use-package 'smartparens)
-  (require 'smartparens-config)
-  (defun indent-between-pair (&rest _ignored)
-    (newline)
-    (indent-according-to-mode)
-    (forward-line -1)
-    (indent-according-to-mode))
-  (sp-local-pair 'prog-mode "{" nil :post-handlers '((indent-between-pair "RET")))
-  (sp-local-pair 'prog-mode "[" nil :post-handlers '((indent-between-pair "RET")))
-  (sp-local-pair 'prog-mode "(" nil :post-handlers '((indent-between-pair "RET")))
+  (elpaca 'smartparens
+    (require 'smartparens-config)
+    (defun indent-between-pair (&rest _ignored)
+      (newline)
+      (indent-according-to-mode)
+      (forward-line -1)
+      (indent-according-to-mode))
+    (sp-local-pair 'prog-mode "{" nil :post-handlers '((indent-between-pair "RET")))
+    (sp-local-pair 'prog-mode "[" nil :post-handlers '((indent-between-pair "RET")))
+    (sp-local-pair 'prog-mode "(" nil :post-handlers '((indent-between-pair "RET")))
 
-  (smartparens-global-mode 1)
-  (show-smartparens-global-mode 1) ; alternative to show-paren-mode
-  (set-face-background 'show-paren-match "#7d7b7b")
-  (blackout 'smartparens-mode)
+    (smartparens-global-mode 1)
+    (show-smartparens-global-mode 1) ; alternative to show-paren-mode
+    (set-face-background 'show-paren-match "#7d7b7b")
+    (blackout 'smartparens-mode)
+    )
 #+end_src
 
 *** Expand region
 #+begin_src emacs-lisp
-  (straight-use-package 'expand-region)
+  (elpaca 'expand-region
 
-  (general-def 'meow-normal-state-keymap
-    "S" 'er/expand-region)
+    (general-def 'meow-normal-state-keymap
+      "S" 'er/expand-region))
 #+end_src
 
 *** Embrace
 #+begin_src emacs-lisp
-  (straight-use-package 'embrace)
-  (general-def meow-normal-state-keymap
-    "C" 'embrace-commander)
+  (elpaca 'embrace
+    (general-def meow-normal-state-keymap
+      "C" 'embrace-commander))
 #+end_src
 
 *** COMMENT Parinfer
@@ -920,49 +881,44 @@ Parinfer is there for lisp editing.
 
 *** Puni
 #+begin_src emacs-lisp
-  (straight-use-package 'puni)
-  (general-def 'meow-normal-state-keymap
-    "D" 'puni-kill-line
-    ">" 'k-compine-slurp-and-barf-forward
-    "<" 'k-compine-slurp-and-barf-back)
+  (elpaca 'puni
+    (general-def 'meow-normal-state-keymap
+      "D" 'puni-kill-line
+      ">" 'k-compine-slurp-and-barf-forward
+      "<" 'k-compine-slurp-and-barf-back)
 
-  (defun k-compine-slurp-and-barf-forward (arg)
-    (interactive "p")
-    (if (> arg 0)
-        (puni-slurp-forward arg)
-      (puni-barf-forward (- arg))))
+    (defun k-compine-slurp-and-barf-forward (arg)
+      (interactive "p")
+      (if (> arg 0)
+          (puni-slurp-forward arg)
+        (puni-barf-forward (- arg))))
 
-  (defun k-compine-slurp-and-barf-back (arg)
-    (interactive "p")
-    (if (> arg 0)
-        (puni-slurp-backward arg)
-      (puni-barf-backward (- arg))))
+    (defun k-compine-slurp-and-barf-back (arg)
+      (interactive "p")
+      (if (> arg 0)
+          (puni-slurp-backward arg)
+        (puni-barf-backward (- arg)))))
 #+end_src
 
 ** undo-tree
 #+begin_src emacs-lisp
-  (straight-use-package 'undo-tree)
-  (global-undo-tree-mode 1)
+  (elpaca 'undo-tree
+    (global-undo-tree-mode 1)
 
-  (general-def undo-tree-visualizer-mode-map
-    "k" 'undo-tree-visualize-undo
-    "j" 'undo-tree-visualize-redo
-    "h" 'undo-tree-visualize-switch-branch-left
-    "l" 'undo-tree-visualize-switch-branch-right)
-  ;; changes needed for undo-tree to play nice with meow
-  (general-def undo-tree-map
-    "C-x r u" nil
-    "C-x r U" nil
-    "C-x C-r u" 'undo-tree-save-state-to-register
-    "C-x C-r U" 'undo-tree-restore-state-from-register
-    "C-x r" 'find-file-read-only)
+    (general-def undo-tree-visualizer-mode-map
+      "k" 'undo-tree-visualize-undo
+      "j" 'undo-tree-visualize-redo
+      "h" 'undo-tree-visualize-switch-branch-left
+      "l" 'undo-tree-visualize-switch-branch-right)
+    ;; changes needed for undo-tree to play nice with meow
+    (general-def undo-tree-map
+      "C-x r u" nil
+      "C-x r U" nil
+      "C-x C-r u" 'undo-tree-save-state-to-register
+      "C-x C-r U" 'undo-tree-restore-state-from-register
+      "C-x r" 'find-file-read-only)
 
-  (blackout 'undo-tree-mode)
-#+end_src
-
-** hydra
-#+begin_src emacs-lisp
-  (straight-use-package 'hydra)
+    (blackout 'undo-tree-mode))
 #+end_src
 
 * Apps
@@ -974,28 +930,30 @@ Emacs builtin file menager.
 *** dired
 
 #+begin_src emacs-lisp
-  (setq dired-dwim-target t)
-  (setq dired-isearch-filenames 'dwim)
-  (setq dired-recursive-copies 'always)
-  (setq dired-recursive-deletes 'always)
-  (setq dired-create-destination-dirs 'always)
-  (setq dired-listing-switches "-valh --group-directories-first")
+  (elpaca nil
+    (setq dired-dwim-target t)
+    (setq dired-isearch-filenames 'dwim)
+    (setq dired-recursive-copies 'always)
+    (setq dired-recursive-deletes 'always)
+    (setq dired-create-destination-dirs 'always)
+    (setq dired-listing-switches "-valh --group-directories-first")
 
-  (add-hook 'dired-mode-hook 'toggle-truncate-lines)
-  (add-hook 'dired-mode-hook #'(lambda () (unless (file-remote-p default-directory)
-                                            (auto-revert-mode))))
+    (add-hook 'dired-mode-hook 'toggle-truncate-lines)
+    (add-hook 'dired-mode-hook #'(lambda () (unless (file-remote-p default-directory)
+                                              (auto-revert-mode))))
 
 
-  (when (string= system-type "darwin")
-    (setq dired-use-ls-dired t
-          insert-directory-program (executable-find "gls")
-          dired-listing-switches "-aBhl --group-directories-first"))
+    (when (string= system-type "darwin")
+      (setq dired-use-ls-dired t
+            insert-directory-program (executable-find "gls")
+            dired-listing-switches "-aBhl --group-directories-first"))
 
-  (general-def 'dired-mode-map
-    "K" 'dired-kill-subdir
-    "<mouse-2>" 'dired-mouse-find-file
-    "C-c '" 'dired-toggle-read-only)
- #+end_src
+    (general-def 'dired-mode-map
+      "K" 'dired-kill-subdir
+      "<mouse-2>" 'dired-mouse-find-file
+      "C-c '" 'dired-toggle-read-only
+      "/" 'dired-goto-file))
+#+end_src
 
 dired-x
 #+begin_src emacs-lisp
@@ -1017,21 +975,21 @@ dired-x
 *** COMMENT dired-sidebar
 #+begin_src emacs-lisp
   (u-p dired-sidebar
-    :commands (dired-sidebar-toggle-sidebar)
-    :config
-    (setq dired-sidebar-width 30))
+       :commands (dired-sidebar-toggle-sidebar)
+       :config
+       (setq dired-sidebar-width 30))
 
 #+end_src
 
 *** all-the-icons-dired
 
 #+begin_src emacs-lisp
-  (straight-use-package 'all-the-icons-dired)
+  (elpaca 'all-the-icons-dired
 
-  (when (display-graphic-p)
-    (add-hook 'dired-mode-hook #'(lambda () (interactive)
-                                  (unless (file-remote-p default-directory)
-                                    (all-the-icons-dired-mode)))))
+    (when (display-graphic-p)
+      (add-hook 'dired-mode-hook #'(lambda () (interactive)
+                                     (unless (file-remote-p default-directory)
+                                       (all-the-icons-dired-mode))))))
 #+end_src
 
 *** dired-hacks
@@ -1039,96 +997,95 @@ dired-x
 **** COMMENT dired-k
 #+begin_src emacs-lisp
   (u-p dired-k
-    :disabled
-    :hook
-    ((dired-initial-position . dired-k)
-     (dired-after-readin . dired-k-no-revert))
-    :config
-    (setq dired-k-style 'git)
-    (setq dired-k-human-readable t)
-    ;; so that dired-k plays nice with dired-subtree
-    (advice-add 'dired-subtree-insert :after 'dired-k-no-revert))
+       :disabled
+       :hook
+       ((dired-initial-position . dired-k)
+        (dired-after-readin . dired-k-no-revert))
+       :config
+       (setq dired-k-style 'git)
+       (setq dired-k-human-readable t)
+       ;; so that dired-k plays nice with dired-subtree
+       (advice-add 'dired-subtree-insert :after 'dired-k-no-revert))
 #+end_src
 
 **** dired-subtree
 #+begin_src emacs-lisp
-  (straight-use-package 'dired-subtree)
-
-  (general-def dired-mode-map
-    "TAB" 'dired-subtree-toggle)
-  (advice-add 'dired-subtree-toggle
-              :after #'(lambda ()
-                         (interactive)
-                         (call-interactively #'revert-buffer)))
+  (elpaca 'dired-subtree
+    (general-def dired-mode-map
+      "TAB" 'dired-subtree-toggle)
+    (advice-add 'dired-subtree-toggle
+                :after #'(lambda ()
+                           (interactive)
+                           (call-interactively #'revert-buffer))))
 #+end_src
 
 **** dired-reinbow
 #+begin_src emacs-lisp
-  (straight-use-package 'dired-rainbow)
-  (require 'dired-rainbow)
+  (elpaca 'dired-rainbow
+    (require 'dired-rainbow)
 
-  (dired-rainbow-define-chmod directory "#6cb2eb" "d.*")
-  (dired-rainbow-define html "#eb5286" ("css" "less" "sass" "scss" "htm" "html" "jhtm" "mht" "eml" "mustache" "xhtml"))
-  (dired-rainbow-define xml "#f2d024" ("xml" "xsd" "xsl" "xslt" "wsdl" "bib" "json" "msg" "pgn" "rss" "yaml" "yml" "rdata"))
-  (dired-rainbow-define document "#9561e2" ("docm" "doc" "docx" "odb" "odt" "pdb" "pdf" "ps" "rtf" "djvu" "epub" "odp" "ppt" "pptx"))
-  (dired-rainbow-define markdown "#ffed4a" ("org" "etx" "info" "markdown" "md" "mkd" "nfo" "pod" "rst" "tex" "textfile" "txt"))
-  (dired-rainbow-define database "#6574cd" ("xlsx" "xls" "csv" "accdb" "db" "mdb" "sqlite" "nc"))
-  (dired-rainbow-define media "#de751f" ("mp3" "mp4" "MP3" "MP4" "avi" "mpeg" "mpg" "flv" "ogg" "mov" "mid" "midi" "wav" "aiff" "flac"))
-  (dired-rainbow-define image "#f66d9b" ("tiff" "tif" "cdr" "gif" "ico" "jpeg" "jpg" "png" "psd" "eps" "svg"))
-  (dired-rainbow-define log "#c17d11" ("log"))
-  (dired-rainbow-define shell "#f6993f" ("awk" "bash" "bat" "sed" "sh" "zsh" "vim"))
-  (dired-rainbow-define interpreted "#38c172" ("py" "ipynb" "rb" "pl" "t" "msql" "mysql" "pgsql" "sql" "r" "clj" "cljs" "scala" "js"))
-  (dired-rainbow-define compiled "#4dc0b5" ("asm" "cl" "lisp" "el" "c" "h" "c++" "h++" "hpp" "hxx" "m" "cc" "cs" "cp" "cpp" "go" "f" "for" "ftn" "f90" "f95" "f03" "f08" "s" "rs" "hi" "hs" "pyc" ".java"))
-  (dired-rainbow-define executable "#8cc4ff" ("exe" "msi"))
-  (dired-rainbow-define compressed "#51d88a" ("7z" "zip" "bz2" "tgz" "txz" "gz" "xz" "z" "Z" "jar" "war" "ear" "rar" "sar" "xpi" "apk" "xz" "tar"))
-  (dired-rainbow-define packaged "#faad63" ("deb" "rpm" "apk" "jad" "jar" "cab" "pak" "pk3" "vdf" "vpk" "bsp"))
-  (dired-rainbow-define encrypted "#ffed4a" ("gpg" "pgp" "asc" "bfe" "enc" "signature" "sig" "p12" "pem"))
-  (dired-rainbow-define fonts "#6cb2eb" ("afm" "fon" "fnt" "pfb" "pfm" "ttf" "otf"))
-  (dired-rainbow-define partition "#e3342f" ("dmg" "iso" "bin" "nrg" "qcow" "toast" "vcd" "vmdk" "bak"))
-  (dired-rainbow-define vc "#0074d9" ("git" "gitignore" "gitattributes" "gitmodules"))
-  (dired-rainbow-define-chmod executable-unix "#38c172" "-.*x.*")
+    (dired-rainbow-define-chmod directory "#6cb2eb" "d.*")
+    (dired-rainbow-define html "#eb5286" ("css" "less" "sass" "scss" "htm" "html" "jhtm" "mht" "eml" "mustache" "xhtml"))
+    (dired-rainbow-define xml "#f2d024" ("xml" "xsd" "xsl" "xslt" "wsdl" "bib" "json" "msg" "pgn" "rss" "yaml" "yml" "rdata"))
+    (dired-rainbow-define document "#9561e2" ("docm" "doc" "docx" "odb" "odt" "pdb" "pdf" "ps" "rtf" "djvu" "epub" "odp" "ppt" "pptx"))
+    (dired-rainbow-define markdown "#ffed4a" ("org" "etx" "info" "markdown" "md" "mkd" "nfo" "pod" "rst" "tex" "textfile" "txt"))
+    (dired-rainbow-define database "#6574cd" ("xlsx" "xls" "csv" "accdb" "db" "mdb" "sqlite" "nc"))
+    (dired-rainbow-define media "#de751f" ("mp3" "mp4" "MP3" "MP4" "avi" "mpeg" "mpg" "flv" "ogg" "mov" "mid" "midi" "wav" "aiff" "flac"))
+    (dired-rainbow-define image "#f66d9b" ("tiff" "tif" "cdr" "gif" "ico" "jpeg" "jpg" "png" "psd" "eps" "svg"))
+    (dired-rainbow-define log "#c17d11" ("log"))
+    (dired-rainbow-define shell "#f6993f" ("awk" "bash" "bat" "sed" "sh" "zsh" "vim"))
+    (dired-rainbow-define interpreted "#38c172" ("py" "ipynb" "rb" "pl" "t" "msql" "mysql" "pgsql" "sql" "r" "clj" "cljs" "scala" "js"))
+    (dired-rainbow-define compiled "#4dc0b5" ("asm" "cl" "lisp" "el" "c" "h" "c++" "h++" "hpp" "hxx" "m" "cc" "cs" "cp" "cpp" "go" "f" "for" "ftn" "f90" "f95" "f03" "f08" "s" "rs" "hi" "hs" "pyc" ".java"))
+    (dired-rainbow-define executable "#8cc4ff" ("exe" "msi"))
+    (dired-rainbow-define compressed "#51d88a" ("7z" "zip" "bz2" "tgz" "txz" "gz" "xz" "z" "Z" "jar" "war" "ear" "rar" "sar" "xpi" "apk" "xz" "tar"))
+    (dired-rainbow-define packaged "#faad63" ("deb" "rpm" "apk" "jad" "jar" "cab" "pak" "pk3" "vdf" "vpk" "bsp"))
+    (dired-rainbow-define encrypted "#ffed4a" ("gpg" "pgp" "asc" "bfe" "enc" "signature" "sig" "p12" "pem"))
+    (dired-rainbow-define fonts "#6cb2eb" ("afm" "fon" "fnt" "pfb" "pfm" "ttf" "otf"))
+    (dired-rainbow-define partition "#e3342f" ("dmg" "iso" "bin" "nrg" "qcow" "toast" "vcd" "vmdk" "bak"))
+    (dired-rainbow-define vc "#0074d9" ("git" "gitignore" "gitattributes" "gitmodules"))
+    (dired-rainbow-define-chmod executable-unix "#38c172" "-.*x.*"))
 #+end_src
 
 ** Git
 *** Magit
 Git client in emacs
 #+begin_src emacs-lisp
-  (straight-use-package 'magit)
+  (elpaca 'magit
 
-  (add-hook 'git-commit-mode-hook #'flyspell-mode)
+    (add-hook 'git-commit-mode-hook #'flyspell-mode)
 
-  (setq git-commit-fill-column 72)
-  (setq magit-process-finish-apply-ansi-colors t)
+    (setq git-commit-fill-column 72)
+    (setq magit-process-finish-apply-ansi-colors t)
 
-  (with-eval-after-load 'magit
-    (dolist (face '(magit-diff-added
-                    magit-diff-added-highlight
-                    magit-diff-removed
-                    magit-diff-removed-highlight))
-      (set-face-background face (face-attribute 'magit-diff-context-highlight :background)))
-    (set-face-background 'magit-diff-context-highlight
-                         (face-attribute 'default :background)))
+    (with-eval-after-load 'magit
+      (dolist (face '(magit-diff-added
+                      magit-diff-added-highlight
+                      magit-diff-removed
+                      magit-diff-removed-highlight))
+        (set-face-background face (face-attribute 'magit-diff-context-highlight :background)))
+      (set-face-background 'magit-diff-context-highlight
+                           (face-attribute 'default :background)))
 
-  (general-def mode-specific-map
-    "v" 'magit-status
-    "V" 'magit-status-here)
+    (general-def mode-specific-map
+      "v" 'magit-status
+      "V" 'magit-status-here)
 
-  (setq magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1)
+    (setq magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1)
 
-  (general-def 'magit-status-mode-map
-    "S-<tab>" 'magit-section-cycle
-    "C-<tab>" 'tab-next)
+    (general-def 'magit-status-mode-map
+      "S-<tab>" 'magit-section-cycle
+      "C-<tab>" 'tab-next)
 
-  (with-eval-after-load 'project
-    (general-def 'project-prefix-map
-      "v" 'magit-status)
-    (add-hook 'project-switch-commands '(magit-status "Magit") 100)
-    (remove-hook 'project-switch-commands '(project-vc-dir "VC-Dir")))
+    (with-eval-after-load 'project
+      (general-def 'project-prefix-map
+        "v" 'magit-status)
+      (add-hook 'project-switch-commands '(magit-status "Magit") 100)
+      (remove-hook 'project-switch-commands '(project-vc-dir "VC-Dir"))))
 #+end_src
 
 #+end_src
 
-*** Forge
+*** COMMENT Forge
 
 #+begin_src emacs-lisp
   (setq auth-sources '("~/.authinfo"))
@@ -1138,104 +1095,64 @@ Git client in emacs
     (require 'forge))
 #+end_src
 
-*** COMMENT Git-gutter
+*** Git-gutter
 If I ever need to change to margin I can use this to setup diff-hl in margin
 https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff-hl.el
 #+begin_src emacs-lisp
-  (straight-use-package 'git-gutter-fringe)
-  (setq git-gutter:update-interval 0.02)
+  (elpaca 'git-gutter-fringe
+    (setq git-gutter:update-interval 0.02)
 
-  (require 'git-gutter-fringe)
-  (add-hook 'emacs-startup-hook #'global-git-gutter-mode)
+    (require 'git-gutter-fringe)
+    (add-hook 'emacs-startup-hook #'global-git-gutter-mode)
 
-  (define-fringe-bitmap 'git-gutter-fr:added [#b11100000] nil nil '(center repeated))
-  (define-fringe-bitmap 'git-gutter-fr:modified [#b11100000] nil nil '(center repeated))
-  (define-fringe-bitmap 'git-gutter-fr:deleted
-    [#b10000000
-     #b11000000
-     #b11100000
-     #b11110000] nil nil 'bottom)
+    (define-fringe-bitmap 'git-gutter-fr:added [#b11100000] nil nil '(center repeated))
+    (define-fringe-bitmap 'git-gutter-fr:modified [#b11100000] nil nil '(center repeated))
+    (define-fringe-bitmap 'git-gutter-fr:deleted
+      [#b10000000
+       #b11000000
+       #b11100000
+       #b11110000] nil nil 'bottom)
 
-  (general-def
-     :keymaps 'kr-<b-menu-map
-     :predicate 'global-git-gutter-mode
-     "g" 'git-gutter:previous-hunk)
-  (general-def
-   :keymaps 'kr->b-menu-map
-   :predicate 'global-git-gutter-mode
-   "g" 'git-gutter:next-hunk)
 
-  (with-eval-after-load 'git-gutter
-    (blackout 'git-gutter-mode))
+    (with-eval-after-load 'git-gutter
+      (blackout 'git-gutter-mode))
+
+    (defvar kr-git-gutter-map
+      (let ((keymap (make-sparse-keymap)))
+        (define-key keymap (kbd "p") 'git-gutter:previous-hunk)
+        (define-key keymap (kbd "n") 'git-gutter:next-hunk)
+        keymap))
+
+    (put 'git-gutter:next-hunk 'repeat-map 'kr-git-gutter-map)
+    (put 'git-gutter:previous-hunk 'repeat-map 'kr-git-gutter-map)
+
+    (general-def
+      "C-z g" kr-git-gutter-map))
 #+end_src
 
 *** git-timemachine
 #+begin_src emacs-lisp
-  (straight-use-package 'git-timemachine)
-  (setq git-timemachine-show-minibuffer-details t)
-  (general-def 'git-timemachine-mode-map
-    "C-k" 'git-timemachine-show-previous-revision
-    "C-j" 'git-timemachine-show-next-revision
-    "q" 'git-timemachine-quit)
-#+end_src
-
-*** hydra-smerge
-#+begin_src emacs-lisp
-  (straight-use-package 'smerge-mode)
-  (add-hook 'magit-diff-visit-file #'(lambda ()
-                                       (when smerge-mode
-                                         (smerge-hydra/body))))
-  (defhydra smerge-hydra (:hint nil
-                                  :pre (smerge-mode 1)
-                                  ;; Disable `smerge-mode' when quitting hydra if
-                                  ;; no merge conflicts remain.
-                                  :post (smerge-auto-leave))
-      "
-                                                      ╭────────┐
-    Movement   Keep           Diff              Other │ smerge │
-    ╭─────────────────────────────────────────────────┴────────╯
-       ^_g_^       [_b_] base       [_<_] upper/base    [_C_] Combine
-       ^_C-k_^     [_u_] upper      [_=_] upper/lower   [_r_] resolve
-       ^_k_ ↑^     [_l_] lower      [_>_] base/lower    [_R_] remove
-       ^_j_ ↓^     [_a_] all        [_H_] hightlight
-       ^_C-j_^     [_RET_] current  [_E_] ediff             ╭──────────
-       ^_G_^                                            │ [_q_] quit"
-      ("g" (progn (goto-char (point-min)) (smerge-next)))
-      ("G" (progn (goto-char (point-max)) (smerge-prev)))
-      ("C-j" smerge-next)
-      ("C-k" smerge-prev)
-      ("j" next-line)
-      ("k" previous-line)
-      ("b" smerge-keep-base)
-      ("u" smerge-keep-upper)
-      ("l" smerge-keep-lower)
-      ("a" smerge-keep-all)
-      ("RET" smerge-keep-current)
-      ("\C-m" smerge-keep-current)
-      ("<" smerge-diff-base-upper)
-      ("=" smerge-diff-upper-lower)
-      (">" smerge-diff-base-lower)
-      ("H" smerge-refine)
-      ("E" smerge-ediff)
-      ("C" smerge-combine-with-next)
-      ("r" smerge-resolve)
-      ("R" smerge-kill-current)
-      ("q" nil :color blue))
+  (elpaca 'git-timemachine
+    (setq git-timemachine-show-minibuffer-details t)
+    (general-def 'git-timemachine-mode-map
+      "C-k" 'git-timemachine-show-previous-revision
+      "C-j" 'git-timemachine-show-next-revision
+      "q" 'git-timemachine-quit))
 #+end_src
 
 ** kubernetes
 #+begin_src emacs-lisp
-  (straight-use-package 'kubernetes)
-  (setq kubernetes-overview-custom-views-alist
-        '((custom-overview context statefulsets deployments)))
-  (setq kubernetes-default-overview-view 'custom-overview)
+  (elpaca 'kubernetes
+    (setq kubernetes-overview-custom-views-alist
+          '((custom-overview context statefulsets deployments)))
+    (setq kubernetes-default-overview-view 'custom-overview)
 
-  (add-hook 'kubernetes-logs-mode-hook #'visual-line-mode)
-  (add-hook 'kubernetes-logs-mode-hook #'display-line-numbers-mode)
+    (add-hook 'kubernetes-logs-mode-hook #'visual-line-mode)
+    (add-hook 'kubernetes-logs-mode-hook #'display-line-numbers-mode)
 
-  (general-def 'kubernetes-overview-mode-map
-    "S-<tab>" 'magit-section-cycle
-    "C-<tab>" 'tab-next)
+    (general-def 'kubernetes-overview-mode-map
+      "S-<tab>" 'magit-section-cycle
+      "C-<tab>" 'tab-next))
 #+end_src
 
 ** Org
@@ -1262,8 +1179,8 @@ https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff
 ** olivetti
 Closely related to =org-mode= but not really so it goes here with org mode
 #+begin_src emacs-lisp
-  (straight-use-package 'olivetti)
-  (setq olivetti-body-width 90)
+  (elpaca 'olivetti
+    (setq olivetti-body-width 90))
 #+end_src
 
 ** COMMENT Hyperbole
@@ -1277,112 +1194,115 @@ Closely related to =org-mode= but not really so it goes here with org mode
 
 ** devdocs
 #+begin_src emacs-lisp
-  (straight-use-package 'devdocs)
-  (add-hook 'devdocs-mode-hook #'olivetti-mode)
-  (add-hook 'dart-mode-hook
-              #'(lambda () (setq-local devdocs-current-docs '("dart~2"))))
+  (elpaca 'devdocs
+    (add-hook 'devdocs-mode-hook #'olivetti-mode)
+    (add-hook 'dart-mode-hook
+              #'(lambda () (setq-local devdocs-current-docs '("dart~2")))))
 #+end_src
 
 ** man
 #+begin_src emacs-lisp
-  (general-def 'Man-mode-map
-    "d" 'View-scroll-half-page-forward
-    "u" 'View-scroll-half-page-backward)
+  (elpaca nil
+    (general-def 'Man-mode-map
+      "d" 'View-scroll-half-page-forward
+      "u" 'View-scroll-half-page-backward))
 #+end_src
 
 ** ibuffer
 #+begin_src emacs-lisp
-  (general-def
-    [remap list-buffers] 'ibuffer)
+  (elpaca nil
+    (general-def
+      [remap list-buffers] 'ibuffer))
 #+end_src
 
 ** wgrep
 #+begin_src emacs-lisp
-  (straight-use-package 'wgrep)
-  (require 'wgrep)
+  (elpaca 'wgrep
+    (require 'wgrep)
 
-  (set-face-background 'wgrep-face "#B6268")
+    (set-face-background 'wgrep-face "#B6268"))
 #+end_src
 
 * Programming
 
 ** eglot
 #+begin_src emacs-lisp
-  (straight-use-package 'eglot)
+  (elpaca 'eglot
 
-  (add-hook 'eglot-managed-mode-hook
-            #'(lambda ()
-                (setq eldoc-documentation-functions
-                      '(flymake-eldoc-function
-                        eglot-signature-eldoc-function
-                        eglot-hover-eldoc-function))
-                (setq eldoc-documentation-function
-                      'eldoc-documentation-compose)))
+    (add-hook 'eglot-managed-mode-hook
+              #'(lambda ()
+                  (setq eldoc-documentation-functions
+                        '(flymake-eldoc-function
+                          eglot-signature-eldoc-function
+                          eglot-hover-eldoc-function))
+                  (setq eldoc-documentation-function
+                        'eldoc-documentation-compose)))
 
-  (setq eldoc-echo-area-prefer-doc-buffer t)
-  (setq eldoc-echo-area-display-truncation-message t)
+    (setq eldoc-echo-area-prefer-doc-buffer t)
+    (setq eldoc-echo-area-display-truncation-message t)
 
-  (general-def 'eglot-mode-map
-    "C-M-." 'eglot-find-implementation)
+    (general-def 'eglot-mode-map
+      "C-M-." 'eglot-find-implementation)
 
-  ;; start eglot in these modes
-  (add-hook 'go-mode-hook #'eglot-ensure)
-  (add-hook 'rust-mode-hook #'eglot-ensure)
+    ;; start eglot in these modes
+    (add-hook 'go-mode-hook #'eglot-ensure)
+    (add-hook 'rust-mode-hook #'eglot-ensure))
 
 
 
 
 
   ;; trying eldoc-box
-  (straight-use-package 'eldoc-box)
-  (blackout 'eldoc-box)
-  (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
+  (elpaca 'eldoc-box
+    (blackout 'eldoc-box)
+    (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
 
-  (setq x-gtk-resizechild-frames 'resize-mode)
-  (with-eval-after-load 'eldoc-box
-    (setq eldoc-box-offset `(,(+ (/ (frame-native-width) 2) 30) 16 20)))
-  (setq eldoc-box-max-pixel-width 600)
-  (setq eldoc-box-max-pixel-height 1800)
+    (setq x-gtk-resizechild-frames 'resize-mode)
+    (with-eval-after-load 'eldoc-box
+      (setq eldoc-box-offset `(,(+ (/ (frame-native-width) 2) 30) 16 20)))
+    (setq eldoc-box-max-pixel-width 600)
+    (setq eldoc-box-max-pixel-height 1800))
   ;; (setq eldoc-box-cleanup-interval 0.5)
 #+end_src
 
 ** Tree-sitter
 #+BEGIN_SRC emacs-lisp
-  (straight-use-package 'tree-sitter)
-  (general-add-hook '(c-mode-hook
-                      js-mode-hook
-                      python-mode-hook
-                      css-mode-hook
-                      rust-mode-hook
-                      typescript-mode-hook
-                      go-mode-hook)
-                    #'tree-sitter-hl-mode)
-  (with-eval-after-load 'tree-sitter
-    (blackout 'tree-sitter-mode))
+  (elpaca 'tree-sitter
+    (general-add-hook '(c-mode-hook
+                        js-mode-hook
+                        python-mode-hook
+                        css-mode-hook
+                        rust-mode-hook
+                        typescript-mode-hook
+                        go-mode-hook)
+                      #'tree-sitter-hl-mode)
+    (with-eval-after-load 'tree-sitter
+      (blackout 'tree-sitter-mode)))
 
-  (straight-use-package 'tree-sitter-langs)
+  (elpaca 'tree-sitter-langs)
 #+END_SRC
 
 ** Project
 #+begin_src emacs-lisp
-  (straight-use-package 'project)
+  (elpaca 'project
 
-  (define-key project-prefix-map (kbd "g") 'consult-ripgrep)
+    (define-key project-prefix-map (kbd "g") 'consult-ripgrep))
 #+end_src
 
 ** xref
 #+begin_src emacs-lisp
-  (straight-use-package 'xref)
-  (general-def
-    "s-<mouse-1>" 'xref-find-references-at-mouse)
+  (elpaca 'xref
+    (general-def
+      "s-<mouse-1>" 'xref-find-references-at-mouse))
 
 #+end_src
 
 ** flymake
 #+begin_src emacs-lisp
-  (general-def flymake-mode-map
-    "C-z [e" 'flymake-goto-prev-error
-    "C-z ]e" 'flymake-goto-next-error)
+  (elpaca nil
+    (general-def flymake-mode-map
+      "C-z [e" 'flymake-goto-prev-error
+      "C-z ]e" 'flymake-goto-next-error))
 #+end_src
 
 ** Formating
@@ -1392,8 +1312,8 @@ Formating code buffers on save.
 Maybe better alternative [[https://github.com/purcell/emacs-reformatter][reformatter]]
 
 #+begin_src emacs-lisp
-  (straight-use-package 'apheleia)
-  (add-hook 'js-mode-hook 'apheleia-mode)
+  (elpaca 'apheleia
+    (add-hook 'js-mode-hook 'apheleia-mode))
 #+end_src
 
 ** yasnippet
@@ -1404,31 +1324,29 @@ You can have ~#condition: 'auto~ for the snippet to auto-expand.
 See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9][here]] to share snippets across modes
 
 #+begin_src emacs-lisp
-  (straight-use-package 'yasnippet)
-  (setq yas-alias-to-yas/prefix-p nil)    ; don't make yas/prefix commands
+  (elpaca 'yasnippet
+    (setq yas-alias-to-yas/prefix-p nil)    ; don't make yas/prefix commands
 
-  (add-hook 'prog-mode-hook #'yas-minor-mode)
+    (add-hook 'prog-mode-hook #'yas-minor-mode)
 
-  (with-eval-after-load 'lsp-mode
-    (add-hook 'lsp-mode-hook #'yas-minor-mode))
+    (with-eval-after-load 'lsp-mode
+      (add-hook 'lsp-mode-hook #'yas-minor-mode))
 
-  (with-eval-after-load 'eglot
-    (add-hook 'eglot-connect-hook #'yas-minor-mode))
+    (with-eval-after-load 'eglot
+      (add-hook 'eglot-connect-hook #'yas-minor-mode)))
 
-  (straight-use-package 'yasnippet-snippets)
+  (elpaca 'yasnippet-snippets
 
-  (with-eval-after-load 'yasnippet
-    (blackout 'yas-minor-mode))
+    (with-eval-after-load 'yasnippet
+      (blackout 'yas-minor-mode)))
 
   ;; for corfu
-  (straight-use-package 'cape)
-  (straight-use-package 'company)
-
-  (defun my/eglot-capf ()
-    (setq-local completion-at-point-functions
-                (list (cape-super-capf
-                       #'eglot-completion-at-point
-                       (cape-company-to-capf #'company-yasnippet)))))
+  (elpaca 'company
+    (defun my/eglot-capf ()
+      (setq-local completion-at-point-functions
+                  (list (cape-super-capf
+                         #'eglot-completion-at-point
+                         (cape-company-to-capf #'company-yasnippet))))))
 
   ;; (add-hook 'eglot-managed-mode-hook #'my/eglot-capf)
 #+end_src
@@ -1438,39 +1356,39 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 *** web-mode
 
 #+begin_src emacs-lisp
-  (straight-use-package 'web-mode)
-  (setq web-mode-auto-close-style 1)
-  (setq web-mode-code-indent-offset 2)
-  (setq web-mode-markup-indent-offset 2)
-  (setq web-mode-css-indent-offset 2)
-  (add-to-list 'auto-mode-alist '("\\.php?\\'" . web-mode))
-  (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+  (elpaca 'web-mode
+    (setq web-mode-auto-close-style 1)
+    (setq web-mode-code-indent-offset 2)
+    (setq web-mode-markup-indent-offset 2)
+    (setq web-mode-css-indent-offset 2)
+    (add-to-list 'auto-mode-alist '("\\.php?\\'" . web-mode))
+    (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode)))
 #+end_src
 
 *** emmet-mode
 #+begin_src emacs-lisp
-  (straight-use-package 'emmet-mode)
-  (setq emmet-move-cursor-after-expanding t)
-  (setq emmet-move-cursor-between-quotes t)
-  (general-def 'emmet-mode-keymap
-    "C-o" 'emmet-expand-line
-    "M-p" 'emmet-prev-edit-point
-    "M-n" 'emmet-next-edit-point)
-  (add-hook 'web-mode-hook 'emmet-mode)
+  (elpaca 'emmet-mode
+    (setq emmet-move-cursor-after-expanding t)
+    (setq emmet-move-cursor-between-quotes t)
+    (general-def 'emmet-mode-keymap
+      "C-o" 'emmet-expand-line
+      "M-p" 'emmet-prev-edit-point
+      "M-n" 'emmet-next-edit-point)
+    (add-hook 'web-mode-hook 'emmet-mode))
 #+end_src
 
 *** lsp-tailwindcss
 #+begin_src emacs-lisp
-  (straight-use-package 'lsp-tailwindcss)
-  (setq lsp-tailwindcss-major-modes '(rjsx-mode web-mode html-mode typescript-mode))
-  (setq lsp-tailwindcss-add-on-mode t)
-  (setq lsp-tailwindcss-emmet-completions t)
+  (elpaca 'lsp-tailwindcss
+    (setq lsp-tailwindcss-major-modes '(rjsx-mode web-mode html-mode typescript-mode))
+    (setq lsp-tailwindcss-add-on-mode t)
+    (setq lsp-tailwindcss-emmet-completions t)
 
-  (defun kr-tailwind-setup ()
-    (add-hook 'before-save-hook 'lsp-tailwindcss-rustywind-before-save nil t))
+    (defun kr-tailwind-setup ()
+      (add-hook 'before-save-hook 'lsp-tailwindcss-rustywind-before-save nil t))
 
-  (add-hook 'web-mode-hoo #'kr-tailwind-setup)
-  (add-hook 'css-mode-hook #'kr-tailwind-setup)
+    (add-hook 'web-mode-hoo #'kr-tailwind-setup)
+    (add-hook 'css-mode-hook #'kr-tailwind-setup))
 
 #+end_src
 
@@ -1484,30 +1402,24 @@ Seting ~sbcl~ to be default interpreter for lisp.
 #+end_src
 
 #+begin_src emacs-lisp
-  (straight-use-package 'sly)
+  (elpaca 'sly
 
-  ;; (setq sly-contribs '(sly-fancy sly-mrepl))
-  (general-def 'sly-mode-map
-    "C-z h" 'sly-describe-symbol)
+    ;; (setq sly-contribs '(sly-fancy sly-mrepl))
+    (general-def 'sly-mode-map
+      "C-z h" 'sly-describe-symbol)
 
-  (with-eval-after-load 'meow
-    (add-to-list 'meow-mode-state-list '(sly-mrepl-mode . normal))
-    (add-to-list 'meow-mode-state-list '(sly-db-mode . motion))
-    (add-to-list 'meow-mode-state-list '(sly-xref-mode . motion)))
-  ;; (general-def 'sly-mrepl-mode-map
-  ;;   "C-k" 'sly-mrepl-previous-prompt
-  ;;   "C-j" 'sly-mrepl-next-prompt)
+    (with-eval-after-load 'meow
+      (add-to-list 'meow-mode-state-list '(sly-mrepl-mode . normal))
+      (add-to-list 'meow-mode-state-list '(sly-db-mode . motion))
+      (add-to-list 'meow-mode-state-list '(sly-xref-mode . motion)))
+    (general-def 'sly-mrepl-mode-map
+      "C-p" 'sly-mrepl-previous-input-or-button
+      "C-n" 'sly-mrepl-next-input-or-button
+      "C-k" 'sly-mrepl-previous-prompt
+      "C-j" 'sly-mrepl-next-prompt))
   ;; (general-unbind 'sly-mrepl-mode-map
   ;;   "C-k"
   ;;   "C-j")
-#+end_src
-
-#+begin_src emacs-lisp :tangle no
-  (straight-use-package 'slime)
-  (straight-use-package 'slime-company)
-  (add-to-list 'load-path "~/git/slime-star/")
-
-  (setq slime-contribs '(slime-fancy slime-company slime-star))
 #+end_src
 
 *** JavaScript
@@ -1520,104 +1432,90 @@ Rest of configuration:
 
 *** TypeScript
 #+begin_src emacs-lisp
-  (straight-use-package 'typescript-mode)
+  (elpaca 'typescript-mode
 
-  (add-hook 'typescript-mode-hook #'eglot-ensure)
-  (add-hook 'typescript-mode-hook #'apheleia-mode)
-  (setq typescript-indent-level 2)
+    (add-hook 'typescript-mode-hook #'eglot-ensure)
+    (add-hook 'typescript-mode-hook #'apheleia-mode)
+    (setq typescript-indent-level 2))
 #+end_src
 
 *** JSON
 [[*LSP][lsp-hook]]
 #+begin_src emacs-lisp
-  (straight-use-package 'jsonian)
-  (jsonian-no-so-long-mode)
-  (with-eval-after-load 'eglot
-    (add-to-list 'eglot-server-programs
-                 `(jsonian-mode . ,(eglot-alternatives '(("vscode-json-language-server" "--stdio") ("json-languageserver" "--stdio"))))))
+  (elpaca 'jsonian
+    (with-eval-after-load 'eglot
+      (add-to-list 'eglot-server-programs
+                   `(jsonian-mode . ,(eglot-alternatives '(("vscode-json-language-server" "--stdio") ("json-languageserver" "--stdio")))))))
 #+end_src
 
 *** rust
 #+begin_src emacs-lisp
-  (straight-use-package 'rust-mode)
-  (straight-use-package 'cargo)
+  (elpaca 'rust-mode)
+  (elpaca 'cargo)
   (add-hook 'rust-mode-hook 'cargo-minor-mode)
 #+end_src
 
 *** Golang
 #+begin_src emacs-lisp
-  (straight-use-package 'go-mode)
-  (setq gofmt-command "goimports")
+  (elpaca 'go-mode
+    (setq gofmt-command "goimports")
 
-  (add-hook 'before-save-hook 'gofmt-before-save)
+    (add-hook 'before-save-hook 'gofmt-before-save)
 
 
 
-  (with-eval-after-load 'project
-    (defun your-go-module-root (dir)
-      (when-let ((root (locate-dominating-file dir "go.mod")))
-        (cons 'go-module root)))
+    (with-eval-after-load 'project
+      (defun your-go-module-root (dir)
+        (when-let ((root (locate-dominating-file dir "go.mod")))
+          (cons 'go-module root)))
 
-    (add-hook 'project-find-functions #'your-go-module-root)
+      (add-hook 'project-find-functions #'your-go-module-root)
 
-    (cl-defmethod project-root ((project (head go-module)))
-      (cdr project)))
+      (cl-defmethod project-root ((project (head go-module)))
+        (cdr project))))
 #+end_src
 
 *** Yaml
 #+begin_src emacs-lisp
-  (straight-use-package 'yaml-mode)
-  (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode))
-  (add-hook 'yaml-mode-hook #'toggle-truncate-lines)
+  (elpaca 'yaml-mode
+    (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode))
+    (add-hook 'yaml-mode-hook #'toggle-truncate-lines))
 #+end_src
 
 *** Scala
 #+begin_src emacs-lisp
-  (straight-use-package 'scala-mode)
+  (elpaca 'scala-mode)
 
-  (straight-use-package 'sbt-mode)
+  (elpaca 'sbt-mode)
 
   (substitute-key-definition
-     'minibuffer-complete-word
-     'self-insert-command
-     minibuffer-local-completion-map)
+   'minibuffer-complete-word
+   'self-insert-command
+   minibuffer-local-completion-map)
 
   (setq sbt:program-options '("-Dsbt.supershell=false"))
 #+end_src
 
-** GTK
-#+begin_src emacs-lisp
-  (defun gtk-run ()
-    "To compile and run gtk file."
-    (interactive)
-    (compile (concat "gcc $( pkg-config --cflags gtk4 ) -o "
-                     (file-name-sans-extension buffer-file-name)
-                     " "
-                     buffer-file-name
-                     " $( pkg-config --libs gtk4 )"))
-    (async-shell-command (file-name-sans-extension buffer-file-name) nil nil))
-#+end_src
-
 ** quickrun
 #+begin_src emacs-lisp
-  (straight-use-package 'quickrun)
-  (defun kr-quickrun (func)
-    (let ((win (get-mru-window)))
-      (save-buffer)
-      (funcall func)
-      (select-window win)))
+  (elpaca 'quickrun
+    (defun kr-quickrun (func)
+      (let ((win (get-mru-window)))
+        (save-buffer)
+        (funcall func)
+        (select-window win)))
 
-  (advice-add 'quickrun :around #'kr-quickrun)
+    (advice-add 'quickrun :around #'kr-quickrun))
 #+end_src
 
 ** Jenkins
 #+begin_src emacs-lisp
-  (straight-use-package 'jenkinsfile-mode)
+  (elpaca 'jenkinsfile-mode)
 #+end_src
 
 ** Docker
 #+begin_src emacs-lisp
-  (straight-use-package 'dockerfile-mode)
+  (elpaca 'dockerfile-mode)
 #+end_src
 
 ** Hooks for prog mode
@@ -1713,11 +1611,11 @@ Meow is a mode for modal edditing inpired by VIM.
      '("R" . meow-swap-grab)
      '("P" . meow-sync-grab)
 
-     '("@" . meow-goto-line)
+     '("@" . goto-line)
      '("z" . meow-pop-selection)
      '("o" . meow-open-below)
      '("O" . meow-open-above)
-     ;'("S" . meow-to-block)
+                                          ;'("S" . meow-to-block)
      '("s" . meow-block)
      '("q" . quit-window)
      '("Q" . kill-current-buffer))
@@ -1742,22 +1640,49 @@ Meow is a mode for modal edditing inpired by VIM.
 
   ;; (straight-use-package '(meow :depth full
   ;;                              :fork (:host github :repo "krdzo/meow" :protocol ssh)))
-  (straight-use-package 'meow)
-  (require 'meow)
+  (elpaca 'meow
 
-  (meow-setup)
-  (meow-global-mode 1)
+    (require 'meow)
 
-  (setq meow-use-clipboard t)
+    (meow-setup)
+    (meow-global-mode 1)
 
-  (setq meow-keypad-leader-dispatch "C-c")
+    (setq meow-use-clipboard t)
 
-  (add-hook 'ghelp-page-mode-hook 'meow-motion-mode)
-  (add-to-list 'meow-mode-state-list '(helpful-mode . motion))
-  (add-to-list 'meow-mode-state-list '(ghelp . motion))
-  (add-to-list 'meow-mode-state-list '(fundamental-mode . normal))
-  (add-to-list 'meow-mode-state-list '(eshell-mode . normal))
+    (setq meow-keypad-leader-dispatch "C-c")
 
+    (add-hook 'ghelp-page-mode-hook 'meow-motion-mode)
+    (add-to-list 'meow-mode-state-list '(helpful-mode . motion))
+    (add-to-list 'meow-mode-state-list '(ghelp . motion))
+    (add-to-list 'meow-mode-state-list '(fundamental-mode . normal))
+    (add-to-list 'meow-mode-state-list '(eshell-mode . normal))
+
+    (general-def 'meow-normal-state-keymap
+      "g" 'meow-cancel-selection))
+#+end_src
+
+** kbd hack
+#+begin_src emacs-lisp
+  (elpaca nil
+    (defun meow--execute-kbd-macro (kbd-macro)
+      "Execute KBD-MACRO."
+      (if (and (symbolp kbd-macro) (commandp kbd-macro))
+          (call-interactively kbd-macro)
+        (when-let ((ret (key-binding (read-kbd-macro kbd-macro))))
+          (cond
+           ((commandp ret)
+            (call-interactively ret))
+
+           ((and (not meow-use-keypad-when-execute-kbd) (keymapp ret))
+            (set-transient-map ret nil nil))
+
+           ((and meow-use-keypad-when-execute-kbd (keymapp ret))
+            (meow-keypad-start-with kbd-macro))))))
+
+    (setq meow--kbd-forward-line #'next-line)
+    (setq meow--kbd-backward-line #'previous-line)
+    (setq meow--kbd-forward-char #'forward-char)
+    (setq meow--kbd-backward-char #'backward-char))
 #+end_src
 
 ** Personal extensions
@@ -1797,9 +1722,9 @@ Normally when in =normal-state= the number keys 0..9 are bount to =meow-expand-[
            (meow-normal-mode 1)(meow-motion-mode -1))
           (t
            (meow-normal-mode -1)(meow-motion-mode 1))))
-
-  (general-def '(meow-motion-state-keymap meow-normal-state-keymap)
-    "|" 'kr-meow-motion-normal)
+  (elpaca nil
+    (general-def '(meow-motion-state-keymap meow-normal-state-keymap)
+      "|" 'kr-meow-motion-normal))
 #+end_src
 
 *** append/insert line
@@ -1824,10 +1749,11 @@ Insert or append on line.
       (progn
         (beginning-of-line-text)
         (call-interactively #'meow-insert))))
+  (elpaca nil
 
-  (general-def 'meow-normal-state-keymap
-    "I" 'kr-meow-insert-to-line
-    "A" 'kr-meow-append-to-line)
+    (general-def 'meow-normal-state-keymap
+      "I" 'kr-meow-insert-to-line
+      "A" 'kr-meow-append-to-line))
 #+end_src
 
 This makes it work with =smartparens= surround feature.
@@ -1896,37 +1822,38 @@ Not categorized
 Here I change emacs build in keybindings for better meow ergonomics.
 For example because I use ~dired~ that is bound to =C-x d= more often then ~list-direcory~ that is bound to =C-x C-d= so I will swap those two commands so I can type =SPC x d= to acces dired faster with ~meow-keypad~.
 #+begin_src emacs-lisp
-  (general-def
-    ;; C-x k
-    "C-x k" kmacro-keymap
-    "C-x C-k" 'kill-current-buffer
-    ;; C-x b
-    "C-x b" 'list-buffers
-    "C-x C-b" 'switch-to-buffer
-    ;; C-x 0
-    "C-x 0" 'text-scale-adjust
-    "C-x C-0" 'delete-window
-    ;; C-x d
-    "C-x d" 'list-directory
-    "C-x C-d" 'dired
-    ;; C-x o
-    "C-x o" 'delete-blank-lines
-    "C-x C-o" 'other-window
-    ;; C-x p
-    "C-x p" 'mark-page
-    "C-x C-p" project-prefix-map
-    ;; C-x r
-    "C-x r" 'revert-buffer
-    "C-x C-r" ctl-x-r-map
-    ;; C-x c
-    "C-x c" 'save-buffers-kill-terminal
-    "C-x C-c" (lambda () (interactive) (message "Quit Stop!"))
-    "C-h h" 'help-for-help)
+  (elpaca nil
+    (general-def
+      ;; C-x k
+      "C-x k" kmacro-keymap
+      "C-x C-k" 'kill-current-buffer
+      ;; C-x b
+      "C-x b" 'list-buffers
+      "C-x C-b" 'switch-to-buffer
+      ;; C-x 0
+      "C-x 0" 'text-scale-adjust
+      "C-x C-0" 'delete-window
+      ;; C-x d
+      "C-x d" 'list-directory
+      "C-x C-d" 'dired
+      ;; C-x o
+      "C-x o" 'delete-blank-lines
+      "C-x C-o" 'other-window
+      ;; C-x p
+      "C-x p" 'mark-page
+      "C-x C-p" project-prefix-map
+      ;; C-x r
+      "C-x r" 'revert-buffer
+      "C-x C-r" ctl-x-r-map
+      ;; C-x c
+      "C-x c" 'save-buffers-kill-terminal
+      "C-x C-c" (lambda () (interactive) (message "Quit Stop!"))
+      "C-h h" 'help-for-help)
 
-  ;; some convinience bindings
-  (general-def
-    "C-x W" 'window-swap-states
-    "C-x K" 'kill-buffer)
+    ;; some convinience bindings
+    (general-def
+      "C-x W" 'window-swap-states
+      "C-x K" 'kill-buffer))
 #+end_src
 
 ** input method hack
@@ -1954,9 +1881,10 @@ It switches input method when going from normal to insert mode.
     (if kr-current-input-method
         (message "Set input method in insert mode to %s." default-input-method)
       (message "Disabled input method in insert mode.")))
+  (elpaca nil
 
-  (general-def
-    "C-\\" 'kr-toggle-input-method)
+    (general-def
+      "C-\\" 'kr-toggle-input-method))
 #+end_src
 
 ** COMMENT Things
@@ -2049,7 +1977,7 @@ Template for other selfdefined meow states:
 ** Bindings for packages
 
 Binding for other packages
-*** gitgutter
+*** COMMENT gitgutter
 #+begin_src emacs-lisp
   (with-eval-after-load 'git-gutter
     (general-def
@@ -2065,12 +1993,13 @@ Section for code block that I got somewhere from the internet, or are small util
 
 Make parrent directory when it doesn't exist. Taken form [[https://emacsredux.com/blog/2022/06/12/auto-create-missing-directories/][here]]
 #+begin_src emacs-lisp
-(defun kr-er-auto-create-missing-dirs ()
-  (let ((target-dir (file-name-directory buffer-file-name)))
-    (unless (file-exists-p target-dir)
-      (make-directory target-dir t))))
+  (elpaca nil
+    (defun kr-er-auto-create-missing-dirs ()
+      (let ((target-dir (file-name-directory buffer-file-name)))
+        (unless (file-exists-p target-dir)
+          (make-directory target-dir t))))
 
-(add-to-list 'find-file-not-found-functions #'kr-er-auto-create-missing-dirs)
+    (add-to-list 'find-file-not-found-functions #'kr-er-auto-create-missing-dirs))
 #+end_src
 
 * hacks
@@ -2092,23 +2021,23 @@ lsp - yasnippet hack for ~$0~
 If a LSP server returns a snippet with ~$0~ snippet than change it to ~$1~ so that we don't exit snippet expansion. See [[https://github.com/emacs-lsp/lsp-dart/issues/130][issue]].
 #+begin_src emacs-lisp :tangle no
   (add-hook 'lsp-mode-hook
-    #'(lambda ()
-       (defun lsp--to-yasnippet-snippet (snippet)
-          "Convert LSP SNIPPET to yasnippet snippet."
-          ;; LSP snippet doesn't escape "{" and "`", but yasnippet requires escaping it.
-          ;; if there is a {0:} and no {1:} in snippet change the 0 to 1
-          (if (and (not (string-match "${1:" snippet))
-                   (string-match "${0:" snippet))
-              (let ((newsnippet (replace-regexp-in-string "${0:" "${1:"
-                                                          snippet)))
-                (replace-regexp-in-string (rx (or bos (not (any "$" "\\"))) (group (or "{" "`")))
-                                          (rx "\\" (backref 1))
-                                          newsnippet
-                                          nil nil 1))
-            (replace-regexp-in-string (rx (or bos (not (any "$" "\\"))) (group (or "{" "`")))
-                                      (rx "\\" (backref 1))
-                                      snippet
-                                      nil nil 1)))))
+            #'(lambda ()
+                (defun lsp--to-yasnippet-snippet (snippet)
+                  "Convert LSP SNIPPET to yasnippet snippet."
+                  ;; LSP snippet doesn't escape "{" and "`", but yasnippet requires escaping it.
+                  ;; if there is a {0:} and no {1:} in snippet change the 0 to 1
+                  (if (and (not (string-match "${1:" snippet))
+                           (string-match "${0:" snippet))
+                      (let ((newsnippet (replace-regexp-in-string "${0:" "${1:"
+                                                                  snippet)))
+                        (replace-regexp-in-string (rx (or bos (not (any "$" "\\"))) (group (or "{" "`")))
+                                                  (rx "\\" (backref 1))
+                                                  newsnippet
+                                                  nil nil 1))
+                    (replace-regexp-in-string (rx (or bos (not (any "$" "\\"))) (group (or "{" "`")))
+                                              (rx "\\" (backref 1))
+                                              snippet
+                                              nil nil 1)))))
 #+end_src
 
 Disable anoying background in LSP help buffer
@@ -2116,20 +2045,6 @@ Disable anoying background in LSP help buffer
   (with-eval-after-load 'markdown-mode
     (set-face-background 'markdown-code-face nil))
 #+end_src
-
-* Notes from old config
-
-** Interesting packages
-Remainder for some cool packages:
-- wgrep
-- emacs-window-layout
-- aweshell
-- sudo-edit
-- quickrun
-- crux
-- format-all
-- instant-rename-tag
-- epaint
 
 * COMMENT Disabled
 Some section that are disabled until I find time to setup them.
@@ -2169,17 +2084,17 @@ Next we create a ~display-buffer-alist~ rule so thet we group project buffers by
     (with-current-buffer buffer (project-current nil)))
 
   (defun kr-project-tab-name (buffer alist)
-      "If `tab-bar-mode' is enabled and we are in a project
+    "If `tab-bar-mode' is enabled and we are in a project
   then set the tab name to project root directory name."
-      (with-current-buffer buffer
-            (concat kr-package-icon " " (kr-project-name))))
+    (with-current-buffer buffer
+      (concat kr-package-icon " " (kr-project-name))))
 
   (autoload #'project-root "project")
   (defun kr-project-name ()
     "Return project name.
   Projects name is the same as the name of the projects parent direcotry."
     (file-name-nondirectory
-         (directory-file-name (project-root (project-current nil)))))
+     (directory-file-name (project-root (project-current nil)))))
 
   (advice-add 'project-kill-buffers :after #'tab-close)
 #+end_src
@@ -2193,11 +2108,11 @@ This are just rundom rules until I get time to sort them properly
                  display-buffer-reuse-window))
 
   (add-to-list 'display-buffer-alist
-            `(,(rx (| "*xref*"
-                      "*grep*"
-                      "*Occur*"))
-              display-buffer-reuse-window
-              (inhibit-same-window . nil)))
+               `(,(rx (| "*xref*"
+                         "*grep*"
+                         "*Occur*"))
+                 display-buffer-reuse-window
+                 (inhibit-same-window . nil)))
 #+end_src
 
 ** LSP
@@ -2225,11 +2140,11 @@ This are just rundom rules until I get time to sort them properly
   (general-add-hook 'lsp-mode-hook '(lsp-enable-which-key-integration))
 
   (general-define-key
-     :keymaps 'kr-gmenu-map
-     :predicate 'lsp-mode
-     "r" 'lsp-rename
-     "=" 'lsp-format-buffer
-     "a" 'lsp-execute-code-action)
+   :keymaps 'kr-gmenu-map
+   :predicate 'lsp-mode
+   "r" 'lsp-rename
+   "=" 'lsp-format-buffer
+   "a" 'lsp-execute-code-action)
   (general-define-key
    :keymaps 'lsp-mode-map
    "C-z h" 'lsp-describe-thing-at-point)
@@ -2237,14 +2152,14 @@ This are just rundom rules until I get time to sort them properly
   (with-eval-after-load 'lsp-lens
     (blackout 'lsp-lens-mode))
 
-    ;; (setq lsp-restart 'ignore)
-    ;; (setq lsp-eldoc-enable-hover nil)
-    ;; (setq lsp-enable-file-watchers nil)
-    ;; (setq lsp-signature-auto-activate nil)
-    ;; (setq lsp-modeline-diagnostics-enable nil)
-    ;; (setq lsp-keep-workspace-alive nil)
-    ;; (setq lsp-auto-execute-action nil)
-    ;; (setq lsp-before-save-edits nil)
+  ;; (setq lsp-restart 'ignore)
+  ;; (setq lsp-eldoc-enable-hover nil)
+  ;; (setq lsp-enable-file-watchers nil)
+  ;; (setq lsp-signature-auto-activate nil)
+  ;; (setq lsp-modeline-diagnostics-enable nil)
+  ;; (setq lsp-keep-workspace-alive nil)
+  ;; (setq lsp-auto-execute-action nil)
+  ;; (setq lsp-before-save-edits nil)
 #+END_SRC
 
 LSP corfu conf:
@@ -2256,14 +2171,14 @@ LSP corfu conf:
             '(flex orderless))) ;; Configure flex
     (add-hook 'lsp-completion-mode-hook #'kr-lsp-mode-setup-completion))
 
-    ;; change lsp-capf funciton to make it work like other capf-s
-    ;; explanation: https://github.com/minad/cape/issues/24
-    ;; (add-hook 'lsp-completion-mode-hook
-    ;;           (lambda () (setq-local completion-at-point-functions '(lsp-completion-at-point t))))
-    ;; (add-hook 'lsp-completion-mode-hook
-    ;;   (lambda ()
-    ;;     (setq-local completion-at-point-functions
-    ;;       (list (cape-capf-properties #'lsp-completion-at-point :exclusive 'no) t)))))
+  ;; change lsp-capf funciton to make it work like other capf-s
+  ;; explanation: https://github.com/minad/cape/issues/24
+  ;; (add-hook 'lsp-completion-mode-hook
+  ;;           (lambda () (setq-local completion-at-point-functions '(lsp-completion-at-point t))))
+  ;; (add-hook 'lsp-completion-mode-hook
+  ;;   (lambda ()
+  ;;     (setq-local completion-at-point-functions
+  ;;       (list (cape-capf-properties #'lsp-completion-at-point :exclusive 'no) t)))))
 
 #+end_src
 
@@ -2274,4 +2189,12 @@ LSP corfu conf:
   (add-hook 'python-mode-hook #'(lambda () (require 'dap-python)))
   (add-hook 'java-mode-hook #'(lambda () (require 'dap-java)))
   (add-hook 'dap-stopped-hook #'(lambda (arg) (call-interactively #'dap-hydra)))
+#+end_src
+
+* temp
+#+begin_src emacs-lisp
+  (elpaca nil
+    (setq truncate-partial-width-windows 150)
+    (general-def
+      "C-`" 'next-error))
 #+end_src
