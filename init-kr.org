@@ -834,7 +834,7 @@ and the second filter to the completion-style filtering (?).
   (use-package doom-themes
     :demand t
     :config
-    (load-theme 'doom-snazzy t)
+    (load-theme 'doom-rouge t)
 
     ;; global-hl-line-mode and region have the same color so i change it here
     ;; (set-face-attribute 'region nil :background "#454545")
@@ -1752,6 +1752,7 @@ Meow is a mode for modal edditing inpired by VIM.
 #+end_src
 
 ** kbd hack
+Hack meow to use commands insted keybindings.
 #+begin_src emacs-lisp
   (elpaca nil
     (defun meow--execute-kbd-macro (kbd-macro)
@@ -2294,4 +2295,10 @@ LSP corfu conf:
     (setq truncate-partial-width-windows 150)
     (general-def
       "C-`" 'next-error))
+#+end_src
+
+* Notes
+To start emacs with different configuration run:
+#+begin_src shell
+  emacs --init-directory=directory
 #+end_src
