@@ -1168,9 +1168,9 @@ Git client in emacs
 
     (with-eval-after-load 'project
       (general-def 'project-prefix-map
-        "v" 'magit-status)
-      (add-hook 'project-switch-commands '(magit-status "Magit") 100)
-      (remove-hook 'project-switch-commands '(project-vc-dir "VC-Dir"))))
+        "v" 'magit-project-status)
+      (remove-hook 'project-switch-commands '(project-vc-dir "VC-Dir"))
+      (add-hook 'project-switch-commands '(magit-project-status "Magit") 100)))
 #+end_src
 
 #+end_src
