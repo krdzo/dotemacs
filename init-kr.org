@@ -484,6 +484,43 @@ This is maybe the most important variable to set, it makes ~switch-to-buffer~ ob
         "C-x C-S-b" 'kr-swith-to-buffer-obey))
 #+end_src
 
+** Custom dispaly-buffer funcitons
+
+#+begin_src emacs-lisp
+  (defun kr-display-buffer-reuse-window (buffer alist)
+    "Same ad `display-buffer-reuse-window' just doesn't respect
+  'inhibit-same-window' alist variable"
+    (let* ((alist-entry (assq 'reusable-frames alist))
+           (frames (cond (alist-entry (cdr alist-entry))
+                         ((if (eq pop-up-frames 'graphic-only)
+                              (display-graphic-p)
+                            pop-up-frames)
+                          0)
+                         (display-buffer-reuse-frames 0)
+                         (t (last-nonminibuffer-frame))))
+           (window (if (eq buffer (window-buffer))
+                       (selected-window)
+                     ;; Preferably use a window on the selected frame,
+                     ;; if such a window exists (Bug#36680).
+                     (let* ((windows (delq (selected-window)
+                                           (get-buffer-window-list
+                                            buffer 'nomini frames)))
+                            (first (car windows))
+                            (this-frame (selected-frame)))
+                       (cond
+                        ((eq (window-frame first) this-frame)
+                         first)
+                        ((catch 'found
+                           (dolist (next (cdr windows))
+                             (when (eq (window-frame next) this-frame)
+                               (throw 'found next)))))
+                        (t first))))))
+      (when (window-live-p window)
+        (prog1 (window--display-buffer buffer window 'reuse alist)
+          (unless (cdr (assq 'inhibit-switch-frame alist))
+            (window--maybe-raise-frame (window-frame window)))))))
+#+end_src
+
 ** COMMENT tab-bar-mode
 Enable ~tab-bar-mode~. It helps us to keep window configurations under control.
 #+begin_src emacs-lisp
@@ -520,28 +557,11 @@ Next we create a ~display-buffer-alist~ rule so thet we group project buffers by
   (advice-add 'project-kill-buffers :after #'tab-close)
 #+end_src
 
-** COMMENT The rest
-
-This are just rundom rules until I get time to sort them properly
-
-#+begin_src emacs-lisp
-  (add-to-list 'display-buffer-alist
-               `(,(rx "*" (one-or-more alpha) "*")
-                 display-buffer-reuse-window))
-
-  (add-to-list 'display-buffer-alist
-            `(,(rx (| "*xref*"
-                      "*grep*"
-                      "*Occur*"))
-              display-buffer-reuse-window
-              (inhibit-same-window . nil)))
-#+end_src
-
 ** toggle window select
 Function that toggles if a window can be selected with ~~other-window~ =C-x o= function.
 #+begin_src emacs-lisp
   (defun kr-disable-window-select ()
-    "Makes it so that you cant C-x o window in which this command is called."
+    "Makes it so that you can't C-x o window in which this command is called."
     (interactive)
     (if (not (window-parameter (selected-window) 'no-other-window))
         (set-window-parameter (selected-window) 'no-other-window t)
@@ -553,7 +573,7 @@ Always open sly REPL in other window
 #+begin_src emacs-lisp
   (add-to-list 'display-buffer-alist
                `("*sly-mrepl for sbcl*"
-                 nil
+                 kr-display-buffer-reuse-window
                  (inhibit-same-window . t)))
 #+end_src
 
