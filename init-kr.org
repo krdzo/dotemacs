@@ -1180,7 +1180,7 @@ Git client in emacs
 #+begin_src emacs-lisp
   (setq auth-sources '("~/.authinfo"))
 
-  (straight-use-package 'forge)
+  (elpaca forge)
   (with-eval-after-load 'magit
     (require 'forge))
 #+end_src
@@ -1375,7 +1375,6 @@ Closely related to =org-mode= but not really so it goes here with org mode
 ** Project
 #+begin_src emacs-lisp
   (elpaca 'project
-
     (define-key project-prefix-map (kbd "g") 'consult-ripgrep))
 #+end_src
 
@@ -1842,8 +1841,7 @@ Insert or append on line.
         (progn
           (unless (= (point) (region-beginning))
             (meow-reverse))
-               (embrace-add))
-        (embrace-add)
+          (embrace-add))
       (progn
         (beginning-of-line-text)
         (call-interactively #'meow-insert))))
