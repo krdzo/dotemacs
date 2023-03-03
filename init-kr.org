@@ -856,7 +856,7 @@ and the second filter to the completion-style filtering (?).
     :config
     (if kr-mac-p
         (load-theme 'doom-oceanic-next t)
-      (lead-theme 'doom-rouge))
+      (load-theme 'doom-rouge t))
 
     ;; global-hl-line-mode and region have the same color so i change it here
     ;; (set-face-attribute 'region nil :background "#454545")
