@@ -1335,6 +1335,12 @@ Closely related to =org-mode= but not really so it goes here with org mode
     (set-face-background 'wgrep-face "#B6268"))
 #+end_src
 
+** Project
+#+begin_src emacs-lisp
+  (elpaca 'project
+    (define-key project-prefix-map (kbd "g") 'consult-ripgrep))
+#+end_src
+
 * Programming
 
 ** eglot
@@ -1393,12 +1399,6 @@ Closely related to =org-mode= but not really so it goes here with org mode
 
   (elpaca 'tree-sitter-langs)
 #+END_SRC
-
-** Project
-#+begin_src emacs-lisp
-  (elpaca 'project
-    (define-key project-prefix-map (kbd "g") 'consult-ripgrep))
-#+end_src
 
 ** xref
 #+begin_src emacs-lisp
