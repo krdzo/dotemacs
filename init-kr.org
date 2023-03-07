@@ -446,6 +446,12 @@ Setup PATH and other env varables.
       (exec-path-from-shell-initialize)))
 #+end_src
 
+*** mouse scroll
+#+begin_src emacs-lisp
+  (when kr-mac-p
+    (setq mouse-wheel-flip-direction t))
+#+end_src
+
 *** rest
 #+begin_src emacs-lisp
   (when (string= system-type "darwin")
