@@ -1982,6 +1982,9 @@ For example because I use ~dired~ that is bound to =C-x d= more often then ~list
       "C-x c" 'save-buffers-kill-terminal
       "C-x C-c" (lambda () (interactive) (message "Quit Stop!"))
       "C-h h" 'help-for-help)
+    (general-def project-prefix-map
+      "b" 'project-list-buffers
+      "C-b" 'project-switch-to-buffer)
 
     ;; some convinience bindings
     (general-def
