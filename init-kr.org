@@ -1831,6 +1831,15 @@ Normally when in =normal-state= the number keys 0..9 are bount to =meow-expand-[
   (advice-add 'meow-expand :around #'kr-meow-maybe-digit)
 #+end_src
 
+*** Advice for =meow-yank=
+#+begin_src emacs-lisp
+  (defun kr-meow-yank ()
+    (save-excursion
+      (exchange-point-and-mark t)
+      (indent-according-to-mode)))
+  (advice-add 'meow-yank :after #'kr-meow-yank)
+#+end_src
+
 *** Toogle motion
 
 #+begin_src emacs-lisp
