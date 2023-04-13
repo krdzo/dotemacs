@@ -591,7 +591,7 @@ Enable =tab= completion
 #+end_src
 
 #+begin_src emacs-lisp
-  (setq completion-styles '(prescient basic partial-completion))
+  (setq completion-styles '(basic partial-completion))
 #+end_src
 
 *** Prescient
@@ -604,6 +604,8 @@ Enable =tab= completion
 
     (setq prescient-filter-method '(literal prefix fuzzy))
     (setq prescient-filter-method '(literal prefix literal-prefix))
+
+    (add-to-list 'completion-category-overrides '(file (styles basic partial-completion)))
 
     ;; setups are copyed from wikis
     ;; setup for vertico
@@ -630,7 +632,6 @@ Enable =tab= completion
       (setq corfu-sort-function #'prescient-completion-sort)
       (setq corfu-sort-override-function #'prescient-completion-sort))
 
-    (add-to-list 'completion-category-overrides '(file (styles basic partial-completion)))
     ;; setup eglot
     (with-eval-after-load 'eglot
       (add-to-list 'completion-category-overrides '(eglot (styles prescient basic)))))
@@ -662,6 +663,7 @@ Enable =tab= completion
             (consult-grep buffer)
             (consult-ripgrep buffer)
             (consult-imenu buffer)
+            (eglot-find-implementation buffer)
             (imenu buffer)))
 
     ;; (setq vertico-multiform-categories
@@ -714,21 +716,6 @@ corfu config:
       "C-k" 'corfu-previous))
 #+end_src
 
-Modify corfu-complete to try to complete common and if it can't then start corfu-next.
-#+begin_src emacs-lisp :tangle no
-  (elpaca nil
-    (defun kr-corfu-complete-dwim (old-fn)
-      "Call `corfu-complete' one then `corfu-next'"
-      (if (member last-command '(corfu-complete corfu-next))
-          (call-interactively #'corfu-next)
-        (call-interactively old-fn)))
-    ;; (advice-add 'corfu-complete :around #'kr-corfu-complete-dwim)
-    ;; (advice-remove 'corfu-complete #'kr-corfu-complete-dwim)
-
-    (general-def 'corfu-map
-      "<tab>" 'corfu-complete))
-#+end_src
-
 Make corfu work with meow
 #+begin_src emacs-lisp
   (elpaca nil
@@ -755,7 +742,6 @@ Make Corfu work from minibuffer:
 ** cape
 #+begin_src emacs-lisp
   (elpaca 'cape
-
     (add-hook 'completion-at-point-functions #'cape-file))
 #+end_src
 
@@ -866,7 +852,7 @@ and the second filter to the completion-style filtering (?).
 
     ;; global-hl-line-mode and region have the same color so i change it here
     ;; (set-face-attribute 'region nil :background "#454545")
-    ;; (set-face-attribute 'secondary-selection nil :background "#701818")
+    (set-face-attribute 'secondary-selection nil :background "#151A2D")
     ;; (set-face-attribute 'highlight nil :background "#454545")
 
     ;; tab-bar-mode face
@@ -914,26 +900,18 @@ alternative package ~undo-hl~.
 #+end_src
 
 * UX
-** jumplist
+** better-jumper
 
 #+begin_src emacs-lisp
-  (elpaca 'jumplist
+  (use-package better-jumper
+    :config
+    (better-jumper-mode 1)
+    (setq better-jumper-add-jump-behavior 'replace)
     (general-def
-      "s-[" 'jumplist-previous
-      "s-]" 'jumplist-next)
-
-    (require 'jumplist)
-    (custom-set-variables
-     '(jumplist-hook-commands
-       '(xref-find-definitions xref-find-references xref-go-back xref-go-forward
-                               meow-beginning-of-thing meow-end-of-thing
-                               meow-search
-                               mouse-set-point
-                               dired-jump
-                               switch-to-buffer
-                               isearch-forward end-of-buffer beginning-of-buffer
-                               find-file))
-     '(jumplist-ex-mode t)))
+      "s-[" 'better-jumper-jump-backward
+      "s-]" 'better-jumper-jump-forward)
+    (advice-add 'beginning-of-buffer :before #'better-jumper-set-jump)
+    (advice-add 'end-of-buffer :before #'better-jumper-set-jump))
 #+end_src
 
 ** Editing
@@ -1411,7 +1389,6 @@ Closely related to =org-mode= but not really so it goes here with org mode
   (elpaca 'xref
     (general-def
       "s-<mouse-1>" 'xref-find-references-at-mouse))
-
 #+end_src
 
 ** flymake
@@ -1578,7 +1555,6 @@ Rest of configuration:
     (setq gofmt-command "goimports")
 
     (add-hook 'before-save-hook 'gofmt-before-save)
-
 
 
     (with-eval-after-load 'project
@@ -1836,7 +1812,8 @@ Normally when in =normal-state= the number keys 0..9 are bount to =meow-expand-[
   (defun kr-meow-yank ()
     (save-excursion
       (exchange-point-and-mark t)
-      (indent-according-to-mode)))
+      (indent-according-to-mode))
+    (indent-according-to-mode))
   (advice-add 'meow-yank :after #'kr-meow-yank)
 #+end_src
 
