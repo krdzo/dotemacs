@@ -2100,6 +2100,12 @@ Binding for other packages
       '(">g" . "C-z g n")
       '("<g" . "C-z g p")))
 #+end_src
+*** Magit
+#+begin_src emacs-lisp
+  (elpaca nil
+    (meow-define-keys 'normal
+      '("ZG" . magit-file-dispatch)))
+#+end_src
 
 * Miscellaneous
 Section for code block that I got somewhere from the internet, or are small utility funcitons.
