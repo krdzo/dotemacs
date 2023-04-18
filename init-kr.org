@@ -1665,8 +1665,8 @@ Meow is a mode for modal edditing inpired by VIM.
      ;; thing
      '("." . meow-inner-of-thing)
      '("," . meow-bounds-of-thing)
-     '("[" . meow-beginning-of-thing)
-     '("]" . meow-end-of-thing)
+     ;; '("[" . meow-beginning-of-thing)
+     ;; '("]" . meow-end-of-thing)
 
      '("u" . meow-undo)
      '("U" . undo-tree-redo)
@@ -1688,8 +1688,8 @@ Meow is a mode for modal edditing inpired by VIM.
      '("H" . meow-left-expand)
      '("L" . meow-right-expand)
      '("c" . meow-change)
-     '("w" . meow-mark-word)
-     '("W" . meow-mark-symbol)
+     '("w" . er/expand-region)
+     '("W" . er/contract-region)
      '("n" . meow-search)
      '("/" . meow-visit)
 
@@ -1718,7 +1718,8 @@ Meow is a mode for modal edditing inpired by VIM.
      '("o" . meow-open-below)
      '("O" . meow-open-above)
                                           ;'("S" . meow-to-block)
-     '("s" . meow-block)
+     '("s" . er/expand-region)
+     '("S" . er/contract-region)
      '("q" . quit-window)
      '("Q" . kill-current-buffer))
 
@@ -1760,7 +1761,7 @@ Meow is a mode for modal edditing inpired by VIM.
     (add-to-list 'meow-mode-state-list '(eshell-mode . normal))
 
     (general-def 'meow-normal-state-keymap
-      "g" 'meow-cancel-selection))
+      "Z" 'meow-cancel-selection))
 #+end_src
 
 ** kbd hack
@@ -1867,7 +1868,8 @@ Insert or append on line.
           (embrace-add))
       (progn
         (beginning-of-line-text)
-        (call-interactively #'meow-insert))))
+        (call-interactively #'meow-insert)))
+    (forward-char))
 
   (elpaca nil
     (general-def 'meow-normal-state-keymap
@@ -2055,21 +2057,32 @@ Template for other selfdefined meow states:
 ** Bindings for packages
 
 Binding for other packages
-*** COMMENT gitgutter
+*** gitgutter
 #+begin_src emacs-lisp
-  (with-eval-after-load 'git-gutter
-    (general-def
-      "C-z g n" 'git-gutter:next-hunk
-      "C-z g p" 'git-gutter:previous-hunk)
-    (meow-define-keys 'normal
-      '(">g" . "C-z g n")
-      '("<g" . "C-z g p")))
+  (elpaca nil
+    (with-eval-after-load 'git-gutter
+      (general-def
+        "C-z g n" 'git-gutter:next-hunk
+        "C-z g p" 'git-gutter:previous-hunk)
+      (meow-define-keys 'normal
+        '("]g" . "C-z g n")
+        '("[g" . "C-z g p"))))
 #+end_src
+
+*** Flymake
+#+begin_src emacs-lisp
+  (with-eval-after-load 'flymake
+    (meow-define-keys 'normal
+      '("[e" . "C-z [e")
+      '("]e" . "C-z ]e")))
+#+end_src
+
 *** Magit
 #+begin_src emacs-lisp
   (elpaca nil
     (meow-define-keys 'normal
-      '("ZG" . magit-file-dispatch)))
+      '("gg" . magit-file-dispatch)))
+#+end_src
 
 *** LSP
 #+begin_src emacs-lisp
