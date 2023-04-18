@@ -742,6 +742,8 @@ Make Corfu work from minibuffer:
 ** cape
 #+begin_src emacs-lisp
   (elpaca 'cape
+    (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
+    (advice-add 'lsp-completion-at-point :around #'cape-wrap-buster)
     (add-hook 'completion-at-point-functions #'cape-file))
 #+end_src
 
@@ -1327,44 +1329,49 @@ Closely related to =org-mode= but not really so it goes here with org mode
 
 * Programming
 
-** eglot
+** COMMENT eglot
 #+begin_src emacs-lisp
   (elpaca 'eglot
-
-    (add-hook 'eglot-managed-mode-hook
-              #'(lambda ()
-                  (setq eldoc-documentation-functions
-                        '(flymake-eldoc-function
-                          eglot-signature-eldoc-function
-                          eglot-hover-eldoc-function))
-                  (setq eldoc-documentation-function
-                        'eldoc-documentation-compose)))
-
-    (setq eldoc-echo-area-prefer-doc-buffer t)
-    (setq eldoc-echo-area-display-truncation-message t)
-
+    (set-face-attribute 'eglot-highlight-symbol-face nil :background "#585858")
     (general-def 'eglot-mode-map
       "C-M-." 'eglot-find-implementation)
 
     ;; start eglot in these modes
     (add-hook 'go-mode-hook #'eglot-ensure)
     (add-hook 'rust-mode-hook #'eglot-ensure))
+#+end_src
+
+** LSP
+#+begin_src emacs-lisp
+  (use-package lsp-mode
+    :init
+    (defun my/lsp-mode-setup-completion ()
+      (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+            '(prescient)))
+    (setq lsp-keymap-prefix "C-z l")
+    :custom
+    (lsp-completion-provider :none) ;; we use Corfu!
+    :hook
+    ((go-mode . lsp)
+     (lsp-mode . lsp-enable-which-key-integration)
+     (lsp-completion-mode . my/lsp-mode-setup-completion)
+     (lsp-mode . lsp-ui-mode))
+    :commands lsp
+    :config
+    (setq lsp-go-use-placeholders nil)
+    (general-def 'lsp-mode-map
+      "C-z h" 'lsp-describe-thing-at-point))
 
 
+  ;; optionally
+  (use-package lsp-ui :commands lsp-ui-mode)
 
+  ;; optionally if you want to use debugger
+  (use-package dap-mode)
+  ;; (use-package dap-LANGUAGE) to load the dap adapter for your language
 
-
-  ;; trying eldoc-box
-  (elpaca 'eldoc-box
-    (blackout 'eldoc-box)
-    (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-mode t)
-
-    (setq x-gtk-resizechild-frames 'resize-mode)
-    (with-eval-after-load 'eldoc-box
-      (setq eldoc-box-offset `(,(+ (/ (frame-native-width) 2) 30) 16 20)))
-    (setq eldoc-box-max-pixel-width 600)
-    (setq eldoc-box-max-pixel-height 1800))
-  ;; (setq eldoc-box-cleanup-interval 0.5)
+  (setq prescient-filter-method '(literal prefix literal-prefix))
+  (setq prescient-filter-method '(literal))
 #+end_src
 
 ** Tree-sitter
@@ -2061,6 +2068,13 @@ Binding for other packages
   (elpaca nil
     (meow-define-keys 'normal
       '("ZG" . magit-file-dispatch)))
+
+*** LSP
+#+begin_src emacs-lisp
+  (elpaca nil
+    (meow-define-keys 'normal
+      '("gr" . "C-z l r r")
+      '("gl" . "C-z l")))
 #+end_src
 
 * Miscellaneous
