@@ -1915,19 +1915,6 @@ copy line on selection
   (advice-add 'meow-save :around #'kr-meow-copy-line-or-selection)
 #+end_src
 
-** COMMENT config for extending meow
-
-Funciton and advices for making meow behave like I like it.
-
-*** Rest
-
-Not categorized
-
-#+begin_src emacs-lisp
-
-
-#+end_src
-
 ** Emacs switch bindings
 Here I change emacs build in keybindings for better meow ergonomics.
 For example because I use ~dired~ that is bound to =C-x d= more often then ~list-direcory~ that is bound to =C-x C-d= so I will swap those two commands so I can type =SPC x d= to acces dired faster with ~meow-keypad~.
@@ -1967,37 +1954,6 @@ For example because I use ~dired~ that is bound to =C-x d= more often then ~list
     (general-def
       "C-x W" 'window-swap-states
       "C-x K" 'kill-buffer))
-#+end_src
-
-** input method hack
-
-Make =C-\= work nice with =meow-normal= and =meow-insert= modes.
-It switches input method when going from normal to insert mode.
-
-#+begin_src emacs-lisp
-  (defvar-local kr-current-input-method nil
-    "Is input methond set in this buffer.")
-
-  (defun kr-meow-input-methond-hack ()
-    "Activate default input method in meow-insert-mode."
-    (if (and (meow-insert-mode-p) (eq kr-current-input-method t))
-        (activate-input-method default-input-method)
-      (deactivate-input-method)))
-
-  (add-hook 'meow-insert-mode-hook #'kr-meow-input-methond-hack)
-
-  (defun kr-toggle-input-method (&optional arg)
-    (interactive "P")
-    (when arg
-      (call-interactively #'toggle-input-method))
-    (setf kr-current-input-method (not kr-current-input-method))
-    (if kr-current-input-method
-        (message "Set input method in insert mode to %s." default-input-method)
-      (message "Disabled input method in insert mode.")))
-  (elpaca nil
-
-    (general-def
-      "C-\\" 'kr-toggle-input-method))
 #+end_src
 
 ** COMMENT Things
