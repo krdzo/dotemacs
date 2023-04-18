@@ -69,6 +69,7 @@ I like to know how fast Emacs has started.
 For keeping mode line clean.
 #+begin_src emacs-lisp
   (use-package blackout)
+  (elpaca-wait)
 #+end_src
 
 ** General
@@ -906,6 +907,7 @@ alternative package ~undo-hl~.
 
 #+begin_src emacs-lisp
   (use-package better-jumper
+    :blackout better-jumper-local-mode
     :config
     (better-jumper-mode 1)
     (setq better-jumper-add-jump-behavior 'replace)
