@@ -1642,7 +1642,7 @@ Meow is a mode for modal edditing inpired by VIM.
      '("k" . meow-prev)
      '("M-j" . scroll-up-line)
      '("M-k" . scroll-down-line)
-     '("`" . meow-last-buffer)
+     '("`" . kr-meow-last-buffer)
      '("<escape>" . keyboard-quit))
     (meow-leader-define-key
      ;; SPC j/k will run the original command in MOTION state.
@@ -1663,7 +1663,7 @@ Meow is a mode for modal edditing inpired by VIM.
      '("2" . meow-expand-2)
      '("1" . meow-expand-1)
      '("-" . negative-argument)
-     '("`" . meow-last-buffer)
+     '("`" . kr-meow-last-buffer)
      '("<escape>" . keyboard-quit)
      ;; thing
      '("." . meow-inner-of-thing)
@@ -1765,6 +1765,11 @@ Meow is a mode for modal edditing inpired by VIM.
 
     (general-def 'meow-normal-state-keymap
       "Z" 'meow-cancel-selection))
+
+  (defun kr-meow-last-buffer ()
+    (interactive)
+    (let ((switch-to-buffer-obey-display-actions nil))
+      (call-interactively #'meow-last-buffer)))
 #+end_src
 
 ** kbd hack
@@ -1800,7 +1805,7 @@ For some comands =meow-find=, =meow-till=, =meow-line=... you can press ~- (nega
 #+begin_src emacs-lisp
   (defun kr-meow-reverse (fun)
     "Attemt to reverse command when there is no selection."
-    (if mark-active
+    (if (region-active-p)
         (funcall fun)
       (call-interactively #'negative-argument)))
   (advice-add 'meow-reverse :around #'kr-meow-reverse)
@@ -1814,7 +1819,7 @@ Normally when in =normal-state= the number keys 0..9 are bount to =meow-expand-[
   (defun kr-meow-maybe-digit (fun n)
     "Advice so that I can get digit arguments if there is no
    selection active and expand selestion if the selection is active."
-    (if mark-active
+    (if (region-active-p)
         (funcall fun n)
       (call-interactively #'digit-argument)))
   (advice-add 'meow-expand :around #'kr-meow-maybe-digit)
@@ -1852,7 +1857,7 @@ Insert or append on line.
   (defun kr-meow-append-to-line ()
     "Append to line."
     (interactive)
-    (if mark-active
+    (if (region-active-p)
         (progn
           (unless (= (point) (region-end))
             (meow-reverse))
@@ -1864,7 +1869,7 @@ Insert or append on line.
   (defun kr-meow-insert-to-line ()
     "Insert to line."
     (interactive)
-    (if mark-active
+    (if (region-active-p)
         (progn
           (unless (= (point) (region-beginning))
             (meow-reverse))
@@ -1906,7 +1911,7 @@ extend ~meow-kill~ so that it kills the whole line if mark is not active
   (defun kr-meow-kill-whole-line (old-fun)
     "Delete line if there is no selection but delete selection if there
     is active selection."
-    (if mark-active
+    (if (region-active-p)
         (meow-kill)
       (funcall old-fun)))
   (advice-add 'meow-kill-whole-line :around 'kr-meow-kill-whole-line)
@@ -1923,7 +1928,7 @@ copy line on selection
 
   (defun kr-meow-copy-line-or-selection (fun)
     "Copy region if active. Copy line if no region is active."
-    (if mark-active
+    (if (region-active-p)
         (funcall fun)
       (kr-meow-save-line)))
   (advice-add 'meow-save :around #'kr-meow-copy-line-or-selection)
