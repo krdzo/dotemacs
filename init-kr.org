@@ -1864,11 +1864,11 @@ Insert or append on line.
         (progn
           (unless (= (point) (region-beginning))
             (meow-reverse))
-          (embrace-add))
+          (embrace-add)
+          (forward-char))
       (progn
         (beginning-of-line-text)
-        (call-interactively #'meow-insert)))
-    (forward-char))
+        (call-interactively #'meow-insert))))
 
   (elpaca nil
     (general-def 'meow-normal-state-keymap
