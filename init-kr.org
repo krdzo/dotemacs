@@ -952,9 +952,7 @@ Smart paren I'm using to pair characters like quotes.
 *** Expand region
 #+begin_src emacs-lisp
   (elpaca 'expand-region
-
-    (general-def 'meow-normal-state-keymap
-      "S" 'er/expand-region))
+    (setq expand-region-subword-enabled t))
 #+end_src
 
 *** Embrace
@@ -1340,7 +1338,8 @@ Closely related to =org-mode= but not really so it goes here with org mode
 
     ;; start eglot in these modes
     (add-hook 'go-mode-hook #'eglot-ensure)
-    (add-hook 'rust-mode-hook #'eglot-ensure))
+    (add-hook 'rust-mode-hook #'eglot-ensure)
+    (add-hook 'typescript-mode-hook #'eglot-ensure))
 #+end_src
 
 ** LSP
@@ -1355,6 +1354,7 @@ Closely related to =org-mode= but not really so it goes here with org mode
     (lsp-completion-provider :none) ;; we use Corfu!
     :hook
     ((go-mode . lsp)
+     (typescript-mode . lsp)
      (lsp-mode . lsp-enable-which-key-integration)
      (lsp-completion-mode . my/lsp-mode-setup-completion)
      (lsp-mode . lsp-ui-mode))
@@ -1537,9 +1537,8 @@ Rest of configuration:
 #+begin_src emacs-lisp
   (elpaca 'typescript-mode
 
-    (add-hook 'typescript-mode-hook #'eglot-ensure)
     (add-hook 'typescript-mode-hook #'apheleia-mode)
-    (setq typescript-indent-level 2))
+    (setq typescript-indent-level 4))
 #+end_src
 
 *** JSON
