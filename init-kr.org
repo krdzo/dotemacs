@@ -302,10 +302,10 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 
 ** eldoc
 #+begin_src emacs-lisp
-  (elpaca 'eldoc
-    (general-add-hook 'emacs-lisp-mode-hook 'eldoc-mode)
-    (with-eval-after-load 'eldoc
-      (blackout 'eldoc-mode)))
+  (use-package eldoc
+    :config
+    (global-eldoc-mode 1)
+    :blackout)
 #+end_src
 
 ** recentf
@@ -1394,10 +1394,20 @@ Closely related to =org-mode= but not really so it goes here with org mode
 
 ** flymake
 #+begin_src emacs-lisp
-  (elpaca nil
+  (use-package flymake
+    :hook
+    (prog-mode . flymake-mode)
+    :config
     (general-def flymake-mode-map
       "C-z [e" 'flymake-goto-prev-error
-      "C-z ]e" 'flymake-goto-next-error))
+      "C-z ]e" 'flymake-goto-next-error)
+    (setq eldoc-documentation-function 'eldoc-documentation-compose)
+
+    (add-hook 'flymake-mode-hook
+              (lambda ()
+                (setq eldoc-documentation-functions
+                      (cons 'flymake-eldoc-function
+                            (delq 'flymake-eldoc-function eldoc-documentation-functions))))))
 #+end_src
 
 ** Formating
