@@ -895,6 +895,12 @@ alternative package ~undo-hl~.
             ("STUB"   . "#1E90FF"))))
 #+end_src
 
+** Line numbers
+#+begin_src emacs-lisp
+  (setq display-line-numbers-width 3)
+  (add-hook 'prog-mode-hook 'display-line-numbers-mode)
+#+end_src
+
 * UX
 ** better-jumper
 
@@ -1623,7 +1629,6 @@ Rest of configuration:
 
 ** Hooks for prog mode
 #+begin_src emacs-lisp
-  (add-hook 'prog-mode-hook #'display-line-numbers-mode)
   (add-hook 'prog-mode-hook #'toggle-truncate-lines)
 #+end_src
 
