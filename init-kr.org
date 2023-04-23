@@ -168,15 +168,11 @@ Help at point key is =C-z h=. Every mode that implements a help at point needs t
   <<ghelp>>
 #+end_src
 
-** Buffer
+** Scratch
 #+begin_src emacs-lisp
-  (elpaca nil
-    (defun kr-go-to-scratch ()
-      (interactive)
-      (switch-to-buffer "*scratch*"))
-
+  (elpaca scratch
     (general-def
-      "C-c q s" 'kr-go-to-scratch
+      "C-c q s" 'scratch
       "C-c q r" 'revert-buffer))
 #+end_src
 
@@ -572,7 +568,7 @@ Next we create a ~display-buffer-alist~ rule so thet we group project buffers by
 Function that toggles if a window can be selected with ~~other-window~ =C-x o= function.
 #+begin_src emacs-lisp
   (defun kr-disable-window-select ()
-    "Makes it so that you can't C-x o window in which this command is called."
+    "Make it so that you can't select this window with `C-x o'."
     (interactive)
     (if (not (window-parameter (selected-window) 'no-other-window))
         (set-window-parameter (selected-window) 'no-other-window t)
@@ -718,7 +714,9 @@ corfu config:
       "S-SPC" 'corfu-insert-separator
       "M-h" 'corfu-info-documentation
       "C-j" 'corfu-next
-      "C-k" 'corfu-previous))
+      "C-n" 'corfu-next
+      "C-k" 'corfu-previous
+      "C-p" 'corfu-previous))
 #+end_src
 
 Make Corfu work from minibuffer:
