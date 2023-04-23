@@ -1196,9 +1196,10 @@ https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff
   (elpaca 'git-gutter-fringe
     (setq git-gutter:update-interval 0.02)
 
-    (require 'git-gutter-fringe)
+    (require 'git-gutter-fringe) ; don't delete, must be here to style fringe
     (add-hook 'emacs-startup-hook #'global-git-gutter-mode)
 
+    ;; how git-gutter looks in the fringe of the window
     (define-fringe-bitmap 'git-gutter-fr:added [#b11100000] nil nil '(center repeated))
     (define-fringe-bitmap 'git-gutter-fr:modified [#b11100000] nil nil '(center repeated))
     (define-fringe-bitmap 'git-gutter-fr:deleted
@@ -1207,10 +1208,10 @@ https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff
        #b11100000
        #b11110000] nil nil 'bottom)
 
-
     (with-eval-after-load 'git-gutter
       (blackout 'git-gutter-mode))
 
+    ;; setup repeat map for git-gutter
     (defvar kr-git-gutter-map
       (let ((keymap (make-sparse-keymap)))
         (define-key keymap (kbd "p") 'git-gutter:previous-hunk)
@@ -1221,7 +1222,8 @@ https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff
     (put 'git-gutter:previous-hunk 'repeat-map 'kr-git-gutter-map)
 
     (general-def
-      "C-z g" kr-git-gutter-map))
+      "C-z g" kr-git-gutter-map
+      "<left-fringe> <mouse-3>" 'git-gutter:popup-hunk))
 #+end_src
 
 *** git-timemachine
