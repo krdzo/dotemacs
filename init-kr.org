@@ -1694,8 +1694,6 @@ Meow is a mode for modal edditing inpired by VIM.
      '("H" . meow-left-expand)
      '("L" . meow-right-expand)
      '("c" . meow-change)
-     '("w" . er/expand-region)
-     '("W" . er/contract-region)
      '("n" . meow-search)
      '("/" . meow-visit)
 
@@ -1723,7 +1721,9 @@ Meow is a mode for modal edditing inpired by VIM.
      '("z" . meow-pop-selection)
      '("o" . meow-open-below)
      '("O" . meow-open-above)
-                                          ;'("S" . meow-to-block)
+
+     '("w" . er/expand-region)
+     '("W" . er/contract-region)
      '("s" . er/expand-region)
      '("S" . er/contract-region)
      '("q" . quit-window)
@@ -2083,6 +2083,27 @@ Binding for other packages
     (meow-define-keys 'normal
       '("gr" . "C-z l r r")
       '("gl" . "C-z l")))
+#+end_src
+
+*** expand region
+#+begin_src emacs-lisp
+  (with-eval-after-load 'meow
+    (defun kr-expand-with-meow ()
+      "Hellper command so that meow can work with expand region."
+      (interactive)
+      (call-interactively #'er/expand-region)
+      (let* ((beg (region-beginning))
+             (end (region-end))
+             (search (format "\\_<%s\\_>" (regexp-quote (buffer-substring-no-properties beg end)))))
+        (setq meow--selection (list '(expand . word) beg end))
+        (meow--push-search search)
+        (meow--highlight-regexp-in-buffer search)))
+
+    (meow-define-keys 'normal
+      '("w" . kr-expand-with-meow)
+      '("W" . er/contract-region)
+      '("s" . kr-expand-with-meow)
+      '("S" . er/contract-region)))
 #+end_src
 
 * Miscellaneous
