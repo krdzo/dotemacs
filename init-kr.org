@@ -1,6 +1,7 @@
 #+title: DotEmacs
 #+author: Krdzo
 #+startup: fold
+
 * Bootstrap elpaca
 
 Use elpaca package menager.
@@ -663,6 +664,7 @@ Enable =tab= completion
             (project-find-regexp buffer)
             (consult-grep buffer)
             (consult-ripgrep buffer)
+            (consult-git-grep buffer)
             (consult-imenu buffer)
             (eglot-find-implementation buffer)
             (imenu buffer)))
@@ -689,7 +691,10 @@ Enable =tab= completion
     (setq read-extended-command-predicate
           #'command-completion-default-include-p)
 
-    (setq enable-recursive-minibuffers t))
+    (setq enable-recursive-minibuffers t)
+
+    (set-face-foreground 'vertico-group-title
+                         (face-attribute 'which-func :foreground)))
 
 #+end_src
 
@@ -767,6 +772,7 @@ and the second filter to the completion-style filtering (?).
     (general-def mode-specific-map
       "i" 'consult-imenu)
 
+    ;; preview only works with consult commands
     (setq consult-preview-key 'any)
     (with-eval-after-load 'consult
       (consult-customize
@@ -1013,6 +1019,19 @@ Parinfer is there for lisp editing.
       "C-x r" 'find-file-read-only)
 
     (blackout 'undo-tree-mode))
+#+end_src
+
+** Mark ring
+#+begin_src emacs-lisp
+  (defun kr-unpop-to-mark-command ()
+    "Unpop off mark ring. Does nothing if mark ring is empty."
+    (interactive)
+    (when mark-ring
+      (setq mark-ring (cons (copy-marker (mark-marker)) mark-ring))
+      (set-marker (mark-marker) (car (last mark-ring)) (current-buffer))
+      (when (null (mark t)) (ding))
+      (setq mark-ring (nbutlast mark-ring))
+      (goto-char (marker-position (car (last mark-ring))))))
 #+end_src
 
 * Apps
@@ -1322,7 +1341,8 @@ Closely related to =org-mode= but not really so it goes here with org mode
 ** Project
 #+begin_src emacs-lisp
   (elpaca 'project
-    (define-key project-prefix-map (kbd "g") 'consult-ripgrep))
+    (with-eval-after-load 'consult
+      (define-key project-prefix-map (kbd "g") 'consult-git-grep)))
 #+end_src
 
 * Programming
@@ -1358,6 +1378,7 @@ Closely related to =org-mode= but not really so it goes here with org mode
      (lsp-mode . lsp-ui-mode))
     :commands lsp
     :config
+    (kr-set-lsp-face)
     (setq lsp-go-use-placeholders nil)
     (general-def 'lsp-mode-map
       "C-z h" 'lsp-describe-thing-at-point))
@@ -1372,6 +1393,13 @@ Closely related to =org-mode= but not really so it goes here with org mode
 
   (setq prescient-filter-method '(literal prefix literal-prefix))
   (setq prescient-filter-method '(literal))
+
+  (defun kr-set-lsp-face ()
+    "Set faces for lsp."
+    (set-face-attribute 'lsp-face-highlight-textual nil
+                        :background nil
+                        :foreground nil
+                        :underline "#FFFF"))   ; wrong collor on purpuse
 #+end_src
 
 ** Tree-sitter
@@ -1394,6 +1422,7 @@ Closely related to =org-mode= but not really so it goes here with org mode
 ** xref
 #+begin_src emacs-lisp
   (elpaca 'xref
+    (setq xref-prompt-for-identifier nil)
     (general-def
       "s-<mouse-1>" 'xref-find-references-at-mouse))
 #+end_src
@@ -2309,7 +2338,7 @@ LSP corfu conf:
   (add-hook 'dap-stopped-hook #'(lambda (arg) (call-interactively #'dap-hydra)))
 #+end_src
 
-* temp
+* Temp
 #+begin_src emacs-lisp
   (elpaca nil
     (setq truncate-partial-width-windows 150)
