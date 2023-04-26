@@ -583,6 +583,32 @@ Always open sly REPL in other window
                `("*sly-mrepl for sbcl*"
                  kr-display-buffer-reuse-window
                  (inhibit-same-window . t)))
+
+
+#+end_src
+
+Open sly-db window below sly-mrepl window
+#+begin_src emacs-lisp
+  (defvar kr-before-sly-db-buffer nil
+    "Buffer we were when we entered sly-db.")
+
+  (defun kr-sly-db-new-window (_buffer _alist)
+      "Control where sly-db buffer is shown.
+    Using this funciton sly-db buffer is always shown in tandem with
+    mrepl with and beneath mrepl."
+      (setq kr-before-sly-db-buffer (current-buffer))
+      (switch-to-buffer "*sly-mrepl for sbcl*")
+      (display-buffer-below-selected _buffer _alist))
+
+  (add-to-list 'display-buffer-alist
+                 `("*sly-db for sbcl (thread [0-9]+)*"
+                   kr-sly-db-new-window))
+
+  (defun kr-sly-db-abort ()
+    (interactive)
+    (call-interactively #'sly-db-abort)
+    (when (member kr-before-sly-db-buffer (buffer-list))
+      (switch-to-buffer kr-before-sly-db-buffer)))
 #+end_src
 
 * Completion framework
