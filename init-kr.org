@@ -1575,7 +1575,13 @@ Seting ~sbcl~ to be default interpreter for lisp.
       (add-to-list 'meow-mode-state-list '(sly-mrepl-mode . normal))
       (add-to-list 'meow-mode-state-list '(sly-db-mode . motion))
       (add-to-list 'meow-mode-state-list '(sly-xref-mode . motion)))
+    (general-def 'lisp-mode-map
+      "C-c '" #'(lambda ()
+                  (interactive)
+                  (call-interactively #'sly-mrepl)
+                  (end-of-buffer)))
     (general-def 'sly-mrepl-mode-map
+      "C-c '" 'sly-switch-to-most-recent
       "C-p" 'sly-mrepl-previous-input-or-button
       "C-n" 'sly-mrepl-next-input-or-button
       "C-k" 'sly-mrepl-previous-prompt
