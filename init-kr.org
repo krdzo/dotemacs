@@ -1364,8 +1364,15 @@ Closely related to =org-mode= but not really so it goes here with org mode
 ** Project
 #+begin_src emacs-lisp
   (elpaca 'project
+    (defun kr-project-grep ()
+      (interactive)
+      (let ((vertico-buffer-mode t))
+        (if (eql (cadr (project-current)) 'Git)
+            (call-interactively #'consult-git-grep)
+          (call-interactively #'consult-ripgrep))))
     (with-eval-after-load 'consult
-      (define-key project-prefix-map (kbd "g") 'consult-git-grep)))
+      (require 'vertico-buffer)
+      (define-key project-prefix-map (kbd "g") 'kr-project-grep)))
 #+end_src
 
 * Programming
@@ -1630,16 +1637,15 @@ Rest of configuration:
 
     (add-hook 'before-save-hook 'gofmt-before-save)
 
-
     (with-eval-after-load 'project
       (defun your-go-module-root (dir)
         (when-let ((root (locate-dominating-file dir "go.mod")))
-          (cons 'go-module root)))
+          (list 'go-module 'dir root)))
 
       (add-hook 'project-find-functions #'your-go-module-root)
 
       (cl-defmethod project-root ((project (head go-module)))
-        (cdr project))))
+        (caddr project))))
 #+end_src
 
 *** Yaml
