@@ -393,8 +393,8 @@ Set =serbian-latin= to default input method.
   (require 'ediff)
   ;; (winner-mode 1)
   (add-hook 'ediff-after-quit-hook-internal 'winner-undo)
-  (customize-set-variable ediff-window-setup-function 'ediff-setup-windows-plain)
-  (customize-set-variable ediff-split-window-function 'split-window-horizontally)
+  (setq ediff-window-setup-function 'ediff-setup-windows-plain)
+  (setq ediff-split-window-function 'split-window-horizontally)
 
   (defvar my-ediff-last-windows nil)
 
@@ -596,8 +596,8 @@ Open sly-db window below sly-mrepl window
 #+begin_src emacs-lisp
   (defun kr-sly-db-new-window-direction (buffer alist)
     "Control where sly-db buffer is shown.
-   BUFFER and ALIST are the same type that are needed
-   for `display-buffer' funcitons."
+  BUFFER and ALIST are the same type that are needed
+  for `display-buffer' funcitons."
     (display-buffer "*sly-mrepl for sbcl*")
     (add-to-list 'alist (cons 'window (get-buffer-window "*sly-mrepl for sbcl*")))
     (display-buffer-in-direction buffer alist))
@@ -629,7 +629,7 @@ Enable =tab= completion
       (prescient-persist-mode 1))
 
     (setq prescient-filter-method '(literal prefix fuzzy))
-    (setq prescient-filter-method '(literal prefix literal-prefix))
+    (setq prescient-filter-method '(literal prefix literal-prefix regexp))
 
     (add-to-list 'completion-category-overrides '(file (styles basic partial-completion)))
 
@@ -989,6 +989,7 @@ Smart paren I'm using to pair characters like quotes.
 
 *** Parinfer
 Parinfer is there for lisp editing.
+
 #+begin_src emacs-lisp
   (elpaca 'parinfer-rust-mode
     (setq parinfer-rust-library-directory
@@ -1578,7 +1579,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 
 Seting ~sbcl~ to be default interpreter for lisp.
 #+begin_src emacs-lisp
-  (setq inferior-lisp-program "sbcl")
+  (setq inferior-lisp-program "ros -Q run")
 #+end_src
 
 #+begin_src emacs-lisp
