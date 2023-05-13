@@ -871,7 +871,7 @@ and the second filter to the completion-style filtering (?).
     :config
     (if kr-mac-p
         (load-theme 'doom-oceanic-next t)
-      (load-theme 'doom-rouge t))
+      (load-theme 'doom-xcode t))
 
     ;; global-hl-line-mode and region have the same color so i change it here
     ;; (set-face-attribute 'region nil :background "#454545")
@@ -1592,21 +1592,24 @@ Seting ~sbcl~ to be default interpreter for lisp.
     (with-eval-after-load 'meow
       (add-to-list 'meow-mode-state-list '(sly-mrepl-mode . normal))
       (add-to-list 'meow-mode-state-list '(sly-db-mode . motion))
-      (add-to-list 'meow-mode-state-list '(sly-xref-mode . motion)))
+      (add-to-list 'meow-mode-state-list '(sly-xref-mode . motion))
+      (add-to-list 'meow-mode-state-list '(sly-stickers--replay-mode . motion)))
     (general-def 'lisp-mode-map
       "C-c '" #'(lambda ()
                   (interactive)
                   (call-interactively #'sly-mrepl)
                   (end-of-buffer)))
+    (general-def 'sly-stickers--replay-mode-map
+      "/" 'sly-stickers-replay-jump)
     (general-def 'sly-mrepl-mode-map
       "C-c '" 'sly-switch-to-most-recent
       "C-p" 'sly-mrepl-previous-input-or-button
       "C-n" 'sly-mrepl-next-input-or-button
       "C-k" 'sly-mrepl-previous-prompt
       "C-j" 'sly-mrepl-next-prompt))
-  ;; (general-unbind 'sly-mrepl-mode-map
-  ;;   "C-k"
-  ;;   "C-j")
+
+  (elpaca 'sly-repl-ansi-color
+    (push 'sly-repl-ansi-color sly-contribs))
 #+end_src
 
 *** JavaScript
