@@ -1282,7 +1282,7 @@ https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff
 #+begin_src emacs-lisp
   (elpaca 'kubernetes
     (setq kubernetes-overview-custom-views-alist
-          '((custom-overview context statefulsets deployments)))
+          '((custom-overview . (context statefulsets deployments))))
     (setq kubernetes-default-overview-view 'custom-overview)
 
     (add-hook 'kubernetes-logs-mode-hook #'visual-line-mode)
@@ -1470,9 +1470,8 @@ Closely related to =org-mode= but not really so it goes here with org mode
 
     (add-hook 'flymake-mode-hook
               (lambda ()
-                (setq eldoc-documentation-functions
-                      (cons 'flymake-eldoc-function
-                            (delq 'flymake-eldoc-function eldoc-documentation-functions))))))
+                (remove-hook 'eldoc-documentation-functions #'flymake-eldoc-function t)
+                (add-hook 'eldoc-documentation-functions #'flymake-eldoc-function -1 t))))
 #+end_src
 
 ** Formating
