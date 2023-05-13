@@ -1002,6 +1002,17 @@ Parinfer is there for lisp editing.
     (general-add-hook '(emacs-lisp-mode-hook lisp-mode-hook) #'parinfer-rust-mode))
 #+end_src
 
+When installing parinfer on a M1 Mac the library must be manualy build.
+The steps for building are:
+#+begin_src shell :tangle no
+  $ git clone https://github.com/justinbarclay/parinfer-rust
+
+  $ cargo build --release --features emacs
+
+  $ cp target/release/libparinfer_rust.dylib ~/.emacs.d/etc/parinfer-rust/parinfer-rust-darwin.so
+#+end_src
+NOTE: be sure to use [[https://github.com/justinbarclay/parinfer-rust][this]] reposotory insed of the one mentioned in parinfer-rust-mode README
+
 *** Puni
 #+begin_src emacs-lisp
   (elpaca 'puni
