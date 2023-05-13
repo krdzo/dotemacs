@@ -1367,7 +1367,7 @@ Closely related to =org-mode= but not really so it goes here with org mode
     (defun kr-project-grep ()
       (interactive)
       (let ((vertico-buffer-mode t))
-        (if (eql (cadr (project-current)) 'Git)
+        (if (or (eql (cadr (project-current)) 'Git) (eql (car (project-current)) 'go-module))
             (call-interactively #'consult-git-grep)
           (call-interactively #'consult-ripgrep))))
     (with-eval-after-load 'consult
