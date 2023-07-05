@@ -1582,6 +1582,7 @@ Seting ~sbcl~ to be default interpreter for lisp.
 
 #+begin_src emacs-lisp
   (elpaca 'sly
+    (setq sly-mrepl-prevent-duplicate-history t)
 
     ;; (setq sly-contribs '(sly-fancy sly-mrepl))
     (general-def 'sly-mode-map
@@ -1592,19 +1593,22 @@ Seting ~sbcl~ to be default interpreter for lisp.
       (add-to-list 'meow-mode-state-list '(sly-db-mode . motion))
       (add-to-list 'meow-mode-state-list '(sly-xref-mode . motion))
       (add-to-list 'meow-mode-state-list '(sly-stickers--replay-mode . motion)))
-    (general-def 'lisp-mode-map
+    ;; switch bufers REPL - DB - Source
+    (general-def '(lisp-mode-map sly-mrepl-mode-map)
+      "C-c d" #'(lambda () (interactive) (switch-to-buffer "*sly-db for sbcl (thread 1)*")))
+    (general-def '(lisp-mode-map sly-db-mode-map sly-db-frame-map)
       "C-c '" #'(lambda ()
                   (interactive)
                   (call-interactively #'sly-mrepl)
                   (end-of-buffer)))
-    (general-def 'sly-stickers--replay-mode-map
-      "/" 'sly-stickers-replay-jump)
+    (general-def '(sly-db-mode-map sly-db-frame-map)
+      "C-c d" #'sly-switch-to-most-recent)
     (general-def 'sly-mrepl-mode-map
-      "C-c '" 'sly-switch-to-most-recent
-      "C-p" 'sly-mrepl-previous-input-or-button
-      "C-n" 'sly-mrepl-next-input-or-button
-      "C-k" 'sly-mrepl-previous-prompt
-      "C-j" 'sly-mrepl-next-prompt))
+      "C-c '" #'sly-switch-to-most-recent)
+
+
+    (general-def 'sly-stickers--replay-mode-map
+      "/" 'sly-stickers-replay-jump))
 
   (elpaca 'sly-repl-ansi-color
     (push 'sly-repl-ansi-color sly-contribs))
