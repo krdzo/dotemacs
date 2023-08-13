@@ -927,6 +927,11 @@ alternative package ~undo-hl~.
   (add-hook 'prog-mode-hook 'display-line-numbers-mode)
 #+end_src
 
+** Highlight line
+#+begin_src emacs-lisp
+  (global-hl-line-mode 1)
+#+end_src
+
 * UX
 ** better-jumper
 
