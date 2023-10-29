@@ -908,10 +908,18 @@ alternative package ~undo-hl~.
     :hook (prog-mode . hl-todo-mode)
     :config
 
-    (general-def kr-<b-menu-map
-      "t" 'hl-todo-previous)
-    (general-def kr->b-menu-map
-      "t" 'hl-todo-next)
+    (general-def 'hl-todo-mode-map
+      "C-z [t" 'hl-todo-previous
+      "C-z ]t" 'hl-todo-next)
+
+    (with-eval-after-load 'meow-mode
+      (meow-define-keys 'normal
+        '("[t" . "C-z [t")
+        '("]t" . "C-z ]t")))
+
+
+    (set-face-background 'markdown-code-face nil)
+
     (setq hl-todo-highlight-punctuation ":")
     (setq hl-todo-keyword-faces
           '(("TODO"   . "#FF4500")
@@ -2404,6 +2412,11 @@ LSP corfu conf:
     (setq truncate-partial-width-windows 150)
     (general-def
       "C-`" 'next-error))
+
+
+  (elpaca nil
+    (advice-add #'meow-kill :after #'cycle-spacing))
+
 #+end_src
 
 * Notes
