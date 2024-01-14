@@ -1542,7 +1542,7 @@ Closely related to =org-mode= but not really so it goes here with org mode
     (set-face-attribute 'lsp-face-highlight-textual nil
                         :background 'unspecified
                         :foreground 'unspecified
-                        :underline "#FFF"))   ; wrong collor on purpuse
+                        :underline "#FFFF"))   ; wrong collor on purpuse
 #+end_src
 
 ** Tree-sitter
