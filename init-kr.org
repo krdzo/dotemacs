@@ -1673,6 +1673,12 @@ Rest of configuration:
 
     (add-hook 'before-save-hook 'gofmt-before-save)
 
+    (add-hook 'go-mode-hook
+         (lambda ()
+           (unless (or (file-exists-p "makefile")
+                       (file-exists-p "Makefile"))
+             (setq-local compile-command "go run main.go "))))
+
     (with-eval-after-load 'project
       (defun your-go-module-root (dir)
         (when-let ((root (locate-dominating-file dir "go.mod")))
