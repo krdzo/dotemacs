@@ -7,13 +7,13 @@
 Use elpaca package menager.
 
 #+begin_src emacs-lisp
-  (defvar elpaca-installer-version 0.5)
+  (defvar elpaca-installer-version 0.6)
   (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
   (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
   (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
   (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
                                 :ref nil
-                                :files (:defaults (:exclude "extensions"))
+                                :files (:defaults "elpaca-test.el" (:exclude "extensions"))
                                 :build (:not elpaca--activate-package)))
   (let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
          (build (expand-file-name "elpaca/" elpaca-builds-directory))
@@ -44,18 +44,19 @@ Use elpaca package menager.
   (add-hook 'after-init-hook #'elpaca-process-queues)
   (elpaca `(,@elpaca-order))
 
-  ;; Install use-package support
-  (elpaca elpaca-use-package
-    ;; Enable :elpaca use-package keyword.
-    (elpaca-use-package-mode)
-    ;; Assume :elpaca t unless otherwise specified.
-    (setq elpaca-use-package-by-default t))
-  (elpaca-wait)
 
-  ;; (setq use-package-always-defer t)
+     ;; Install use-package support
+    (elpaca elpaca-use-package
+      ;; Enable :elpaca use-package keyword.
+      (elpaca-use-package-mode)
+      ;; Assume :elpaca t unless otherwise specified.
+      (setq elpaca-use-package-by-default t))
+    (elpaca-wait)
 
-  (setq vc-follow-symlinks t)
-#+end_src
+    ;; (setq use-package-always-defer t)
+
+    (setq vc-follow-symlinks t)
+ #+end_src
 
 * Utilities
 Utility packages that add functions that make configuration easier or configure some aspect of Emacs so that I don't have to.
@@ -115,6 +116,7 @@ Helping me so that I don't have to configure Emacs not to clutter .emacs.d.
     ;; should be moved somewhere else
     (when (file-exists-p custom-file)
       (load-file custom-file))
+    (no-littering-theme-backups)
 
     (with-eval-after-load 'recentf
       (add-to-list 'recentf-exclude no-littering-var-directory)
@@ -270,6 +272,13 @@ This is manly for magit but can be used for some other funcitonality.
 Here is configuration that concerns Emacs builtin features.
 Changing options, enabling and configuring modes etc.
 Big packages like org-mode will get their own section.
+** Update builtin pacakage
+Packages that need a newer version than emacs provides
+#+begin_src emacs-lisp
+  (use-package seq)
+  (use-package eldoc)
+#+end_src
+
 ** Sane defaults
 
 Inspired by https://github.com/natecox/dotfiles/blob/master/emacs/emacs.d/nathancox.org
@@ -379,10 +388,8 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 
 ** eldoc
 #+begin_src emacs-lisp
-  (use-package eldoc
-    :config
-    (global-eldoc-mode 1)
-    :blackout)
+  (global-eldoc-mode 1)
+  (blackout 'eldoc-mode)
 #+end_src
 
 ** recentf
