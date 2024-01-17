@@ -1564,7 +1564,7 @@ Closely related to =org-mode= but not really so it goes here with org mode
       "s-<mouse-1>" 'xref-find-references-at-mouse))
 #+end_src
 
-** flymake
+** COMMENT flymake
 #+begin_src emacs-lisp
   (use-package flymake
     :hook
@@ -1579,6 +1579,16 @@ Closely related to =org-mode= but not really so it goes here with org mode
               (lambda ()
                 (remove-hook 'eldoc-documentation-functions #'flymake-eldoc-function t)
                 (add-hook 'eldoc-documentation-functions #'flymake-eldoc-function -1 t))))
+#+end_src
+
+** flycheck
+#+begin_src emacs-lisp
+  (use-package flycheck
+    :config
+    (general-def 'flycheck-mode-map
+      "C-z [e" 'flycheck-previous-error
+      "C-z ]e" 'flycheck-next-error))
+
 #+end_src
 
 ** Formating
@@ -2261,10 +2271,11 @@ Binding for other packages
 
 *** Flymake
 #+begin_src emacs-lisp
-  (with-eval-after-load 'flymake
-    (meow-define-keys 'normal
-      '("[e" . "C-z [e")
-      '("]e" . "C-z ]e")))
+  (elpaca nil
+    (with-eval-after-load 'flycheck
+      (meow-define-keys 'normal
+        '("[e" . "C-z [e")
+        '("]e" . "C-z ]e"))))
 #+end_src
 
 *** Magit
