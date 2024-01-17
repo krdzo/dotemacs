@@ -756,7 +756,6 @@ Enable =tab= completion
 
     (setq vertico-multiform-commands
           '((xref-find-references-at-mouse buffer)
-            (xref-find-references buffer)
             (consult-yank-pop indexed)
             (project-find-regexp buffer)
             (consult-grep buffer)
@@ -1000,7 +999,8 @@ alternative package ~undo-hl~.
             ("FIXME"  . "#FF0000")
             ("DEBUG"  . "#A020F0")
             ("GOTCHA" . "#FF4500")
-            ("STUB"   . "#1E90FF"))))
+            ("STUB"   . "#1E90FF")
+            ("NOTE"   . "#AAD700"))))
 #+end_src
 
 ** Line numbers
@@ -1055,7 +1055,8 @@ Smart paren I'm using to pair characters like quotes.
     (sp-local-pair 'prog-mode "(" nil :post-handlers '((indent-between-pair "RET")))
 
     (smartparens-global-mode 1)
-    (show-smartparens-global-mode 1) ; alternative to show-paren-mode
+    (show-smartparens-global-mode -1) ; alternative to show-paren-mode
+    (show-paren-mode 1)
     (set-face-background 'show-paren-match "#7d7b7b")
     (blackout 'smartparens-mode))
 #+end_src
@@ -1534,9 +1535,9 @@ Closely related to =org-mode= but not really so it goes here with org mode
   (defun kr-set-lsp-face ()
     "Set faces for lsp."
     (set-face-attribute 'lsp-face-highlight-textual nil
-                        :background nil
-                        :foreground nil
-                        :underline "#FFFF"))   ; wrong collor on purpuse
+                        :background 'unspecified
+                        :foreground 'unspecified
+                        :underline "#FFF"))   ; wrong collor on purpuse
 #+end_src
 
 ** Tree-sitter
@@ -1684,7 +1685,9 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 
 Seting ~sbcl~ to be default interpreter for lisp.
 #+begin_src emacs-lisp
-  (setq inferior-lisp-program "ros -Q run")
+  (if (executable-find "ros")
+    (setq inferior-lisp-program "ros -Q run")
+   (setq inferior-lisp-program "sbcl"))
 #+end_src
 
 #+begin_src emacs-lisp
@@ -1933,7 +1936,7 @@ Meow is a mode for modal edditing inpired by VIM.
      '("o" . meow-open-below)
      '("O" . meow-open-above)
 
-     '("q" . quit-window)
+     '("q" . meow-quit)
      '("Q" . kill-current-buffer))
 
     (meow-normal-define-key
@@ -2520,14 +2523,12 @@ LSP corfu conf:
 * Temp
 #+begin_src emacs-lisp
   (elpaca nil
-    (setq truncate-partial-width-windows 150)
+    (setq truncate-partial-width-windows 200)
     (general-def
-      "C-`" 'next-error))
+      "C-`" 'next-error
+      "C-~" 'previous-error)
 
-
-  (elpaca nil
     (advice-add #'meow-kill :after #'cycle-spacing))
-
 #+end_src
 
 * Notes
