@@ -1728,7 +1728,7 @@ Rest of configuration:
   (elpaca 'typescript-mode
 
     (add-hook 'typescript-mode-hook #'apheleia-mode)
-    (setq typescript-indent-level 4))
+    (setq typescript-indent-level 2))
 #+end_src
 
 *** JSON
@@ -1745,6 +1745,11 @@ Rest of configuration:
   (elpaca 'rust-mode)
   (elpaca 'cargo)
   (add-hook 'rust-mode-hook 'cargo-minor-mode)
+#+end_src
+
+*** terraform
+#+begin_src emacs-lisp
+  (use-package terraform-mode)
 #+end_src
 
 *** Golang
@@ -1791,6 +1796,14 @@ Rest of configuration:
    minibuffer-local-completion-map)
 
   (setq sbt:program-options '("-Dsbt.supershell=false"))
+#+end_src
+
+*** Python
+#+begin_src emacs-lisp
+  (use-package pyvenv
+    :config
+    (add-hook 'python-mode-hook #'pyvenv-mode))
+
 #+end_src
 
 ** quickrun
