@@ -1519,11 +1519,16 @@ Closely related to =org-mode= but not really so it goes here with org mode
     (kr-set-lsp-face)
     (setq lsp-go-use-placeholders nil)
     (general-def 'lsp-mode-map
-      "C-z h" 'lsp-describe-thing-at-point))
+      "C-z h" 'lsp-describe-thing-at-point
+      "C-M-/" 'lsp-find-implementation))
 
 
   ;; optionally
-  (use-package lsp-ui :commands lsp-ui-mode)
+  (use-package lsp-ui :commands lsp-ui-mode
+    :config
+    (general-def 'lsp-ui-peek-mode-map
+      "k" 'lsp-ui-peek--select-prev
+      "j" 'lsp-ui-peek--select-next))
 
   ;; optionally if you want to use debugger
   (use-package dap-mode)
