@@ -184,6 +184,38 @@ Ansi collor in buffers. Run command to add ansi collors to buffer.
           (add-hook 'window-scroll-functions 'ansi-color-after-scroll 80 t))
       (remove-hook 'window-scroll-functions 'ansi-color-after-scroll t)))
 #+end_src
+
+*** Unix timestamp
+#+begin_src emacs-lisp
+  (defun kr-unix-ts-to-str (&optional time zone)
+    "Convert unix timestamp integer to human-readable string in RFC3339 format."
+    (interactive "nTimestamp: ")
+    (setq zone (or zone "UTC"))
+    (setq ts-str (format "%s" (or time (current-word))))
+    (if (numberp (read ts-str))
+        (progn
+          (setq ts-int (string-to-number ts-str))
+          ;; send message to Message buffer
+          ;; copy to kill-ring (clipboard)
+          (setq rfc_str (format-time-string "%Y-%m-%dT%H:%M:%S%z" ts-int zone))
+          (message (format "%d %s ==> %s" ts-int zone rfc_str))
+          (kill-new rfc_str))
+
+      (message "not a number")))
+
+  (defun kr-unix-ts-to-str-dwim ()
+    (interactive)
+    (if mark-active
+        (let ((ts (buffer-substring-no-properties (region-beginning) (region-end))))
+          (kr-unix-ts-to-str ts))
+      (call-interactively #'kr-unix-ts-to-str)))
+
+
+  (with-eval-after-load meow-mode
+    (meow-define-keys 'normal
+      '("gu". kr-unix-ts-to-str-dwim)))
+#+end_src
+
 * Keybindings
 Setup keybindings for builtin features that are not tied to any mode.
 ** Emacs
