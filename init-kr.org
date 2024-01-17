@@ -1192,6 +1192,7 @@ Emacs builtin file menager.
 dired-x
 #+begin_src emacs-lisp
   (require 'dired-x)
+  (put 'dired-jump 'repeat-map nil)
   (add-hook 'dired-mode-hook
             #'(lambda ()
                 (setq dired-clean-confirm-killing-deleted-buffers nil)))
