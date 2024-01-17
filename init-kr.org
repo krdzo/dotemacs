@@ -1468,6 +1468,10 @@ Closely related to =org-mode= but not really so it goes here with org mode
   (elpaca 'project
     (defun kr-project-grep ()
       (interactive)
+      (if mark-active
+          (progn
+            (meow-save)
+            (meow-cancel-selection)))
       (let ((vertico-buffer-mode t))
         (if (or (eql (cadr (project-current)) 'Git) (eql (car (project-current)) 'go-module))
             (call-interactively #'consult-git-grep)
@@ -1505,6 +1509,7 @@ Closely related to =org-mode= but not really so it goes here with org mode
     :hook
     ((go-mode . lsp)
      (typescript-mode . lsp)
+     (python-mode . lsp)
      (lsp-mode . lsp-enable-which-key-integration)
      (lsp-completion-mode . my/lsp-mode-setup-completion)
      (lsp-mode . lsp-ui-mode))
