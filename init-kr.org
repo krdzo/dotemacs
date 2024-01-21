@@ -712,7 +712,12 @@ Enable =tab= completion
       (prescient-persist-mode 1))
 
     (setq prescient-filter-method '(literal prefix fuzzy))
-    (setq prescient-filter-method '(literal prefix literal-prefix regexp))
+    (setq prescient-filter-method '(literal prefix literal-prefix regexp fuzzy))
+
+    (add-hook 'minibuffer-mode-hook
+              #'(lambda ()
+                  (setq-local prescient-filter-method
+                        '(literal prefix literal-prefix regexp))))
 
     (add-to-list 'completion-category-overrides '(file (styles basic partial-completion)))
 
