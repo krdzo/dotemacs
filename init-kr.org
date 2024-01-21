@@ -505,6 +505,9 @@ I making a custom input method for Serbian language because all the other method
 #+begin_src emacs-lisp
   ;; add color codes to compilation mode
   (add-hook 'compilation-filter-hook 'ansi-color-compilation-filter)
+  (with-eval-after-load 'meow
+    (meow-define-keys 'normal
+      '("gr" . recompile)))
 #+end_src
 
 ** repeat-mode
@@ -2304,7 +2307,6 @@ Binding for other packages
 #+begin_src emacs-lisp
   (elpaca nil
     (meow-define-keys 'normal
-      '("gr" . "C-z l r r")
       '("gl" . "C-z l")))
 #+end_src
 
