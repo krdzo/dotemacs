@@ -505,9 +505,6 @@ I making a custom input method for Serbian language because all the other method
 #+begin_src emacs-lisp
   ;; add color codes to compilation mode
   (add-hook 'compilation-filter-hook 'ansi-color-compilation-filter)
-  (with-eval-after-load 'meow
-    (meow-define-keys 'normal
-      '("gr" . recompile)))
 #+end_src
 
 ** repeat-mode
@@ -915,6 +912,7 @@ and the second filter to the completion-style filtering (?).
 ** dabbrev
 #+begin_src emacs-lisp
   (elpaca nil
+    (setq dabbrev-case-replace nil)
     (general-def
       "M-/" 'dabbrev-completion
       "C-M-/" 'dabbrev-expand))
@@ -1700,6 +1698,12 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 #+end_src
 
 ** Languages
+*** C mode
+#+begin_src emacs-lisp
+  (general-def 'c-mode-map
+      "C-c C-c" 'recompile
+      "C-c C-S-c" 'compile)
+#+end_src
 
 *** Common Lisp
 
@@ -1788,7 +1792,10 @@ Rest of configuration:
 *** Golang
 #+begin_src emacs-lisp
   (elpaca 'go-mode
-    (setq gofmt-command "goimports")
+    (general-def 'go-mode-map
+      "C-c C-c" 'recompile
+      "C-c C-S-c" compile))
+  (setq gofmt-command "goimports"
 
     (add-hook 'before-save-hook 'gofmt-before-save)
 
@@ -2312,6 +2319,7 @@ Binding for other packages
 #+begin_src emacs-lisp
   (elpaca nil
     (meow-define-keys 'normal
+      '("gr" . "C-z l r r")
       '("gl" . "C-z l")))
 #+end_src
 
