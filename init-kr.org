@@ -213,7 +213,7 @@ Ansi collor in buffers. Run command to add ansi collors to buffer.
       (call-interactively #'kr-unix-ts-to-str)))
 
 
-  (with-eval-after-load meow-mode
+  (with-eval-after-load 'meow
     (meow-define-keys 'normal
       '("gu". kr-unix-ts-to-str-dwim)))
 #+end_src
@@ -1700,9 +1700,10 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 ** Languages
 *** C mode
 #+begin_src emacs-lisp
-  (general-def 'c-mode-map
-      "C-c C-c" 'recompile
-      "C-c C-S-c" 'compile)
+  (elpaca nil
+    (general-def 'c-mode-map
+       "C-c C-c" 'recompile
+       "C-c C-S-c" 'compile))
 #+end_src
 
 *** Common Lisp
@@ -1794,11 +1795,12 @@ Rest of configuration:
   (elpaca 'go-mode
     (general-def 'go-mode-map
       "C-c C-c" 'recompile
-      "C-c C-S-c" compile))
-  (setq gofmt-command "goimports"
+      "C-c C-S-c" 'compile)
+    (setq gofmt-command "goimports")
 
     (add-hook 'before-save-hook 'gofmt-before-save)
 
+    (require 'compile)
     (add-hook 'go-mode-hook
          (lambda ()
            (unless (or (file-exists-p "makefile")
