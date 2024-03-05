@@ -76,7 +76,6 @@ I like to know how fast Emacs has started.
 For keeping mode line clean.
 #+begin_src emacs-lisp
   (use-package blackout)
-  (elpaca-wait)
 #+end_src
 
 ** General
@@ -91,7 +90,8 @@ There is also ~use-package~ integration for all of these functions and they are:
 
 #+BEGIN_SRC emacs-lisp
   (use-package general)
-#+END_SRC
+  (elpaca-wait)
+  #+END_SRC
 
 ** Garbage collector magic hack
 What the title says.
@@ -146,7 +146,8 @@ Small snippets in help buffer that show how a function is used.
 
 ** Util functions
 
-Ansi collor in buffers. Run command to add ansi collors to buffer.
+*** ANSI colors
+Ansi color in buffers. Run command to add ansi collors to buffer.
 #+begin_src emacs-lisp
   (defun kr-display-ansi-colors ()
     (interactive)
@@ -211,11 +212,6 @@ Ansi collor in buffers. Run command to add ansi collors to buffer.
         (let ((ts (buffer-substring-no-properties (region-beginning) (region-end))))
           (kr-unix-ts-to-str ts))
       (call-interactively #'kr-unix-ts-to-str)))
-
-
-  (with-eval-after-load 'meow
-    (meow-define-keys 'normal
-      '("gu". kr-unix-ts-to-str-dwim)))
 #+end_src
 
 * Keybindings
@@ -1003,9 +999,6 @@ alternative package ~undo-hl~.
         '("[t" . "C-z [t")
         '("]t" . "C-z ]t")))
 
-
-    (set-face-background 'markdown-code-face nil)
-
     (setq hl-todo-highlight-punctuation ":")
     (setq hl-todo-keyword-faces
           '(("TODO"   . "#FF4500")
@@ -1497,117 +1490,24 @@ Closely related to =org-mode= but not really so it goes here with org mode
 
 * Programming
 
-** COMMENT eglot
+** eglot
 #+begin_src emacs-lisp
-  (elpaca 'eglot
-    (set-face-attribute 'eglot-highlight-symbol-face nil :background "#585858")
-    (general-def 'eglot-mode-map
-      "C-M-." 'eglot-find-implementation)
+  (use-package eglot)
+  ;; (elpaca 'eglot
+  ;;   (general-def 'eglot-mode-map
+  ;;     "C-M-." 'eglot-find-implementation))
 
-    ;; start eglot in these modes
-    (add-hook 'go-mode-hook #'eglot-ensure)
-    (add-hook 'rust-mode-hook #'eglot-ensure)
-    (add-hook 'typescript-mode-hook #'eglot-ensure))
+    ;; ;; start eglot in these modes
+    ;; (add-hook 'go-mode-hook #'eglot-ensure)
+    ;; (add-hook 'rust-mode-hook #'eglot-ensure)
+    ;; (add-hook 'typescript-mode-hook #'eglot-ensure))
 #+end_src
-
-** LSP
-#+begin_src emacs-lisp
-  (use-package lsp-mode
-    :init
-    (defun my/lsp-mode-setup-completion ()
-      (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
-            '(prescient)))
-    (setq lsp-keymap-prefix "C-z l")
-    :custom
-    (lsp-completion-provider :none) ;; we use Corfu!
-    :hook
-    ((go-mode . lsp)
-     (typescript-mode . lsp)
-     (python-mode . lsp)
-     (lsp-mode . lsp-enable-which-key-integration)
-     (lsp-completion-mode . my/lsp-mode-setup-completion)
-     (lsp-mode . lsp-ui-mode))
-    :commands lsp
-    :config
-    (kr-set-lsp-face)
-    (setq lsp-go-use-placeholders nil)
-    (general-def 'lsp-mode-map
-      "C-z h" 'lsp-describe-thing-at-point
-      "C-M-/" 'lsp-find-implementation))
-
-
-  ;; optionally
-  (use-package lsp-ui :commands lsp-ui-mode
-    :config
-    (general-def 'lsp-ui-peek-mode-map
-      "k" 'lsp-ui-peek--select-prev
-      "j" 'lsp-ui-peek--select-next))
-
-  ;; optionally if you want to use debugger
-  (use-package dap-mode)
-  ;; (use-package dap-LANGUAGE) to load the dap adapter for your language
-
-  (setq prescient-filter-method '(literal prefix literal-prefix))
-  (setq prescient-filter-method '(literal))
-
-  (defun kr-set-lsp-face ()
-    "Set faces for lsp."
-    (set-face-attribute 'lsp-face-highlight-textual nil
-                        :background 'unspecified
-                        :foreground 'unspecified
-                        :underline "#FFFF"))   ; wrong collor on purpuse
-#+end_src
-
-** Tree-sitter
-#+BEGIN_SRC emacs-lisp
-  (elpaca 'tree-sitter
-    (general-add-hook '(c-mode-hook
-                        js-mode-hook
-                        python-mode-hook
-                        css-mode-hook
-                        rust-mode-hook
-                        typescript-mode-hook
-                        go-mode-hook)
-                      #'tree-sitter-hl-mode)
-    (with-eval-after-load 'tree-sitter
-      (blackout 'tree-sitter-mode)))
-
-  (elpaca 'tree-sitter-langs)
-#+END_SRC
 
 ** xref
 #+begin_src emacs-lisp
-  (elpaca 'xref
-    (setq xref-prompt-for-identifier nil)
-    (general-def
-      "s-<mouse-1>" 'xref-find-references-at-mouse))
-#+end_src
-
-** COMMENT flymake
-#+begin_src emacs-lisp
-  (use-package flymake
-    :hook
-    (prog-mode . flymake-mode)
+  (use-package xref
     :config
-    (general-def flymake-mode-map
-      "C-z [e" 'flymake-goto-prev-error
-      "C-z ]e" 'flymake-goto-next-error)
-    (setq eldoc-documentation-function 'eldoc-documentation-compose)
-
-    (add-hook 'flymake-mode-hook
-              (lambda ()
-                (remove-hook 'eldoc-documentation-functions #'flymake-eldoc-function t)
-                (add-hook 'eldoc-documentation-functions #'flymake-eldoc-function -1 t))))
-#+end_src
-
-** flycheck
-#+begin_src emacs-lisp
-  (use-package flycheck
-    :config
-    (general-def 'flycheck-mode-map
-      "C-z [e" 'flycheck-previous-error
-      "C-z ]e" 'flycheck-next-error))
-
+    (setq xref-prompt-for-identifier nil))
 #+end_src
 
 ** Formating
@@ -1617,8 +1517,9 @@ Formating code buffers on save.
 Maybe better alternative [[https://github.com/purcell/emacs-reformatter][reformatter]]
 
 #+begin_src emacs-lisp
-  (elpaca 'apheleia
-    (add-hook 'js-mode-hook 'apheleia-mode))
+  ;; TODO: expolore this mode and see what it can do
+  (use-package apheleia
+    :hook (js-mode . apheleia-mode))
 #+end_src
 
 ** yasnippet
@@ -1846,18 +1747,6 @@ Rest of configuration:
     :config
     (add-hook 'python-mode-hook #'pyvenv-mode))
 
-#+end_src
-
-** quickrun
-#+begin_src emacs-lisp
-  (elpaca 'quickrun
-    (defun kr-quickrun (func)
-      (let ((win (get-mru-window)))
-        (save-buffer)
-        (funcall func)
-        (select-window win)))
-
-    (advice-add 'quickrun :around #'kr-quickrun))
 #+end_src
 
 ** Jenkins
@@ -2373,35 +2262,6 @@ If corfu is active yasnipet won't override =<tab>= binding.
                 (add-hook 'yas-keymap-disable-hook 'corfu-active-p nil t)))
 
   (add-hook 'yas-keymap-disable-hook 'corfu-active-p nil t)
-#+end_src
-
-lsp - yasnippet hack for ~$0~
-If a LSP server returns a snippet with ~$0~ snippet than change it to ~$1~ so that we don't exit snippet expansion. See [[https://github.com/emacs-lsp/lsp-dart/issues/130][issue]].
-#+begin_src emacs-lisp :tangle no
-  (add-hook 'lsp-mode-hook
-            #'(lambda ()
-                (defun lsp--to-yasnippet-snippet (snippet)
-                  "Convert LSP SNIPPET to yasnippet snippet."
-                  ;; LSP snippet doesn't escape "{" and "`", but yasnippet requires escaping it.
-                  ;; if there is a {0:} and no {1:} in snippet change the 0 to 1
-                  (if (and (not (string-match "${1:" snippet))
-                           (string-match "${0:" snippet))
-                      (let ((newsnippet (replace-regexp-in-string "${0:" "${1:"
-                                                                  snippet)))
-                        (replace-regexp-in-string (rx (or bos (not (any "$" "\\"))) (group (or "{" "`")))
-                                                  (rx "\\" (backref 1))
-                                                  newsnippet
-                                                  nil nil 1))
-                    (replace-regexp-in-string (rx (or bos (not (any "$" "\\"))) (group (or "{" "`")))
-                                              (rx "\\" (backref 1))
-                                              snippet
-                                              nil nil 1)))))
-#+end_src
-
-Disable anoying background in LSP help buffer
-#+begin_src emacs-lisp
-  (with-eval-after-load 'markdown-mode
-    (set-face-background 'markdown-code-face nil))
 #+end_src
 
 * COMMENT Disabled
