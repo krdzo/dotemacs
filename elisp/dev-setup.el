@@ -1,25 +1,8 @@
 (electric-pair-mode 1)
 
-(use-package no-littering
-  :demand t
-  :config
-  (setq auto-save-file-name-transforms
-        `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
-  (setq custom-file (no-littering-expand-etc-file-name "custom.el"))
-  ;; here because it needs to be after no-littering
-  ;; should be moved somewhere else
-  (when (file-exists-p custom-file)
-    (load-file custom-file))
-  (no-littering-theme-backups)
-
-  (with-eval-after-load 'recentf
-    (add-to-list 'recentf-exclude no-littering-var-directory)
-    (add-to-list 'recentf-exclude no-littering-etc-directory)))
-
 (use-package xref
     :config
     (setq xref-prompt-for-identifier nil))
-
 
 ;;; git
 (setq auth-sources '("~/.authinfo"))
@@ -60,7 +43,7 @@
   :custom
   (treesit-auto-install 'prompt)
   :config
-  (setq treesit-auto-langs '(go gomod tsx typescript))
+  (setq treesit-auto-langs '(go gomod dockerfile markdown tsx typescript yaml))
   (treesit-auto-add-to-auto-mode-alist 'all)
   (global-treesit-auto-mode))
 

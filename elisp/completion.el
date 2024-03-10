@@ -64,7 +64,8 @@
   (vertico-multiform-mode 1)
 
   (setq vertico-multiform-commands
-        '((xref-find-references-at-mouse buffer)
+        '((xref-find-references buffer)
+          (xref-find-references-at-mouse buffer)
           (consult-yank-pop indexed)
           (project-find-regexp buffer)
           (consult-grep buffer)

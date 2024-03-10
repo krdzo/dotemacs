@@ -4,10 +4,27 @@
 (setq isearch-lazy-count t)
 (add-hook 'compilation-filter-hook 'ansi-color-compilation-filter)
 
+(use-package no-littering
+  :demand t
+  :config
+  (setq auto-save-file-name-transforms
+        `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
+  (setq custom-file (no-littering-expand-etc-file-name "custom.el"))
+  ;; here because it needs to be after no-littering
+  ;; should be moved somewhere else
+  (when (file-exists-p custom-file)
+    (load-file custom-file))
+  (no-littering-theme-backups)
+
+  (with-eval-after-load 'recentf
+    (add-to-list 'recentf-exclude no-littering-var-directory)
+    (add-to-list 'recentf-exclude no-littering-etc-directory)))
+
 (use-package recentf
   :ensure nil
   :config
-  (recentf-mode 1)
+  (with-eval-after-load 'no-littering
+    (recentf-mode 1))
   (setq recentf-max-saved-items 75)
   (setq recentf-exclude `(,(expand-file-name "eln-cache/" user-emacs-directory))))
 
@@ -15,6 +32,7 @@
   :bind (([remap list-buffers] . consult-buffer)
          ([remap yank-pop] . consult-yank-pop)
          ([remap project-list-buffers] . consult-project-buffer)
+         ([remap project-find-regexp] . consult-ripgrep)
          (:map meow-normal-state-keymap
           ("/" . consult-line)))
   :config
