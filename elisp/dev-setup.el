@@ -23,7 +23,9 @@
 
 ;;; git
 (setq auth-sources '("~/.authinfo"))
-(use-package transient)
+(use-package transient
+  :bind (:map transient-base-map
+         ("<escape>" . transient-quit-one)))
 (use-package magit
   :demand t
   :bind (:map magit-status-mode-map
@@ -58,16 +60,14 @@
   :custom
   (treesit-auto-install 'prompt)
   :config
-  (setq treesit-auto-langs '(go gomod))
+  (setq treesit-auto-langs '(go gomod tsx typescript))
   (treesit-auto-add-to-auto-mode-alist 'all)
   (global-treesit-auto-mode))
 
 ;;; lsp
-
 (use-package jsonrpc)
 (use-package eglot
   :hook (go-ts-mode . eglot-ensure)
-
   :config
   (add-hook 'eglot-managed-mode-hook
             (lambda ()
@@ -76,6 +76,8 @@
 ;;; languages
 (use-package go-ts-mode
   :ensure nil
-  :custom (go-ts-mode-indent-offset 4))
+  :custom (go-ts-mode-indent-offset 4)
+  :config
+  (setq treesit-font-lock-level 4))
 
 (provide 'dev-setup)

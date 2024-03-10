@@ -27,6 +27,7 @@
     '("0" . move-beginning-of-line)
     '("r" . meow-replace)
     '("q" . meow-quit)
+    '("Q" . kill-current-buffer)
     '("x" . backward-delete-char-untabify)
     '("X" . delete-char)
     '("d" . kill-region)
@@ -51,7 +52,6 @@
     '("L" . move-end-of-line)
     '("H" . beginning-of-line-text)
     '("<escape>" . keyboard-quit)))
-
 (defun kr-last-buffer ()
   "Switch to last viewed buffer in the same window."
     (interactive)

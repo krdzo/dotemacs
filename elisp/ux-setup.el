@@ -12,8 +12,11 @@
   (setq recentf-exclude `(,(expand-file-name "eln-cache/" user-emacs-directory))))
 
 (use-package consult
-  :bind (:map meow-normal-state-keymap
-              ("/" . consult-line))
+  :bind (([remap list-buffers] . consult-buffer)
+         ([remap yank-pop] . consult-yank-pop)
+         ([remap project-list-buffers] . consult-project-buffer)
+         (:map meow-normal-state-keymap
+          ("/" . consult-line)))
   :config
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
