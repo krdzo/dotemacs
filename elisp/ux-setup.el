@@ -9,14 +9,14 @@
   :config
   (recentf-mode 1)
   (setq recentf-max-saved-items 75)
-  (setq recentf-exclude `(,(expand-file-name "straight/build/" user-emacs-directory)
-                          ,(expand-file-name "eln-cache/" user-emacs-directory))))
+  (setq recentf-exclude `(,(expand-file-name "eln-cache/" user-emacs-directory))))
 
 (use-package consult
+  :bind (:map meow-normal-state-keymap
+              ("/" . consult-line))
   :config
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
-
   (define-key global-map [remap list-buffers] 'consult-buffer)
   (define-key global-map [remap yank-pop] 'consult-yank-pop)
   (define-key global-map [remap project-list-buffers] 'consult-project-buffer)

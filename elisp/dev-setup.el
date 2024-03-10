@@ -5,6 +5,7 @@
     (setq xref-prompt-for-identifier nil))
 
 ;;; git
+(setq auth-sources '("~/.authinfo"))
 (use-package transient)
 (use-package magit
   :demand t
@@ -13,6 +14,7 @@
               ("C-<tab>" . 'tab-next))
   :hook (git-commit-mode . flyspell-mode)
   :config
+  (use-package forge :disabled)
   (setq git-commit-fill-column 72)
   (setq magit-process-finish-apply-ansi-colors t)
 
@@ -32,6 +34,7 @@
       (kbd "v") 'magit-project-status)
     (remove-hook 'project-switch-commands '(project-vc-dir "VC-Dir"))
     (add-hook 'project-switch-commands '(magit-project-status "Magit") 100)))
+
 
 ;;; tree-sitter
 (use-package treesit-auto
