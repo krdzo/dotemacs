@@ -1,5 +1,9 @@
 (electric-pair-mode 1)
 
+(use-package xref
+    :config
+    (setq xref-prompt-for-identifier nil))
+
 ;;; git
 (use-package transient)
 (use-package magit
@@ -20,7 +24,6 @@
       (set-face-background face (face-attribute 'magit-diff-context-highlight :background)))
     (set-face-background 'magit-diff-context-highlight
                          (face-attribute 'default :background)))
-
 
   (setq magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1)
 
