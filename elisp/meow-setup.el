@@ -61,11 +61,11 @@
 (defun kr-change ()
   "If region active delete and go to insert state.
 If no region is active delete  char and go to insert."
- (interactive
+  (interactive)
   (if mark-active
       (delete-region (region-beginning) (region-end))
     (delete-char 1))
-  (meow-insert)))
+  (call-interactively #'meow-insert))
 
 (defun slick-cut (beg end)
   (interactive
