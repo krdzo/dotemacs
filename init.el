@@ -26,3 +26,4 @@
 (require 'ui-setup)
 (require 'ux-setup)
 (require 'dev-setup)
+(require 'apps-setup)
