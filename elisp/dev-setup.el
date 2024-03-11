@@ -1,4 +1,5 @@
 (electric-pair-mode 1)
+(use-package markdown-mode)
 
 (use-package xref
     :config
@@ -43,7 +44,7 @@
   :custom
   (treesit-auto-install 'prompt)
   :config
-  (setq treesit-auto-langs '(go gomod dockerfile markdown tsx typescript yaml))
+  (setq treesit-auto-langs '(go gomod dockerfile markdown tsx typescript html css javascript json yaml))
   (treesit-auto-add-to-auto-mode-alist 'all)
   (global-treesit-auto-mode))
 
@@ -62,5 +63,7 @@
   :custom (go-ts-mode-indent-offset 4)
   :config
   (setq treesit-font-lock-level 4))
+
+
 
 (provide 'dev-setup)

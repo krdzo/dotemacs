@@ -10,7 +10,7 @@
 
 (elpaca nil
   (if kr-mac-p
-      (set-face-attribute 'default nil :height 145)
+      (set-face-attribute 'default nil :height 125)
     (set-face-attribute 'default nil :height 115)))
 
 (use-package hl-todo
