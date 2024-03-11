@@ -151,4 +151,48 @@ so that you needn't enable it manually.
         (kr-unix-ts-to-str ts))
     (call-interactively #'kr-unix-ts-to-str)))
 
+
+;;; window menagment
+(setq switch-to-buffer-obey-display-actions t)
+(defun kr-swith-to-buffer-obey ()
+  (interactive)
+  (let ((switch-to-buffer-obey-display-actions nil))
+    (call-interactively 'switch-to-buffer)))
+(elpaca nil
+    (general-def
+      "C-x C-S-b" 'kr-swith-to-buffer-obey))
+
+;; Custom display function copied from built in funciton
+(defun kr-display-buffer-reuse-window (buffer alist)
+  "Same ad `display-buffer-reuse-window' just doesn't respect
+'inhibit-same-window' alist variable"
+  (let* ((alist-entry (assq 'reusable-frames alist))
+         (frames (cond (alist-entry (cdr alist-entry))
+                       ((if (eq pop-up-frames 'graphic-only)
+                            (display-graphic-p)
+                          pop-up-frames)
+                        0)
+                       (display-buffer-reuse-frames 0)
+                       (t (last-nonminibuffer-frame))))
+         (window (if (eq buffer (window-buffer))
+                     (selected-window)
+                   ;; Preferably use a window on the selected frame,
+                   ;; if such a window exists (Bug#36680).
+                   (let* ((windows (delq (selected-window)
+                                         (get-buffer-window-list
+                                          buffer 'nomini frames)))
+                          (first (car windows))
+                          (this-frame (selected-frame)))
+                     (cond
+                      ((eq (window-frame first) this-frame)
+                       first)
+                      ((catch 'found
+                         (dolist (next (cdr windows))
+                           (when (eq (window-frame next) this-frame)
+                             (throw 'found next)))))
+                      (t first))))))
+    (when (window-live-p window)
+      (prog1 (window--display-buffer buffer window 'reuse alist)
+        (unless (cdr (assq 'inhibit-switch-frame alist))
+          (window--maybe-raise-frame (window-frame window)))))))
 (provide 'ux-setup)

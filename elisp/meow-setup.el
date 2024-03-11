@@ -1,5 +1,7 @@
 (use-package puni)
-(use-package expand-region)
+(use-package expand-region
+  :config
+  (setq expand-region-subword-enabled t))
 
 (defun meow-configure ()
   (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
