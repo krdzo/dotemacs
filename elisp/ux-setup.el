@@ -51,6 +51,11 @@
      consult-buffer
      :preview-key "C-o")))
 
+(use-package marginalia
+  :config
+  (marginalia-mode 1)
+  (setq marginalia-annotators '(marginalia-annotators-heavy
+                                marginalia-annotators-light nil)))
 
 ;;; Mac Os
 (defvar kr-mac-p (if (string= system-type "darwin") t nil))
