@@ -53,6 +53,7 @@
 (use-package eglot
   :hook (go-ts-mode . eglot-ensure)
   :config
+  (add-hook 'special-mode-hook 'visual-line-mode)
   (add-hook 'eglot-managed-mode-hook
             (lambda ()
               (add-hook 'before-save-hook #'eglot-format nil t))))
