@@ -1,4 +1,6 @@
-(use-package puni)
+(use-package puni
+  :config
+  (puni-global-mode 1))
 (use-package expand-region
   :config
   (setq expand-region-subword-enabled t))
@@ -30,7 +32,7 @@
     '("r" . meow-replace)
     '("q" . meow-quit)
     '("Q" . kill-current-buffer)
-    '("x" . backward-delete-char-untabify)
+    '("x" . puni-backward-delete-char)
     '("X" . delete-char)
     '("d" . kill-region)
     '("D" . puni-kill-line)

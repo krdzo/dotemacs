@@ -44,14 +44,15 @@
   :custom
   (treesit-auto-install 'prompt)
   :config
-  (setq treesit-auto-langs '(go gomod dockerfile markdown tsx typescript html css javascript json yaml))
+  (setq treesit-auto-langs
+        '(c cpp cmake go gomod dockerfile markdown tsx typescript html css javascript json yaml))
   (treesit-auto-add-to-auto-mode-alist 'all)
   (global-treesit-auto-mode))
 
 ;;; lsp
 (use-package jsonrpc)
 (use-package eglot
-  :hook (go-ts-mode . eglot-ensure)
+  :hook ((go-ts-mode c-ts-mode) . eglot-ensure)
   :config
   (add-hook 'special-mode-hook 'visual-line-mode)
   (add-hook 'eglot-managed-mode-hook
@@ -73,7 +74,6 @@
     (setq inferior-lisp-program "ros -Q run")
   (setq inferior-lisp-program "sbcl"))
 
-(use-package general)
 (use-package sly
   :bind
   :config

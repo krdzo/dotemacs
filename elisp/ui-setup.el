@@ -8,10 +8,9 @@
 (load-theme 'misterioso)
 (set-face-background 'cursor "#338f86")
 
-(elpaca nil
-  (if kr-mac-p
-      (set-face-attribute 'default nil :height 125)
-    (set-face-attribute 'default nil :height 115)))
+(if kr-mac-p
+    (set-face-attribute 'default nil :height 125)
+  (set-face-attribute 'default nil :height 115))
 
 (use-package hl-todo
   :hook (prog-mode . hl-todo-mode)

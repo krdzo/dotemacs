@@ -158,9 +158,7 @@ so that you needn't enable it manually.
   (interactive)
   (let ((switch-to-buffer-obey-display-actions nil))
     (call-interactively 'switch-to-buffer)))
-(elpaca nil
-    (general-def
-      "C-x C-S-b" 'kr-swith-to-buffer-obey))
+(define-key global-map (kbd "C-x C-S-b") 'kr-swith-to-buffer-obey)
 
 ;; Custom display function copied from built in funciton
 (defun kr-display-buffer-reuse-window (buffer alist)
