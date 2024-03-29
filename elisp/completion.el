@@ -16,32 +16,15 @@
                 (setq-local prescient-filter-method
                       '(literal prefix literal-prefix regexp))))
 
-  (add-to-list 'completion-category-overrides '(file (styles basic partial-completion)))
+  (add-to-list 'completion-category-overrides '(file (styles basic partial-completion))))
 
-  ;; setups are copyed from wikis
-  ;; setup for vertico
-  (with-eval-after-load 'vertico
-    (setq vertico-sort-function #'prescient-completion-sort)
+(use-package corfu-prescient
+    :config
+    (corfu-prescient-mode 1))
 
-    (defun vertico-prescient-remember ()
-      "Remember the chosen candidate with Prescient."
-      (when (>= vertico--index 0)
-        (prescient-remember
-         (substring-no-properties
-          (nth vertico--index vertico--candidates)))))
-    (advice-add #'vertico-insert :after #'vertico-prescient-remember))
-
-  ;; setup for corfu
-  (with-eval-after-load 'corfu
-    (defun dima-corfu-prescient-remember (&rest _)
-      "Advice for `corfu--insert.'"
-      (when (>= corfu--index 0)
-        (prescient-remember (nth corfu--index corfu--candidates))))
-
-    (advice-add #'corfu--insert :before #'dima-corfu-prescient-remember)
-
-    (setq corfu-sort-function #'prescient-completion-sort)
-    (setq corfu-sort-override-function #'prescient-completion-sort)))
+(use-package vertico-prescient
+    :config
+    (vertico-prescient-mode 1))
 
 ;;; minibuffer completion
 (use-package vertico

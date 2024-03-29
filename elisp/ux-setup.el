@@ -36,6 +36,8 @@
          (:map meow-normal-state-keymap
           ("/" . consult-line)))
   :config
+  (setq consult-ripgrep-args
+        "rg --null --line-buffered --color=never --max-columns=1000 --path-separator /   --smart-case --no-heading --with-filename --line-number --search-zip --hidden --glob=!.git")
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
   (define-key global-map [remap list-buffers] 'consult-buffer)

@@ -1,4 +1,5 @@
 (electric-pair-mode 1)
+(add-hook 'prog-mode-hook #'toggle-truncate-lines)
 (use-package markdown-mode)
 
 (use-package xref
