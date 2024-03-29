@@ -80,6 +80,11 @@
 
   (global-corfu-mode 1)
   (with-eval-after-load 'corfu
-      (add-hook 'meow-insert-exit-hook #'corfu-quit)))
+    (add-hook 'meow-insert-exit-hook #'corfu-quit)))
+
+(use-package cape
+  :config
+  (add-hook 'completion-at-point-functions 'cape-file 100))
+
 
 (provide 'completion)
