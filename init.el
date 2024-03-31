@@ -20,9 +20,10 @@
 (add-hook 'focus-out-hook #'garbage-collect)
 (add-hook 'before-save-hook #'whitespace-cleanup)
 
-(use-package general)
 
 (require 'elpaca-bootstrap)
+
+(use-package general)
 (require 'completion)
 (require 'meow-setup)
 (require 'ux-setup)

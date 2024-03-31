@@ -1,11 +1,35 @@
+(use-package find-char
+  :ensure '(find-char :repo "https://github.com/casouri/find-char"))
+
+(use-package vundo
+  :bind (:map vundo-mode-map
+         ("<escape>" . vundo-quit)
+         ("l" . vundo-forward)
+         ("h" . vundo-backward)
+         ("j" . vundo-next)
+         ("k" . vundo-previous)))
+
 (use-package puni
   :config
-  (puni-global-mode 1))
+  (puni-global-mode 1)
+  (defun kr-puni-meow-setup ()
+    (meow-define-keys 'normal
+      '("E" . puni-forward-sexp)
+      '("B" . puni-backward-sexp)
+      '("Z" . puni-force-delete)
+      '("x" . puni-backward-delete-char)
+      '("X" . puni-forward-delete-char)
+      '("D" . puni-kill-line)
+      '(">" . puni-slurp-forward)
+      '("<" . puni-barf-forward))))
+
 (use-package expand-region
   :config
   (setq expand-region-subword-enabled t))
 
-(defun meow-configure ()
+(use-package expreg)
+
+(defun kr-meow-setup ()
   (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
   (meow-define-keys 'motion
     '("j" . next-line)
@@ -24,7 +48,7 @@
   (meow-define-keys 'normal
     '("`" . kr-last-buffer)
     '("@" . goto-line)
-    '("/" . imenu)
+    '("?" . imenu)
     '(";" . exchange-point-and-mark)
     '("{" . backward-paragraph)
     '("}" . forward-paragraph)
@@ -32,10 +56,8 @@
     '("r" . meow-replace)
     '("q" . meow-quit)
     '("Q" . kill-current-buffer)
-    '("x" . puni-backward-delete-char)
     '("X" . delete-char)
     '("d" . kill-region)
-    '("D" . puni-kill-line)
     '("y" . copy-region-as-kill)
     '("p" . yank)
     '("u" . undo)
@@ -47,6 +69,8 @@
     '("b" . backward-word)
     ;; '("C-j" . scroll-up-command)
     ;; '("C-k" . scroll-down-command)
+    '("f" . find-char)
+    '("w" . expreg-expand)
     '("s" . er/expand-region)
     '("S" . er/contract-region)
     '("k" . previous-line)
@@ -56,6 +80,7 @@
     '("L" . move-end-of-line)
     '("H" . beginning-of-line-text)
     '("<escape>" . keyboard-quit)))
+
 (defun kr-last-buffer ()
   "Switch to last viewed buffer in the same window."
     (interactive)
@@ -90,8 +115,10 @@ If no region is active delete  char and go to insert."
 
 (use-package meow
   :config
-  (meow-configure)
+  (kr-meow-setup)
+  (kr-puni-meow-setup)
   (meow-global-mode 1)
+  (add-to-list 'meow-mode-state-list '(vundo-mode . insert))
   (setq meow-keypad-leader-dispatch "C-c")
   (setq meow-cheatsheet-physical-layout meow-cheatsheet-physical-layout-ansi))
 
