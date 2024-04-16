@@ -22,8 +22,7 @@
 
 
 (require 'elpaca-bootstrap)
-
-(use-package general)
+(require 'preface-setup)
 (require 'completion)
 (require 'meow-setup)
 (require 'ux-setup)
