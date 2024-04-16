@@ -4,6 +4,11 @@
 (setq isearch-lazy-count t)
 (add-hook 'compilation-filter-hook 'ansi-color-compilation-filter)
 
+
+(setq mouse-wheel-tilt-scroll t)
+(when (kr-mac-p)
+  (setq mouse-wheel-flip-direction t))
+
 (use-package no-littering
   :demand t
   :config
@@ -53,6 +58,14 @@
      consult-buffer
      :preview-key "C-o")))
 
+(use-package embark
+  :bind (("C-." . embark-act)
+         ("C-;" . embark-dwim)
+         ("C-h B" . embark-bindings)))
+
+(use-package embark-consult
+  :hook (embark-collect-mode . consult-preview-at-point-mode))
+
 (use-package marginalia
   :config
   (marginalia-mode 1)
@@ -60,12 +73,12 @@
                                 marginalia-annotators-light nil)))
 
 ;;; Mac Os
-(defvar kr-mac-p (if (string= system-type "darwin") t nil))
+(defvar (kr-mac-p) (if (string= system-type "darwin") t nil))
 
 (setq ns-command-modifier 'super)
 (setq ns-option-modifier 'meta)
 
-(when kr-mac-p
+(when (kr-mac-p)
   (setq trash-directory  (expand-file-name "~/.Trash/"))
 
   (when (string= system-type "darwin")
