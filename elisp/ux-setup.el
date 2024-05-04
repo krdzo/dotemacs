@@ -37,9 +37,7 @@
   :bind (([remap list-buffers] . consult-buffer)
          ([remap yank-pop] . consult-yank-pop)
          ([remap project-list-buffers] . consult-project-buffer)
-         ([remap project-find-regexp] . consult-ripgrep)
-         (:map meow-normal-state-keymap
-          ("/" . consult-line)))
+         ([remap project-find-regexp] . consult-ripgrep))
   :config
   (setq consult-ripgrep-args
         "rg --null --line-buffered --color=never --max-columns=1000 --path-separator /   --smart-case --no-heading --with-filename --line-number --search-zip --hidden --glob=!.git")
@@ -71,9 +69,6 @@
   (marginalia-mode 1)
   (setq marginalia-annotators '(marginalia-annotators-heavy
                                 marginalia-annotators-light nil)))
-
-;;; Mac Os
-(defvar (kr-mac-p) (if (string= system-type "darwin") t nil))
 
 (setq ns-command-modifier 'super)
 (setq ns-option-modifier 'meta)

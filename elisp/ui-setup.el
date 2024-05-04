@@ -8,7 +8,7 @@
 (load-theme 'misterioso)
 (set-face-background 'cursor "#338f86")
 
-(if kr-mac-p
+(if (kr-mac-p)
     (set-face-attribute 'default nil :height 125)
   (set-face-attribute 'default nil :height 115))
 

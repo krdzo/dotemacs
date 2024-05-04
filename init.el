@@ -19,13 +19,16 @@
 (global-auto-revert-mode 1)
 (add-hook 'focus-out-hook #'garbage-collect)
 (add-hook 'before-save-hook #'whitespace-cleanup)
+(delete-selection-mode 1)
+(subword-mode 1)
+(define-key minibuffer-mode-map (kbd "<escape>") 'minibuffer-keyboard-quit)
 
 
 (require 'elpaca-bootstrap)
 (require 'preface-setup)
 (require 'completion)
-(require 'meow-setup)
 (require 'ux-setup)
 (require 'ui-setup)
 (require 'dev-setup)
 (require 'apps-setup)
+(require 'editing)

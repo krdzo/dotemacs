@@ -82,6 +82,14 @@
 
   (general-def 'sly-mode-map
     "C-z h" 'sly-describe-symbol)
+  (general-def 'lisp-mode-map
+    "C-c '" (lambda ()
+                (interactive)
+                (call-interactively #'sly-mrepl)
+                (end-of-buffer)))
+
+  (general-def 'sly-mrepl-mode-map
+    "C-c '" 'sly-switch-to-most-recent)
 
   (with-eval-after-load 'meow
     (add-to-list 'meow-mode-state-list '(sly-mrepl-mode . normal))
@@ -89,16 +97,7 @@
     (add-to-list 'meow-mode-state-list '(sly-xref-mode . motion))
     (add-to-list 'meow-mode-state-list '(sly-stickers--replay-mode . motion))
     (add-to-list 'meow-mode-state-list '(sly-inspector-mode . motion)))
-  ;; switch bufers REPL - DB - Source
-  (general-def '(lisp-mode-map sly-mrepl-mode-map)
-    "C-c d" #'(lambda () (interactive) (switch-to-buffer "*sly-db for sbcl (thread 1)*")))
-  (general-def '(lisp-mode-map sly-db-mode-map sly-db-frame-map)
-    "C-c '" #'(lambda ()
-                (interactive)
-                (call-interactively #'sly-mrepl)
-                (end-of-buffer)))
-  (general-def '(sly-db-mode-map sly-db-frame-map)
-    "C-c d" #'sly-switch-to-most-recent)
+
   (general-def 'sly-mrepl-mode-map
     "C-j" 'sly-mrepl-next-prompt
     "C-k" 'sly-mrepl-previous-prompt
@@ -112,20 +111,7 @@
   (add-to-list 'display-buffer-alist
                `("*sly-mrepl for sbcl*"
                  kr-display-buffer-reuse-window
-                 (inhibit-same-window . t)))
-  (defun kr-sly-db-new-window-direction (buffer alist)
-    "Control where sly-db buffer is shown.
-BUFFER and ALIST are the same type that are needed
-for `display-buffer' funcitons."
-    (display-buffer "*sly-mrepl for sbcl*")
-    (add-to-list 'alist (cons 'window (get-buffer-window "*sly-mrepl for sbcl*")))
-    (display-buffer-in-direction buffer alist))
-
-  (add-to-list 'display-buffer-alist
-               `("*sly-db for sbcl (thread [0-9]+)*"
-                 kr-sly-db-new-window-direction
-                 (direction . below)
-                 (window-height . 0.5))))
+                 (inhibit-same-window . t))))
 
 (use-package sly-repl-ansi-color
   :config
