@@ -76,18 +76,36 @@
   (setq inferior-lisp-program "sbcl"))
 
 (use-package sly
-  :bind
   :config
   (setq sly-mrepl-prevent-duplicate-history t)
+
+  (defun kr-sly-mrepl ()
+    (interactive)
+    (call-interactively #'sly-mrepl)
+    (end-of-buffer))
   (modaled-define-substate "sly")
   (modaled-define-keys
     :substates '("sly")
     :bind
-    '(("M-h" . sly-describe-symbol)))
+    '(("m e" . sly-eval-last-expression)
+      ("m c" . sly-compile-defun)
+      ("M-h" . sly-describe-symbol)
+      ("SPC '" . kr-sly-mrepl)))
   (modaled-enable-substate-on-state-change
     "sly"
     :states '("normal")
     :major '(lisp-mode))
+
+  (modaled-define-substate "sly-mrepl")
+  (modaled-define-keys
+    :substates '("sly-mrepl")
+    :bind
+    '(("M-h" . sly-describe-symbol)
+      ("SPC '" . sly-switch-to-most-recent)))
+  (modaled-enable-substate-on-state-change
+    "sly-mrepl"
+    :states '("normal")
+    :major '(sly-mrepl-mode))
 
   ;; always open sly REPl in other window
   (add-to-list 'display-buffer-alist

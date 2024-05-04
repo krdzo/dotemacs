@@ -42,6 +42,7 @@
       ("L" . move-end-of-line)
       ("H" . beginning-of-line-text)
       ("M-h" . kr-describe-at-point)
+      ("m e" . eval-last-sexp)
 
       ("SPC p" . ,project-prefix-map)
       ("SPC f f" . find-file)
@@ -49,6 +50,7 @@
       ("SPC f s" . save-buffer)
       ("SPC b b" . list-buffers)
       ("SPC v" . magit-status)
+      ("SPC w w" . other-window)
       ))
   (modaled-define-keys
     :states '("insert")
