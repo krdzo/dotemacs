@@ -79,34 +79,16 @@
   :bind
   :config
   (setq sly-mrepl-prevent-duplicate-history t)
+  (modaled-define-substate "sly")
+  (modaled-define-keys
+    :substates '("sly")
+    :bind
+    '(("M-h" . sly-describe-symbol)))
+  (modaled-enable-substate-on-state-change
+    "sly"
+    :states '("normal")
+    :major '(lisp-mode))
 
-  (general-def 'sly-mode-map
-    "C-z h" 'sly-describe-symbol)
-  (general-def 'lisp-mode-map
-    "C-c '" (lambda ()
-                (interactive)
-                (call-interactively #'sly-mrepl)
-                (end-of-buffer)))
-
-  (general-def 'sly-mrepl-mode-map
-    "C-c '" 'sly-switch-to-most-recent)
-
-  (with-eval-after-load 'meow
-    (add-to-list 'meow-mode-state-list '(sly-mrepl-mode . normal))
-    (add-to-list 'meow-mode-state-list '(sly-db-mode . motion))
-    (add-to-list 'meow-mode-state-list '(sly-xref-mode . motion))
-    (add-to-list 'meow-mode-state-list '(sly-stickers--replay-mode . motion))
-    (add-to-list 'meow-mode-state-list '(sly-inspector-mode . motion)))
-
-  (general-def 'sly-mrepl-mode-map
-    "C-j" 'sly-mrepl-next-prompt
-    "C-k" 'sly-mrepl-previous-prompt
-    "C-p" 'sly-mrepl-previous-input-or-button
-    "C-n" 'sly-mrepl-next-input-or-button
-    "C-c '" #'sly-switch-to-most-recent)
-
-  (general-def 'sly-stickers--replay-mode-map
-    "/" 'sly-stickers-replay-jump)
   ;; always open sly REPl in other window
   (add-to-list 'display-buffer-alist
                `("*sly-mrepl for sbcl*"

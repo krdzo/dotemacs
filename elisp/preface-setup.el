@@ -41,6 +41,7 @@
       ("O" . kr-open-previous-line)
       ("L" . move-end-of-line)
       ("H" . beginning-of-line-text)
+      ("M-h" . kr-describe-at-point)
 
       ("SPC p" . ,project-prefix-map)
       ("SPC f f" . find-file)
@@ -118,6 +119,15 @@ If no region is active delete  char and go to insert."
   (end-of-line)
   (kr-insert)
   (newline-and-indent))
+
+(defun kr-describe-at-point (symbol)
+  "Call `describe-symbol' for the SYMBOL at point."
+  (interactive (list (symbol-at-point)))
+  (if (and symbol (or (fboundp symbol)
+                      (boundp symbol)
+                      (facep symbol)))
+      (describe-symbol symbol)
+    (call-interactively #'describe-symbol)))
 
 ;;; Utils function and packcages used somewhere else in configuration
 
