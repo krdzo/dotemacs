@@ -6,7 +6,8 @@
                        (emacs-init-time)
                        gcs-done)))
 
-;;; Small builtin options that don't have any section
+;;; Builtin options,
+;; will move them to other section at a later date
 (setq ring-bell-function 'ignore)
 (setq use-file-dialog nil)
 (setq-default indent-tabs-mode nil)
