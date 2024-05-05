@@ -90,7 +90,8 @@
     '(("m e" . sly-eval-last-expression)
       ("m c" . sly-compile-defun)
       ("M-h" . sly-describe-symbol)
-      ("SPC '" . kr-sly-mrepl)))
+      ("SPC '" . kr-sly-mrepl)
+      ("SPC ~" . sly-mrepl-sync)))
   (modaled-enable-substate-on-state-change
     "sly"
     :states '("normal")

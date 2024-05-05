@@ -110,10 +110,11 @@ If no region is active delete  char and go to insert."
 (defun kr-open-previous-line ()
   (interactive)
   (deactivate-mark)
+  (beginning-of-line)
+  (newline-and-indent)
   (previous-line)
-  (end-of-line)
-  (kr-insert)
-  (newline-and-indent))
+  (indent-for-tab-command)
+  (kr-insert))
 
 (defun kr-open-next-line ()
   (interactive)
@@ -125,15 +126,18 @@ If no region is active delete  char and go to insert."
 (defun kr-describe-at-point (symbol)
   "Call `describe-symbol' for the SYMBOL at point."
   (interactive (list (symbol-at-point)))
-  (if (and symbol (or (fboundp symbol)
-                      (boundp symbol)
-                      (facep symbol)))
-      (describe-symbol symbol)
-    (call-interactively #'describe-symbol)))
+  (cond ((eql last-command 'kr-describe-at-point)
+         (dolist (window (window-list))
+           (when (equal (buffer-name (window-buffer window))
+                        "*Help*")
+             (quit-window nil window))))
+        ((and symbol (or (fboundp symbol)
+                         (boundp symbol)
+                         (facep symbol)))
+         (describe-symbol symbol))
+        (t (call-interactively #'describe-symbol))))
 
 ;;; Utils function and packcages used somewhere else in configuration
-
-(use-package general)
 
 (defun kr-mac-p ()
   (if (string= system-type "darwin") t nil))
