@@ -54,4 +54,19 @@
     `(("w" . expreg-expand)
       ("W" . expreg-contract))))
 
+(use-package embrace
+  :config
+  (defun kr-embrace-append ()
+    (interactive)
+    (when (use-region-p)
+        (exchange-point-and-mark))
+    (embrace-add))
+
+  (modaled-define-keys
+    :states '("normal")
+    :bind
+    '(("C" . embrace-commander)
+      ("I" . embrace-add)
+      ("A" . kr-embrace-append))))
+
 (provide 'editing)
