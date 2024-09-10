@@ -11,6 +11,11 @@
     :no-suppress t
     :lighter " [INS]"
     :cursor-type 'bar)
+  (modaled-define-state "emacs"
+    :sparse t
+    :no-suppress t
+    :lighter " [ES]"
+    :cursor-type 'hollow)
 
   (modaled-define-keys
     :states '("normal")
@@ -33,8 +38,8 @@
       ("i" . kr-insert)
       ("a" . kr-append)
       ("c" . kr-change)
-      ("u" . undo)
-      ("U" . vundo)
+      ("u" . undo-tree-undo)
+      ("U" . undo-tree-redo)
       ("p" . yank)
       ("y" . copy-region-as-kill)
       ("v" . set-mark-command)
@@ -64,6 +69,7 @@
     '(("<escape>" . modaled-set-main-state)))
 
 
+
   (with-eval-after-load 'corfu
     (defun mod-corfu-shim ()
       (if corfu--input
@@ -71,7 +77,7 @@
     (advice-add 'modaled-set-main-state :before #'mod-corfu-shim))
 
   (modaled-setup
-    '("insert" vundo-mode magit-popup-mode)
+    '("emacs" undo-tree-visualizer-mode magit-popup-mode)
     '("normal")))
 
 (elpaca-wait)

@@ -1,13 +1,16 @@
 ;;;; Setup text editing how I like it
 ;;; This is a merge between emacs, vim and helix
 
-(use-package vundo
-  :bind (:map vundo-mode-map
-         ("<escape>" . vundo-quit)
-         ("l" . vundo-forward)
-         ("h" . vundo-backward)
-         ("j" . vundo-next)
-         ("k" . vundo-previous)))
+(use-package undo-tree
+  :init
+  (global-undo-tree-mode)
+  :config
+  (define-key undo-tree-visualizer-mode-map (kbd "<escape>") 'undo-tree-visualizer-quit)
+  :bind (:map undo-tree-visualizer-mode-map
+         ("l" . undo-tree-visualize-switch-branch-right)
+         ("h" . undo-tree-visualize-switch-branch-left)
+         ("j" . undo-tree-visualize-redo)
+         ("k" . undo-tree-visualize-undo)))
 
 (use-package puni
   :config

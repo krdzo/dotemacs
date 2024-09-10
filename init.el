@@ -18,6 +18,7 @@
 
 (column-number-mode 1)
 (global-auto-revert-mode 1)
+(setq auto-revert-verbose nil)
 (add-hook 'focus-out-hook #'garbage-collect)
 (add-hook 'before-save-hook #'whitespace-cleanup)
 (delete-selection-mode 1)
