@@ -23,6 +23,9 @@
 (delete-selection-mode 1)
 (subword-mode 1)
 (define-key minibuffer-mode-map (kbd "<escape>") 'minibuffer-keyboard-quit)
+(add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p)
+(setq help-enable-variable-value-editing t)
+(put 'help-fns-edit-variable 'disabled nil)
 
 
 (require 'elpaca-bootstrap)

@@ -54,7 +54,13 @@
      consult-project-buffer
      :preview-key "C-o"
      consult-buffer
-     :preview-key "C-o")))
+     :preview-key "C-o"))
+  (with-eval-after-load 'project
+    (define-key project-prefix-map
+                (kbd "g") 'consult-ripgrep)
+    (remove-hook 'project-switch-commands '(project-find-regexp "Find regexp"))
+    (add-hook 'project-switch-commands '(consult-ripgrep "Ripgrep") 100))
+  )
 
 (use-package embark
   :bind (("C-." . embark-act)

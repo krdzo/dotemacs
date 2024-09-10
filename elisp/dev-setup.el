@@ -1,5 +1,7 @@
 (electric-pair-mode 1)
 (add-hook 'prog-mode-hook #'toggle-truncate-lines)
+(setq compilation-scroll-output 'first-error)
+
 (use-package markdown-mode)
 
 (use-package xref
@@ -38,6 +40,9 @@
                 (kbd "v") 'magit-project-status)
     (remove-hook 'project-switch-commands '(project-vc-dir "VC-Dir"))
     (add-hook 'project-switch-commands '(magit-project-status "Magit") 100)))
+(use-package forge)
+
+(use-package browse-at-remote)
 
 
 ;;; tree-sitter
@@ -46,7 +51,7 @@
   (treesit-auto-install 'prompt)
   :config
   (setq treesit-auto-langs
-        '(c cpp cmake go gomod dockerfile markdown tsx typescript html css javascript json yaml))
+        '(bash c cpp cmake go gomod dockerfile markdown tsx typescript html css javascript json yaml))
   (treesit-auto-add-to-auto-mode-alist 'all)
   (global-treesit-auto-mode))
 
@@ -55,6 +60,7 @@
 (use-package eglot
   :hook ((go-ts-mode c-ts-mode) . eglot-ensure)
   :config
+  (set-face-underline 'eglot-highlight-symbol-face "White")
   (add-hook 'special-mode-hook 'visual-line-mode)
   (add-hook 'eglot-managed-mode-hook
             (lambda ()
@@ -67,8 +73,17 @@
   :ensure nil
   :custom (go-ts-mode-indent-offset 4)
   :config
-  (setq treesit-font-lock-level 4))
 
+  (defun +eglot-code-action-organize-imports ()
+    (call-interactively #'eglot-code-action-organize-imports))
+
+  (add-hook 'go-ts-mode-hook
+            (lambda ()
+              (add-hook 'before-save-hook
+                        #'+eglot-code-action-organize-imports nil t)))
+
+
+  (setq treesit-font-lock-level 4))
 
 ;; common-lisp
 (if (executable-find "ros")
@@ -117,6 +132,7 @@
 (use-package sly-repl-ansi-color
   :config
   (push 'sly-repl-ansi-color sly-contribs))
+
 
 
 (provide 'dev-setup)

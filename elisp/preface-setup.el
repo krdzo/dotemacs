@@ -17,6 +17,7 @@
     :bind
     `(("<escape>" . keyboard-quit)
       ("`" . kr-last-buffer)
+      ("C-`" . next-error)
       ("@" . goto-line)
       ("Q" . kill-current-buffer)
       (";" . exchange-point-and-mark)
@@ -44,12 +45,17 @@
       ("M-h" . kr-describe-at-point)
       ("m e" . eval-last-sexp)
 
+      ("J" . join-line)
+
+      ("/" . consult-line)
+
       ("SPC p" . ,project-prefix-map)
       ("SPC f f" . find-file)
       ("SPC f j" . dired-jump)
       ("SPC f s" . save-buffer)
       ("SPC b b" . list-buffers)
       ("SPC v" . magit-status)
+      ("SPC V w" . browse-at-remote)
       ("SPC w w" . other-window)
       ))
   (modaled-define-keys
@@ -65,7 +71,7 @@
     (advice-add 'modaled-set-main-state :before #'mod-corfu-shim))
 
   (modaled-setup
-    '("insert" vundo-mode magit-status-mode dired-mode)
+    '("insert" vundo-mode magit-popup-mode)
     '("normal")))
 
 (elpaca-wait)

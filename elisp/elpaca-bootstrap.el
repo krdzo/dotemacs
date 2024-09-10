@@ -45,6 +45,8 @@
   (setq elpaca-use-package-by-default t))
 (elpaca-wait)
 
+(define-key elpaca-ui-mode-map (kbd "W") 'elpaca-ui-browse-package)
+
 
 (setq vc-follow-symlinks t)
 
