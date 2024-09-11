@@ -76,9 +76,14 @@
           (corfu-quit)))
     (advice-add 'modaled-set-main-state :before #'mod-corfu-shim))
 
-  (modaled-setup
-    '("emacs" undo-tree-visualizer-mode magit-popup-mode)
-    '("normal")))
+  (setq modaled-main-state-fn (lambda () "normal"))
+
+  (setq modaled-init-state-fn
+        (lambda ()
+          (if (member major-mode '(undo-tree-visualizer-mode magit-popup-mode))
+              "insert")
+          "normal"))
+  (modaled-setup))
 
 (elpaca-wait)
 
