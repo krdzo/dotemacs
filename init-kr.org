@@ -7,55 +7,55 @@
 Use elpaca package menager.
 
 #+begin_src emacs-lisp
-  (defvar elpaca-installer-version 0.6)
+  (defvar elpaca-installer-version 0.7)
   (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
   (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
   (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
   (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-                                :ref nil
-                                :files (:defaults "elpaca-test.el" (:exclude "extensions"))
-                                :build (:not elpaca--activate-package)))
+                         :ref nil :depth 1
+                         :files (:defaults "elpaca-test.el" (:exclude "extensions"))
+                         :build (:not elpaca--activate-package)))
   (let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
          (build (expand-file-name "elpaca/" elpaca-builds-directory))
          (order (cdr elpaca-order))
          (default-directory repo))
     (add-to-list 'load-path (if (file-exists-p build) build repo))
     (unless (file-exists-p repo)
-      (make-directory repo t)
-      (when (< emacs-major-version 28) (require 'subr-x))
-      (condition-case-unless-debug err
-          (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
-                   ((zerop (call-process "git" nil buffer t "clone"
-                                         (plist-get order :repo) repo)))
-                   ((zerop (call-process "git" nil buffer t "checkout"
-                                         (or (plist-get order :ref) "--"))))
-                   (emacs (concat invocation-directory invocation-name))
-                   ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
-                                         "--eval" "(byte-recompile-directory \".\" 0 'force)")))
-                   ((require 'elpaca))
-                   ((elpaca-generate-autoloads "elpaca" repo)))
-              (progn (message "%s" (buffer-string)) (kill-buffer buffer))
-            (error "%s" (with-current-buffer buffer (buffer-string))))
-        ((error) (warn "%s" err) (delete-directory repo 'recursive))))
+     (make-directory repo t)
+     (when (< emacs-major-version 28) (require 'subr-x))
+     (condition-case-unless-debug err
+         (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+                  ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
+                                                  ,@(when-let ((depth (plist-get order :depth)))
+                                                     (list (format "--depth=%d" depth) "--no-single-branch"))
+                                                  ,(plist-get order :repo) ,repo))))
+                  ((zerop (call-process "git" nil buffer t "checkout"
+                            (or (plist-get order :ref) "--"))))
+                  (emacs (concat invocation-directory invocation-name))
+                  ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                            "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+                  ((require 'elpaca))
+                  ((elpaca-generate-autoloads "elpaca" repo)))
+          (progn (message "%s" (buffer-string)) (kill-buffer buffer))
+          (error "%s" (with-current-buffer buffer (buffer-string))))
+       ((error) (warn "%s" err) (delete-directory repo 'recursive))))
     (unless (require 'elpaca-autoloads nil t)
-      (require 'elpaca)
-      (elpaca-generate-autoloads "elpaca" repo)
-      (load "./elpaca-autoloads")))
+     (require 'elpaca)
+     (elpaca-generate-autoloads "elpaca" repo)
+     (load "./elpaca-autoloads")))
   (add-hook 'after-init-hook #'elpaca-process-queues)
   (elpaca `(,@elpaca-order))
 
 
      ;; Install use-package support
-    (elpaca elpaca-use-package
-      ;; Enable :elpaca use-package keyword.
-      (elpaca-use-package-mode)
-      ;; Assume :elpaca t unless otherwise specified.
-      (setq elpaca-use-package-by-default t))
-    (elpaca-wait)
+  (elpaca elpaca-use-package
+    (elpaca-use-package-mode)
+    (setq elpaca-use-package-by-default t))
+  (elpaca-wait)
 
-    ;; (setq use-package-always-defer t)
+  ;; (setq use-package-always-defer t)
 
-    (setq vc-follow-symlinks t)
+  (setq vc-follow-symlinks t)
  #+end_src
 
 * Utilities
@@ -90,7 +90,8 @@ There is also ~use-package~ integration for all of these functions and they are:
 [[https://github.com/noctuid/general.el#general-keyword][:ghook]] and [[https://github.com/noctuid/general.el#general-keyword][:gfhook]] for ~general-add-hook~
 
 #+BEGIN_SRC emacs-lisp
-  (use-package general)
+    (use-package general
+      :ensure (:wait t))
 #+END_SRC
 
 ** Garbage collector magic hack
@@ -223,25 +224,24 @@ Setup keybindings for builtin features that are not tied to any mode.
 ** Emacs
 Change builtin emacs keybingings that I can't put in any category
 #+begin_src emacs-lisp
-  (elpaca nil
-    (general-def
-      "C-h l" 'find-library)
+  (general-def
+    "C-h l" 'find-library)
 
-    (general-def
-      "M-;" 'comment-line
-      "C-x C-;" 'comment-dwim)
+  (general-def
+    "M-;" 'comment-line
+    "C-x C-;" 'comment-dwim)
 
-    (general-def 'global
-      "C-<backspace>" 'cycle-spacing))
+  (general-def 'global
+    "C-<backspace>" 'cycle-spacing)
 #+end_src
 
 ** Help
 Help at point key is =C-z h=. Every mode that implements a help at point needs to change it to point to it's "help-at-point" function
 #+begin_src emacs-lisp :noweb yes
-  (elpaca nil
+
     (define-key global-map (kbd "C-z") nil)
     (general-def
-      "C-z h" 'describe-symbol))
+      "C-z h" 'describe-symbol)
   <<helpful>>
   <<ghelp>>
 #+end_src
@@ -263,9 +263,9 @@ Help at point key is =C-z h=. Every mode that implements a help at point needs t
 
 This is manly for magit but can be used for some other funcitonality.
 #+begin_src emacs-lisp
-  (elpaca nil
+
     (general-def transient-base-map
-      "<escape>" 'transient-quit-one))
+      "<escape>" 'transient-quit-one)
 #+end_src
 
 * Emacs
@@ -275,8 +275,6 @@ Big packages like org-mode will get their own section.
 ** Update builtin pacakage
 Packages that need a newer version than emacs provides
 #+begin_src emacs-lisp
-  (use-package seq)
-  (use-package eldoc)
 #+end_src
 
 ** Sane defaults
@@ -351,7 +349,7 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 
 ** help
 #+begin_src emacs-lisp
-  (elpaca nil
+
     (add-hook 'help-mode-hook 'visual-line-mode)
 
     (defun kr-describe-at-point (symbol)
@@ -369,21 +367,21 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
       "C-h b" 'describe-keymap
       "C-h B" 'describe-bindings)
 
-    (setq help-window-select t))
+    (setq help-window-select t)
 #+end_src
 
 ** Subword
 
 #+begin_src emacs-lisp
-  (elpaca nil
+
     (global-subword-mode 1)
-    (blackout 'subword-mode))
+    (blackout 'subword-mode)
 #+end_src
 
 ** Visual line mode
 #+begin_src emacs-lisp
-  (elpaca nil
-    (blackout 'visual-line-mode))
+
+    (blackout 'visual-line-mode)
 #+end_src
 
 ** eldoc
@@ -394,11 +392,11 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 
 ** recentf
 #+begin_src emacs-lisp
-  (elpaca nil
+
     (recentf-mode 1)
     (setq recentf-max-saved-items 75)
     (setq recentf-exclude `(,(expand-file-name "straight/build/" user-emacs-directory)
-                            ,(expand-file-name "eln-cache/" user-emacs-directory))))
+                            ,(expand-file-name "eln-cache/" user-emacs-directory)))
   ;;                         ,(expand-file-name "etc/" user-emacs-directory)
   ;;                         ,(expand-file-name "var/" user-emacs-directory)
 #+end_src
@@ -547,11 +545,11 @@ Setup PATH and other env varables.
 
 
 #+begin_src emacs-lisp
-  (elpaca nil
+
     (when kr-mac-p
       (general-def 'global-map
         "C-<tab>" 'tab-next
-        "C-S-<tab>" 'tab-previous)))
+        "C-S-<tab>" 'tab-previous))
 
   (setq ns-command-modifier 'super)
   (setq ns-option-modifier 'meta)
@@ -572,9 +570,9 @@ This is maybe the most important variable to set, it makes ~switch-to-buffer~ ob
     (interactive)
     (let ((switch-to-buffer-obey-display-actions nil))
       (call-interactively 'switch-to-buffer)))
-  (elpaca nil
+
       (general-def
-        "C-x C-S-b" 'kr-swith-to-buffer-obey))
+        "C-x C-S-b" 'kr-swith-to-buffer-obey)
 #+end_src
 
 ** Custom dispaly-buffer funcitons
@@ -712,9 +710,9 @@ Enable =tab= completion
     (setq prescient-filter-method '(literal prefix literal-prefix regexp fuzzy))
 
     (add-hook 'minibuffer-mode-hook
-              #'(lambda ()
-                  (setq-local prescient-filter-method
-                        '(literal prefix literal-prefix regexp))))
+          #'(lambda ()
+          (setq-local prescient-filter-method
+            '(literal prefix literal-prefix regexp))))
 
     (add-to-list 'completion-category-overrides '(file (styles basic partial-completion)))
 
@@ -724,19 +722,19 @@ Enable =tab= completion
       (setq vertico-sort-function #'prescient-completion-sort)
 
       (defun vertico-prescient-remember ()
-        "Remember the chosen candidate with Prescient."
-        (when (>= vertico--index 0)
-          (prescient-remember
-           (substring-no-properties
-            (nth vertico--index vertico--candidates)))))
+    "Remember the chosen candidate with Prescient."
+    (when (>= vertico--index 0)
+      (prescient-remember
+       (substring-no-properties
+        (nth vertico--index vertico--candidates)))))
       (advice-add #'vertico-insert :after #'vertico-prescient-remember))
 
     ;; setup for corfu
     (with-eval-after-load 'corfu
       (defun dima-corfu-prescient-remember (&rest _)
-        "Advice for `corfu--insert.'"
-        (when (>= corfu--index 0)
-          (prescient-remember (nth corfu--index corfu--candidates))))
+    "Advice for `corfu--insert.'"
+    (when (>= corfu--index 0)
+      (prescient-remember (nth corfu--index corfu--candidates))))
 
       (advice-add #'corfu--insert :before #'dima-corfu-prescient-remember)
 
@@ -833,14 +831,14 @@ corfu config:
 
 Make Corfu work from minibuffer:
 #+begin_src emacs-lisp
-  (elpaca nil
+
     (defun corfu-enable-always-in-minibuffer ()
       "Enable Corfu in the minibuffer if Vertico/Mct are not active."
       (unless (or (bound-and-true-p mct--active)
                   (bound-and-true-p vertico--input))
         ;; (setq-local corfu-auto nil) Enable/disable auto completion
         (corfu-mode 1)))
-    (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1))
+    (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1)
 #+end_src
 
 ** cape
@@ -911,18 +909,18 @@ and the second filter to the completion-style filtering (?).
 
 ** dabbrev
 #+begin_src emacs-lisp
-  (elpaca nil
+
     (setq dabbrev-case-replace nil)
     (general-def
       "M-/" 'dabbrev-completion
-      "C-M-/" 'dabbrev-expand))
+      "C-M-/" 'dabbrev-expand)
 #+end_src
 
 ** abbrev
 #+begin_src emacs-lisp
-  (elpaca nil
+
     (with-eval-after-load 'abbrev
-      (blackout 'abbrev-mode)))
+      (blackout 'abbrev-mode))
 #+end_src
 
 * UI
@@ -942,10 +940,10 @@ and the second filter to the completion-style filtering (?).
    ((kr-font-available-p "Inconsolata")
     (set-frame-font "Inconsolata-12")))
 
-  (elpaca nil
+
     (if kr-mac-p
         (set-face-attribute 'default nil :height 145)
-      (set-face-attribute 'default nil :height 115)))
+      (set-face-attribute 'default nil :height 115))
 #+end_src
 
 ** Themes
@@ -1178,7 +1176,7 @@ Emacs builtin file menager.
 *** dired
 
 #+begin_src emacs-lisp
-  (elpaca nil
+
     (setq dired-dwim-target t)
     (setq dired-isearch-filenames 'dwim)
     (setq dired-recursive-copies 'always)
@@ -1200,7 +1198,7 @@ Emacs builtin file menager.
       "K" 'dired-kill-subdir
       "<mouse-2>" 'dired-mouse-find-file
       "C-c '" 'dired-toggle-read-only
-      "/" 'dired-goto-file))
+      "/" 'dired-goto-file)
 #+end_src
 
 dired-x
@@ -1299,6 +1297,7 @@ dired-x
 *** Magit
 Git client in emacs
 #+begin_src emacs-lisp
+  (elpaca 'transient)
   (elpaca 'magit
 
     (add-hook 'git-commit-mode-hook #'flyspell-mode)
@@ -1456,17 +1455,17 @@ Closely related to =org-mode= but not really so it goes here with org mode
 
 ** man
 #+begin_src emacs-lisp
-  (elpaca nil
+
     (general-def 'Man-mode-map
       "d" 'View-scroll-half-page-forward
-      "u" 'View-scroll-half-page-backward))
+      "u" 'View-scroll-half-page-backward)
 #+end_src
 
 ** ibuffer
 #+begin_src emacs-lisp
-  (elpaca nil
+
     (general-def
-      [remap list-buffers] 'ibuffer))
+      [remap list-buffers] 'ibuffer)
 #+end_src
 
 ** wgrep
@@ -1700,10 +1699,10 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
 ** Languages
 *** C mode
 #+begin_src emacs-lisp
-  (elpaca nil
+
     (general-def 'c-mode-map
        "C-c C-c" 'recompile
-       "C-c C-S-c" 'compile))
+       "C-c C-S-c" 'compile)
 #+end_src
 
 *** Common Lisp
@@ -2007,6 +2006,7 @@ Meow is a mode for modal edditing inpired by VIM.
 
     (general-def 'meow-normal-state-keymap
       "Z" 'meow-cancel-selection))
+  (elpaca-wait)
 
   (with-eval-after-load 'corfu
       (add-hook 'meow-insert-exit-hook #'corfu-quit))
@@ -2020,7 +2020,7 @@ Meow is a mode for modal edditing inpired by VIM.
 ** kbd hack
 Hack meow to use commands insted keybindings.
 #+begin_src emacs-lisp
-  (elpaca nil
+
     (defun meow--execute-kbd-macro (kbd-macro)
       "Execute KBD-MACRO."
       (if (and (symbolp kbd-macro) (commandp kbd-macro))
@@ -2039,7 +2039,7 @@ Hack meow to use commands insted keybindings.
     (setq meow--kbd-forward-line #'next-line)
     (setq meow--kbd-backward-line #'previous-line)
     (setq meow--kbd-forward-char #'forward-char)
-    (setq meow--kbd-backward-char #'backward-char))
+    (setq meow--kbd-backward-char #'backward-char)
 #+end_src
 
 ** Personal extensions
@@ -2089,9 +2089,9 @@ Normally when in =normal-state= the number keys 0..9 are bount to =meow-expand-[
            (meow-normal-mode 1)(meow-motion-mode -1))
           (t
            (meow-normal-mode -1)(meow-motion-mode 1))))
-  (elpaca nil
+
     (general-def '(meow-motion-state-keymap meow-normal-state-keymap)
-      "|" 'kr-meow-motion-normal))
+      "|" 'kr-meow-motion-normal)
 #+end_src
 
 *** append/insert line
@@ -2124,10 +2124,10 @@ Insert or append on line.
         (beginning-of-line-text)
         (call-interactively #'meow-insert))))
 
-  (elpaca nil
+
     (general-def 'meow-normal-state-keymap
       "I" 'kr-meow-insert-to-line
-      "A" 'kr-meow-append-to-line))
+      "A" 'kr-meow-append-to-line)
 #+end_src
 
 This makes it work with =smartparens= surround feature.
@@ -2183,10 +2183,10 @@ copy line on selection
 Here I change emacs build in keybindings for better meow ergonomics.
 For example because I use ~dired~ that is bound to =C-x d= more often then ~list-direcory~ that is bound to =C-x C-d= so I will swap those two commands so I can type =SPC x d= to acces dired faster with ~meow-keypad~.
 #+begin_src emacs-lisp
-  (elpaca nil
+
     (general-def
       ;; C-x k
-      "C-x k" kmacro-keymap
+      "C-x k" 'kmacro-keymap
       "C-x C-k" 'kill-current-buffer
       ;; C-x b
       "C-x b" 'list-buffers
@@ -2217,7 +2217,7 @@ For example because I use ~dired~ that is bound to =C-x d= more often then ~list
     ;; some convinience bindings
     (general-def
       "C-x W" 'window-swap-states
-      "C-x K" 'kill-buffer))
+      "C-x K" 'kill-buffer)
 #+end_src
 
 ** COMMENT Things config
@@ -2291,38 +2291,38 @@ Template for other selfdefined meow states:
 Binding for other packages
 *** gitgutter
 #+begin_src emacs-lisp
-  (elpaca nil
+
     (with-eval-after-load 'git-gutter
       (general-def
         "C-z g n" 'git-gutter:next-hunk
         "C-z g p" 'git-gutter:previous-hunk)
       (meow-define-keys 'normal
         '("]g" . "C-z g n")
-        '("[g" . "C-z g p"))))
+        '("[g" . "C-z g p")))
 #+end_src
 
 *** Flymake
 #+begin_src emacs-lisp
-  (elpaca nil
+
     (with-eval-after-load 'flycheck
       (meow-define-keys 'normal
         '("[e" . "C-z [e")
-        '("]e" . "C-z ]e"))))
+        '("]e" . "C-z ]e")))
 #+end_src
 
 *** Magit
 #+begin_src emacs-lisp
-  (elpaca nil
+
     (meow-define-keys 'normal
-      '("gg" . magit-file-dispatch)))
+      '("gg" . magit-file-dispatch))
 #+end_src
 
 *** LSP
 #+begin_src emacs-lisp
-  (elpaca nil
+
     (meow-define-keys 'normal
       '("gr" . "C-z l r r")
-      '("gl" . "C-z l")))
+      '("gl" . "C-z l"))
 #+end_src
 
 *** expand region
@@ -2351,13 +2351,13 @@ Section for code block that I got somewhere from the internet, or are small util
 
 Make parrent directory when it doesn't exist. Taken form [[https://emacsredux.com/blog/2022/06/12/auto-create-missing-directories/][here]]
 #+begin_src emacs-lisp
-  (elpaca nil
+
     (defun kr-er-auto-create-missing-dirs ()
       (let ((target-dir (file-name-directory buffer-file-name)))
         (unless (file-exists-p target-dir)
           (make-directory target-dir t))))
 
-    (add-to-list 'find-file-not-found-functions #'kr-er-auto-create-missing-dirs))
+    (add-to-list 'find-file-not-found-functions #'kr-er-auto-create-missing-dirs)
 #+end_src
 
 * hacks
@@ -2551,13 +2551,13 @@ LSP corfu conf:
 
 * Temp
 #+begin_src emacs-lisp
-  (elpaca nil
+
     (setq truncate-partial-width-windows 200)
     (general-def
       "C-`" 'next-error
       "C-~" 'previous-error)
 
-    (advice-add #'meow-kill :after #'cycle-spacing))
+    (advice-add #'meow-kill :after #'cycle-spacing)
 #+end_src
 
 * Notes
