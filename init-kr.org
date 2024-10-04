@@ -268,6 +268,32 @@ This is manly for magit but can be used for some other funcitonality.
       "<escape>" 'transient-quit-one)
 #+end_src
 
+** Leader
+Binding for emacs builtin command. Binding it to =mode-specific-map= (~C-c~) so that with the help of meow we can call it with ~SPC~. For example call =switch-to-buffer= with ~SPC b b~.
+
+#+begin_src emacs-lisp
+  (general-def mode-specific-map
+    "b b" 'switch-to-buffer
+    "b d" 'kill-current-buffer
+    "b r" 'revert-buffer
+    "b D" 'kill-buffer
+    "w w" 'other-window
+    "w W" 'window-swap-states
+    "w v" 'split-window-right
+    "w h" 'split-window-below
+    "w D" 'delete-other-windows
+    "w d" 'delete-window
+    "f s" 'save-buffer
+    "f S" 'save-some-buffers
+    "f d" 'list-directory
+    "f f" 'find-file
+    "f j" 'dired-jump)
+
+  ;; (general-def project-prefix-map
+  ;;   "b" 'project-list-buffers
+  ;;   "C-b" 'project-switch-to-buffer)
+#+end_src
+
 * Emacs
 Here is configuration that concerns Emacs builtin features.
 Changing options, enabling and configuring modes etc.
@@ -942,7 +968,7 @@ and the second filter to the completion-style filtering (?).
 
 
     (if kr-mac-p
-        (set-face-attribute 'default nil :height 145)
+        (set-face-attribute 'default nil :height 135)
       (set-face-attribute 'default nil :height 115))
 #+end_src
 
@@ -1315,8 +1341,8 @@ Git client in emacs
                            (face-attribute 'default :background)))
 
     (general-def mode-specific-map
-      "v" 'magit-status
-      "V" 'magit-status-here)
+      "v v" 'magit-status
+      "v V" 'magit-status-here)
 
     (setq magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1)
 
@@ -2177,47 +2203,6 @@ copy line on selection
         (funcall fun)
       (kr-meow-save-line)))
   (advice-add 'meow-save :around #'kr-meow-copy-line-or-selection)
-#+end_src
-
-** Emacs switch bindings
-Here I change emacs build in keybindings for better meow ergonomics.
-For example because I use ~dired~ that is bound to =C-x d= more often then ~list-direcory~ that is bound to =C-x C-d= so I will swap those two commands so I can type =SPC x d= to acces dired faster with ~meow-keypad~.
-#+begin_src emacs-lisp
-
-    (general-def
-      ;; C-x k
-      "C-x k" 'kmacro-keymap
-      "C-x C-k" 'kill-current-buffer
-      ;; C-x b
-      "C-x b" 'list-buffers
-      "C-x C-b" 'switch-to-buffer
-      ;; C-x 0
-      "C-x 0" 'text-scale-adjust
-      "C-x C-0" 'delete-window
-      ;; C-x d
-      "C-x d" 'list-directory
-      "C-x C-d" 'dired
-      ;; C-x o
-      "C-x o" 'delete-blank-lines
-      "C-x C-o" 'other-window
-      ;; C-x p
-      "C-x p" 'mark-page
-      "C-x C-p" project-prefix-map
-      ;; C-x r
-      "C-x r" 'revert-buffer
-      "C-x C-r" ctl-x-r-map
-      ;; C-x c
-      "C-x c" 'save-buffers-kill-terminal
-      "C-x C-c" (lambda () (interactive) (message "Quit Stop!"))
-      "C-h h" 'help-for-help)
-    (general-def project-prefix-map
-      "b" 'project-list-buffers
-      "C-b" 'project-switch-to-buffer)
-
-    ;; some convinience bindings
-    (general-def
-      "C-x W" 'window-swap-states
-      "C-x K" 'kill-buffer)
 #+end_src
 
 ** COMMENT Things config
