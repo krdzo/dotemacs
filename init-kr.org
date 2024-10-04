@@ -1326,7 +1326,7 @@ Git client in emacs
   (elpaca 'transient)
   (elpaca 'magit
 
-    (add-hook 'git-commit-mode-hook #'flyspell-mode)
+    (add-hook 'git-commit-setup-hook #'flyspell-mode)
 
     (setq git-commit-fill-column 72)
     (setq magit-process-finish-apply-ansi-colors t)
@@ -1349,6 +1349,9 @@ Git client in emacs
     (general-def 'magit-status-mode-map
       "S-<tab>" 'magit-section-cycle
       "C-<tab>" 'tab-next)
+
+    (with-eval-after-load 'meow
+      (add-hook 'git-commit-setup-hook 'meow-insert))
 
     (with-eval-after-load 'project
       (general-def 'project-prefix-map
