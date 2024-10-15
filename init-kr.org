@@ -257,6 +257,7 @@ Inspired by https://github.com/natecox/dotfiles/blob/master/emacs/emacs.d/nathan
 To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/ with =e=
 
 #+BEGIN_SRC emacs-lisp
+  (setq confirm-kill-emacs 'y-or-n-p)
   (setq use-file-dialog nil)
   (setq initial-scratch-message nil
         sentence-end-double-space nil
@@ -322,24 +323,27 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 
 ** help
 #+begin_src emacs-lisp
-    (add-hook 'help-mode-hook 'visual-line-mode)
+  (add-hook 'help-mode-hook 'visual-line-mode)
 
-    (defun kr-describe-at-point (symbol)
-      "Call `describe-symbol' for the SYMBOL at point."
-      (interactive (list (symbol-at-point)))
-      (if (and symbol (or (fboundp symbol)
-                          (boundp symbol)
-                          (facep symbol)))
-          (describe-symbol symbol)
-        (call-interactively #'describe-symbol)))
+  (setq help-enable-variable-value-editing t)
+  (put 'help-fns-edit-variable 'disabled nil)
 
-    (general-def
-      "C-z h" 'kr-describe-at-point
-      "C-h s" 'shortdoc-display-group
-      "C-h b" 'describe-keymap
-      "C-h B" 'describe-bindings)
+  (defun kr-describe-at-point (symbol)
+    "Call `describe-symbol' for the SYMBOL at point."
+    (interactive (list (symbol-at-point)))
+    (if (and symbol (or (fboundp symbol)
+                        (boundp symbol)
+                        (facep symbol)))
+        (describe-symbol symbol)
+      (call-interactively #'describe-symbol)))
 
-    (setq help-window-select t)
+  (general-def
+    "C-z h" 'kr-describe-at-point
+    "C-h s" 'shortdoc-display-group
+    "C-h b" 'describe-keymap
+    "C-h B" 'describe-bindings)
+
+  (setq help-window-select t)
 #+end_src
 
 ** Subword
@@ -974,9 +978,6 @@ alternative package ~undo-hl~.
         '("[t" . "C-z [t")
         '("]t" . "C-z ]t")))
 
-
-    (set-face-background 'markdown-code-face nil)
-
     (setq hl-todo-highlight-punctuation ":")
     (setq hl-todo-keyword-faces
           '(("TODO"   . "#FF4500")
@@ -1543,14 +1544,7 @@ Closely related to =org-mode= but not really so it goes here with org mode
 
   (setq prescient-filter-method '(literal prefix literal-prefix))
   (setq prescient-filter-method '(literal))
-
-  (defun kr-set-lsp-face ()
-    "Set faces for lsp."
-    (set-face-attribute 'lsp-face-highlight-textual nil
-                        :background 'unspecified
-                        :foreground 'unspecified
-                        :underline "#FFFF"))   ; wrong collor on purpuse
-#+end_src
+    #+end_src
 
 ** Tree-sitter
 #+BEGIN_SRC emacs-lisp
@@ -1974,7 +1968,7 @@ Meow is a mode for modal edditing inpired by VIM.
       "Z" 'meow-cancel-selection))
 
   (with-eval-after-load 'corfu
-      (add-hook 'meow-insert-exit-hook #'corfu-quit))
+    (add-hook 'meow-insert-exit-hook #'corfu-quit))
 
   (defun kr-meow-last-buffer ()
     (interactive)
