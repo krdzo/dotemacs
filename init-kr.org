@@ -1489,10 +1489,8 @@ Closely related to =org-mode= but not really so it goes here with org mode
 
 * Programming
 
-** COMMENT eglot
+** eglot
 #+begin_src emacs-lisp
-  ;; (use-package xref)
-  (use-package jsonrpc)
   (use-package eglot
     :config
     (set-face-attribute 'eglot-highlight-symbol-face nil :background "#585858")
@@ -1505,7 +1503,7 @@ Closely related to =org-mode= but not really so it goes here with org mode
     (add-hook 'typescript-mode-hook #'eglot-ensure))
 #+end_src
 
-** LSP
+** COMMENT LSP
 #+begin_src emacs-lisp
   (use-package lsp-mode
     :init
@@ -1524,8 +1522,17 @@ Closely related to =org-mode= but not really so it goes here with org mode
      (lsp-mode . lsp-ui-mode))
     :commands lsp
     :config
+    (set-face-attribute 'lsp-face-highlight-textual nil
+                        :background 'unspecified
+                        :foreground 'unspecified
+                        :underline "#FFFF") ; wrong collor on purpose
     (kr-set-lsp-face)
     (setq lsp-go-use-placeholders nil)
+
+    ;; Disable anoying background in LSP help buffer
+    (with-eval-after-load 'markdown-mode
+      (set-face-background 'markdown-code-face nil))
+
     (general-def 'lsp-mode-map
       "C-z h" 'lsp-describe-thing-at-point
       "C-M-/" 'lsp-find-implementation))
