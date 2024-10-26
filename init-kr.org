@@ -535,7 +535,8 @@ Setup PATH and other env varables.
 #+end_src
 
 ** Enhancements
-enhancements for builtin funcitons
+Small enhancements
+
 #+begin_src emacs-lisp
   (defun base64-encode-region-prefix-arg (&rest _args)
     "Pass prefix arg as third arg to `base64-encode-region'."
@@ -546,6 +547,16 @@ enhancements for builtin funcitons
 
   (add-hook 'after-save-hook
             'executable-make-buffer-file-executable-if-script-p)
+#+end_src
+
+Make parrent directory when it doesn't exist. Taken form [[https://emacsredux.com/blog/2022/06/12/auto-create-missing-directories/][here]]
+#+begin_src emacs-lisp
+  (defun kr-er-auto-create-missing-dirs ()
+    (let ((target-dir (file-name-directory buffer-file-name)))
+      (unless (file-exists-p target-dir)
+        (make-directory target-dir t))))
+
+  (add-to-list 'find-file-not-found-functions #'kr-er-auto-create-missing-dirs)
 #+end_src
 
 * Window management
@@ -1651,11 +1662,6 @@ Maybe better alternative [[https://github.com/purcell/emacs-reformatter][reforma
 #+end_src
 
 ** yasnippet
-We use =C-TAB= to expand snippets instead of =TAB= .
-
-You can have ~#condition: 'auto~ for the snippet to auto-expand.
-
-See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9][here]] to share snippets across modes
 
 #+begin_src emacs-lisp
   (use-package yasnippet
@@ -2279,58 +2285,6 @@ Binding for other packages
     (meow-define-keys 'normal
       '("s" . expreg-expand)
       '("S" . expreg-contract)))
-#+end_src
-
-* Miscellaneous
-Section for code block that I got somewhere from the internet, or are small utility funcitons.
-
-Make parrent directory when it doesn't exist. Taken form [[https://emacsredux.com/blog/2022/06/12/auto-create-missing-directories/][here]]
-#+begin_src emacs-lisp
-
-    (defun kr-er-auto-create-missing-dirs ()
-      (let ((target-dir (file-name-directory buffer-file-name)))
-        (unless (file-exists-p target-dir)
-          (make-directory target-dir t))))
-
-    (add-to-list 'find-file-not-found-functions #'kr-er-auto-create-missing-dirs)
-#+end_src
-
-* hacks
-
-Some modes need hacks for them to work with each other properly.
-corfu - yasnippet hack
-If corfu is active yasnipet won't override =<tab>= binding.
-#+begin_src emacs-lisp
-  (defun corfu-active-p ()
-    corfu--candidates)
-  (add-hook 'yas-minor-mode-hook
-            #'(lambda ()
-                (add-hook 'yas-keymap-disable-hook 'corfu-active-p nil t)))
-
-  (add-hook 'yas-keymap-disable-hook 'corfu-active-p nil t)
-#+end_src
-
-lsp - yasnippet hack for ~$0~
-If a LSP server returns a snippet with ~$0~ snippet than change it to ~$1~ so that we don't exit snippet expansion. See [[https://github.com/emacs-lsp/lsp-dart/issues/130][issue]].
-#+begin_src emacs-lisp :tangle no
-  (add-hook 'lsp-mode-hook
-            #'(lambda ()
-                (defun lsp--to-yasnippet-snippet (snippet)
-                  "Convert LSP SNIPPET to yasnippet snippet."
-                  ;; LSP snippet doesn't escape "{" and "`", but yasnippet requires escaping it.
-                  ;; if there is a {0:} and no {1:} in snippet change the 0 to 1
-                  (if (and (not (string-match "${1:" snippet))
-                           (string-match "${0:" snippet))
-                      (let ((newsnippet (replace-regexp-in-string "${0:" "${1:"
-                                                                  snippet)))
-                        (replace-regexp-in-string (rx (or bos (not (any "$" "\\"))) (group (or "{" "`")))
-                                                  (rx "\\" (backref 1))
-                                                  newsnippet
-                                                  nil nil 1))
-                    (replace-regexp-in-string (rx (or bos (not (any "$" "\\"))) (group (or "{" "`")))
-                                              (rx "\\" (backref 1))
-                                              snippet
-                                              nil nil 1)))))
 #+end_src
 
 * COMMENT Disabled
