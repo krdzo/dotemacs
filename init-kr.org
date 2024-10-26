@@ -1601,24 +1601,6 @@ Closely related to =org-mode= but not really so it goes here with org mode
   (setq prescient-filter-method '(literal))
     #+end_src
 
-** Tree-sitter
-#+BEGIN_SRC emacs-lisp
-  (use-package tree-sitter
-    :config
-    (general-add-hook '(c-mode-hook
-                        js-mode-hook
-                        python-mode-hook
-                        css-mode-hook
-                        rust-mode-hook
-                        typescript-mode-hook
-                        go-mode-hook)
-                      #'tree-sitter-hl-mode)
-    (with-eval-after-load 'tree-sitter
-      (blackout 'tree-sitter-mode)))
-
-  (use-package tree-sitter-langs)
-#+END_SRC
-
 ** xref
 #+begin_src emacs-lisp
   (use-package xref
