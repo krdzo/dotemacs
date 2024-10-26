@@ -534,6 +534,20 @@ Setup PATH and other env varables.
     (setq trash-directory  (expand-file-name "~/.Trash/")))
 #+end_src
 
+** Enhancements
+enhancements for builtin funcitons
+#+begin_src emacs-lisp
+  (defun base64-encode-region-prefix-arg (&rest _args)
+    "Pass prefix arg as third arg to `base64-encode-region'."
+    (interactive "r\nP"))
+
+  (advice-add 'base64-encode-region :before #'base64-encode-region-prefix-arg)
+
+
+  (add-hook 'after-save-hook
+            'executable-make-buffer-file-executable-if-script-p)
+#+end_src
+
 * Window management
 Setup for ~display-buffer-alist~. See [[https://www.masteringemacs.org/article/demystifying-emacs-window-managert][this]] for reference.
 
