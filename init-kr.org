@@ -1279,35 +1279,46 @@ dired-x
 *** Magit
 Git client in emacs
 #+begin_src emacs-lisp
-  (use-package transient)
+  (use-package transient
+    :config
+    (setq transient-display-buffer-action
+          '(display-buffer-below-selected
+            (dedicated . t)
+            (inhibit-same-window . t))))
+
   (use-package magit
     :config
     (add-hook 'git-commit-setup-hook #'flyspell-mode)
 
     (setq git-commit-fill-column 72)
     (setq magit-process-finish-apply-ansi-colors t)
+    (setq magit-display-buffer-function 'kr-magit-display-buffer-same-window-except-diff-v1)
+    (setq magit-save-repository-buffers 'dontask)
 
-    (with-eval-after-load 'magit
-      (dolist (face '(magit-diff-added
-                      magit-diff-added-highlight
-                      magit-diff-removed
-                      magit-diff-removed-highlight))
-        (set-face-background face (face-attribute 'magit-diff-context-highlight :background)))
-      (set-face-background 'magit-diff-context-highlight
-                           (face-attribute 'default :background)))
+    (dolist (face '(magit-diff-added
+                    magit-diff-added-highlight
+                    magit-diff-removed
+                    magit-diff-removed-highlight))
+      (set-face-background face (face-attribute 'magit-diff-context-highlight :background)))
+    (set-face-background 'magit-diff-context-highlight
+                         (face-attribute 'default :background))
 
     (general-def mode-specific-map
+      "v f" 'magit-find-file
+      "v F" 'magit-find-file-other-window
       "v v" 'magit-status
       "v V" 'magit-status-here)
-
-    (setq magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1)
 
     (general-def 'magit-status-mode-map
       "S-<tab>" 'magit-section-cycle
       "C-<tab>" 'tab-next)
 
     (with-eval-after-load 'meow
-      (add-hook 'git-commit-setup-hook 'meow-insert))
+      (add-hook 'git-commit-setup-hook
+                (defun kr-git-commit-start-insert-maybe ()
+                  (when (and (bound-and-true-p meow-mode)
+                             (bobp) (eolp))
+                    (meow-insert)))))
 
     (with-eval-after-load 'project
       (general-def 'project-prefix-map
@@ -1316,6 +1327,20 @@ Git client in emacs
       (add-hook 'project-switch-commands '(magit-project-status "Magit") 100)))
 #+end_src
 
+Display funciton to open magit additional buffers bellow current status one.
+#+begin_src emacs-lisp
+  (defun kr-magit-display-buffer-same-window-except-diff-v1 (buffer)
+    "Display BUFFER in the selected window except for some modes.
+  If a buffer's `major-mode' derives from `magit-diff-mode' or
+  `magit-process-mode', display it in another window bellow the current one. Display all
+  other buffers in the selected window."
+    (display-buffer
+     buffer (if (with-current-buffer buffer
+                  (derived-mode-p 'magit-diff-mode 'magit-process-mode))
+                '(display-buffer-below-selected
+                  (window-height . 0.75)
+                  (inhibit-same-window . t))
+              '(display-buffer-same-window))))
 #+end_src
 
 *** COMMENT Forge
@@ -1375,6 +1400,15 @@ https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff
       "C-k" 'git-timemachine-show-previous-revision
       "C-j" 'git-timemachine-show-next-revision
       "q" 'git-timemachine-quit))
+#+end_src
+
+*** brose at remote
+#+begin_src emacs-lisp
+  (use-package browse-at-remote
+    :config
+    (general-def 'mode-specific-map
+      "v W" 'browse-at-remote)
+    )
 #+end_src
 
 ** kubernetes
