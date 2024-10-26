@@ -1847,6 +1847,12 @@ Meow is a mode for modal edditing inpired by VIM.
 ** Meow
 
 #+begin_src emacs-lisp
+  (defun kr-puni-kill-dwim ()
+      (interactive)
+      (if (use-region-p)
+          (puni-kill-region)
+        (puni-kill-line)))
+
   (defun meow-setup ()
     "My meow setup thats similar to evil/vim"
     (meow-motion-overwrite-define-key
@@ -1891,32 +1897,34 @@ Meow is a mode for modal edditing inpired by VIM.
      '("i" . meow-insert)
      '("a" . meow-append)
 
-     '("j" . meow-next)
+     '("j" . next-line)
+     '("k" . previous-line)
+     '("h" . backward-char)
+     '("l" . forward-char)
      '("M-j" . scroll-up-line)
-     '("k" . meow-prev)
      '("M-k" . scroll-down-line)
-     '("h" . meow-left)
-     '("l" . meow-right)
+     '("H" . beginning-of-line-text)
+     '("L" . move-end-of-line)
 
      '("J" . meow-next-expand)
      '("K" . meow-prev-expand)
-     '("H" . meow-left-expand)
-     '("L" . meow-right-expand)
      '("c" . meow-change)
      '("n" . meow-search)
      '("/" . meow-visit)
 
      '("D" . puni-kill-line)
-     '("d" . meow-kill-whole-line)
-     '("x" . meow-backward-delete)
-     '("X" . meow-delete)
+     '("d" . kr-puni-kill-dwim)
+     '("x" . puni-backward-delete-char)
+     '("X" . puni-forward-delete-char)
+     '("Z" . puni-force-delete)
 
      '("e" . meow-next-word)
      '("E" . puni-forward-sexp)
      '(";" . meow-reverse)
      '("b" . meow-back-word)
      '("B" . puni-backward-sexp)
-     '("v" . meow-line)
+     '("v" . set-mark-command)
+     '("V" . meow-line)
      '("f" . meow-find)
      '("t" . meow-till)
      '("G" . meow-grab)
@@ -2269,6 +2277,13 @@ Binding for other packages
       '("W" . er/contract-region)
       '("s" . kr-expand-with-meow)
       '("S" . er/contract-region)))
+
+
+  (use-package expreg
+    :config
+    (meow-define-keys 'normal
+      '("s" . expreg-expand)
+      '("S" . expreg-contract)))
 #+end_src
 
 * Miscellaneous
