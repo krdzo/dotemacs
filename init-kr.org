@@ -1662,29 +1662,7 @@ See [[http://joaotavora.github.io/yasnippet/snippet-organization.html#org7468fa9
     :config
     (setq yas-alias-to-yas/prefix-p nil)    ; don't make yas/prefix commands
 
-    (add-hook 'prog-mode-hook #'yas-minor-mode)
-
-    (with-eval-after-load 'lsp-mode
-      (add-hook 'lsp-mode-hook #'yas-minor-mode))
-
-    (with-eval-after-load 'eglot
-      (add-hook 'eglot-connect-hook #'yas-minor-mode)))
-
-  (use-package yasnippet-snippets
-    :config
-    (with-eval-after-load 'yasnippet
-      (blackout 'yas-minor-mode)))
-
-  ;; for corfu
-  (use-package company
-    :config
-    (defun my/eglot-capf ()
-      (setq-local completion-at-point-functions
-                  (list (cape-super-capf
-                         #'eglot-completion-at-point
-                         (cape-company-to-capf #'company-yasnippet))))))
-
-  ;; (add-hook 'eglot-managed-mode-hook #'my/eglot-capf)
+    (add-hook 'prog-mode-hook #'yas-minor-mode))
 #+end_src
 
 ** Languages
@@ -1841,19 +1819,6 @@ Rest of configuration:
     :config
     (add-hook 'python-mode-hook #'pyvenv-mode))
 
-#+end_src
-
-** quickrun
-#+begin_src emacs-lisp
-  (use-package quickrun
-    :config
-    (defun kr-quickrun (func)
-      (let ((win (get-mru-window)))
-        (save-buffer)
-        (funcall func)
-        (select-window win)))
-
-    (advice-add 'quickrun :around #'kr-quickrun))
 #+end_src
 
 ** Jenkins
