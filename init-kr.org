@@ -698,60 +698,33 @@ Enable =tab= completion
   (setq completion-styles '(basic partial-completion))
 #+end_src
 
-*** Prescient
+** Prescient
 #+begin_src emacs-lisp
   (use-package prescient
     :config
+    (setq prescient-filter-method
+          (defun kr-prescient-filter-method ()
+            "Don't use fuzzy in minibuffer completion."
+            (if (minibufferp)
+                '(literal prefix literal-prefix regexp)
+              '(literal prefix literal-prefix regexp fuzzy))))
+    (prescient-persist-mode 1))
 
-    (add-to-list 'completion-styles 'prescient)
-    (with-eval-after-load 'prescient
-      (prescient-persist-mode 1))
+  (use-package corfu-prescient
+    :config
+    (setq corfu-prescient-override-sorting t)
 
-    (setq prescient-filter-method '(literal prefix fuzzy))
-    (setq prescient-filter-method '(literal prefix literal-prefix regexp fuzzy))
+    (setq corfu-prescient-completion-styles '(prescient basic partial-completion))
 
-    (add-hook 'minibuffer-mode-hook
-          #'(lambda ()
-          (setq-local prescient-filter-method
-            '(literal prefix literal-prefix regexp))))
+    (add-to-list 'corfu-prescient-completion-category-overrides
+                 '(eglot
+                   (styles prescient basic)))
 
-    (add-to-list 'completion-category-overrides '(file (styles basic partial-completion)))
+    (corfu-prescient-mode 1))
 
-    ;; setups are copyed from wikis
-    ;; setup for vertico
-    (with-eval-after-load 'vertico
-      (setq vertico-sort-function #'prescient-completion-sort)
-
-      (defun vertico-prescient-remember ()
-    "Remember the chosen candidate with Prescient."
-    (when (>= vertico--index 0)
-      (prescient-remember
-       (substring-no-properties
-        (nth vertico--index vertico--candidates)))))
-      (advice-add #'vertico-insert :after #'vertico-prescient-remember))
-
-    ;; setup for corfu
-    (with-eval-after-load 'corfu
-      (defun dima-corfu-prescient-remember (&rest _)
-    "Advice for `corfu--insert.'"
-    (when (>= corfu--index 0)
-      (prescient-remember (nth corfu--index corfu--candidates))))
-
-      (advice-add #'corfu--insert :before #'dima-corfu-prescient-remember)
-
-      (setq corfu-sort-function #'prescient-completion-sort)
-      (setq corfu-sort-override-function #'prescient-completion-sort))
-
-    ;; setup eglot
-    (with-eval-after-load 'eglot
-      (add-to-list 'completion-category-overrides '(eglot (styles prescient basic)))))
-
-  ;; (defun kr-mini-p-styles ()
-  ;;   (if (minibufferp)
-  ;;       (setq prescient-filter-method '(literal prefix))
-  ;;     (setq prescient-filter-method '(literal prefix fuzzy))))
-
-  ;; (add-hook 'minibuffer-mode-hook #'kr-mini-p-styles)
+  (use-package vertico-prescient
+    :config
+    (vertico-prescient-mode 1))
 #+end_src
 
 ** Vertico
@@ -830,24 +803,10 @@ corfu config:
       "C-p" 'corfu-previous))
 #+end_src
 
-Make Corfu work from minibuffer:
-#+begin_src emacs-lisp
-
-    (defun corfu-enable-always-in-minibuffer ()
-      "Enable Corfu in the minibuffer if Vertico/Mct are not active."
-      (unless (or (bound-and-true-p mct--active)
-                  (bound-and-true-p vertico--input))
-        ;; (setq-local corfu-auto nil) Enable/disable auto completion
-        (corfu-mode 1)))
-    (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1)
-#+end_src
-
 ** cape
 #+begin_src emacs-lisp
   (use-package cape
     :config
-    (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
-    (advice-add 'lsp-completion-at-point :around #'cape-wrap-buster)
     (add-hook 'completion-at-point-functions #'cape-file))
 #+end_src
 
