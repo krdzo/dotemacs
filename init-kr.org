@@ -1568,65 +1568,6 @@ Closely related to =org-mode= but not really so it goes here with org mode
   (setq prescient-filter-method '(literal))
     #+end_src
 
-** xref
-#+begin_src emacs-lisp
-  (use-package xref
-    :ensure nil
-    :config
-    (setq xref-prompt-for-identifier nil)
-    (general-def
-      "s-<mouse-1>" 'xref-find-references-at-mouse))
-#+end_src
-
-** COMMENT flymake
-#+begin_src emacs-lisp
-  (use-package flymake
-    :hook
-    (prog-mode . flymake-mode)
-    :config
-    (general-def flymake-mode-map
-      "C-z [e" 'flymake-goto-prev-error
-      "C-z ]e" 'flymake-goto-next-error)
-    (setq eldoc-documentation-function 'eldoc-documentation-compose)
-
-    (add-hook 'flymake-mode-hook
-              (lambda ()
-                (remove-hook 'eldoc-documentation-functions #'flymake-eldoc-function t)
-                (add-hook 'eldoc-documentation-functions #'flymake-eldoc-function -1 t))))
-#+end_src
-
-** flycheck
-#+begin_src emacs-lisp
-  (use-package flycheck
-    :config
-    (general-def 'flycheck-mode-map
-      "C-z [e" 'flycheck-previous-error
-      "C-z ]e" 'flycheck-next-error))
-
-#+end_src
-
-** Formating
-
-Formating code buffers on save.
-
-Maybe better alternative [[https://github.com/purcell/emacs-reformatter][reformatter]]
-
-#+begin_src emacs-lisp
-  (use-package apheleia
-    :config
-    (add-hook 'js-mode-hook 'apheleia-mode))
-#+end_src
-
-** yasnippet
-
-#+begin_src emacs-lisp
-  (use-package yasnippet
-    :config
-    (setq yas-alias-to-yas/prefix-p nil)    ; don't make yas/prefix commands
-
-    (add-hook 'prog-mode-hook #'yas-minor-mode))
-#+end_src
-
 ** Languages
 *** C mode
 #+begin_src emacs-lisp
@@ -1781,6 +1722,65 @@ Rest of configuration:
     :config
     (add-hook 'python-mode-hook #'pyvenv-mode))
 
+#+end_src
+
+** xref
+#+begin_src emacs-lisp
+  (use-package xref
+    :ensure nil
+    :config
+    (setq xref-prompt-for-identifier nil)
+    (general-def
+      "s-<mouse-1>" 'xref-find-references-at-mouse))
+#+end_src
+
+** COMMENT flymake
+#+begin_src emacs-lisp
+  (use-package flymake
+    :hook
+    (prog-mode . flymake-mode)
+    :config
+    (general-def flymake-mode-map
+      "C-z [e" 'flymake-goto-prev-error
+      "C-z ]e" 'flymake-goto-next-error)
+    (setq eldoc-documentation-function 'eldoc-documentation-compose)
+
+    (add-hook 'flymake-mode-hook
+              (lambda ()
+                (remove-hook 'eldoc-documentation-functions #'flymake-eldoc-function t)
+                (add-hook 'eldoc-documentation-functions #'flymake-eldoc-function -1 t))))
+#+end_src
+
+** flycheck
+#+begin_src emacs-lisp
+  (use-package flycheck
+    :config
+    (general-def 'flycheck-mode-map
+      "C-z [e" 'flycheck-previous-error
+      "C-z ]e" 'flycheck-next-error))
+
+#+end_src
+
+** Formating
+
+Formating code buffers on save.
+
+Maybe better alternative [[https://github.com/purcell/emacs-reformatter][reformatter]]
+
+#+begin_src emacs-lisp
+  (use-package apheleia
+    :config
+    (add-hook 'js-mode-hook 'apheleia-mode))
+#+end_src
+
+** yasnippet
+
+#+begin_src emacs-lisp
+  (use-package yasnippet
+    :config
+    (setq yas-alias-to-yas/prefix-p nil)    ; don't make yas/prefix commands
+
+    (add-hook 'prog-mode-hook #'yas-minor-mode))
 #+end_src
 
 ** Jenkins
