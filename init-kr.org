@@ -1524,6 +1524,18 @@ Closely related to =org-mode= but not really so it goes here with org mode
     (add-hook 'typescript-mode-hook #'eglot-ensure))
 #+end_src
 
+** treesit
+#+begin_src emacs-lisp
+  (use-package treesit-auto
+    :custom
+    (treesit-auto-install 'prompt)
+    :config
+    (setq treesit-auto-langs
+          '(bash c cpp cmake go gomod dockerfile markdown tsx typescript html css javascript json yaml))
+    (treesit-auto-add-to-auto-mode-alist 'all)
+    (global-treesit-auto-mode))
+#+end_src
+
 ** COMMENT LSP
 #+begin_src emacs-lisp
   (use-package lsp-mode
