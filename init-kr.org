@@ -1270,6 +1270,7 @@ Git client in emacs
   (use-package magit
     :config
     (add-hook 'git-commit-setup-hook #'flyspell-mode)
+    (add-hook 'after-save-hook 'magit-after-save-refresh-status t)
 
     (setq git-commit-fill-column 72)
     (setq magit-process-finish-apply-ansi-colors t)
@@ -1512,8 +1513,13 @@ Closely related to =org-mode= but not really so it goes here with org mode
     (general-def 'eglot-mode-map
       "C-M-." 'eglot-find-implementation)
 
+    (add-hook 'eglot-managed-mode-hook
+              (lambda ()
+                (add-hook 'before-save-hook #'eglot-format nil t)))
+
     ;; start eglot in these modes
     (add-hook 'go-mode-hook #'eglot-ensure)
+    (add-hook 'go-ts-mode-hook #'eglot-ensure)
     (add-hook 'rust-mode-hook #'eglot-ensure)
     (add-hook 'typescript-mode-hook #'eglot-ensure))
 #+end_src
@@ -1666,31 +1672,9 @@ Rest of configuration:
 
 *** Golang
 #+begin_src emacs-lisp
-  (use-package go-mode
+  (use-package go-ts-mode
     :config
-    (general-def 'go-mode-map
-      "C-c C-c" 'recompile
-      "C-c C-S-c" 'compile)
-    (setq gofmt-command "goimports")
-
-    (add-hook 'before-save-hook 'gofmt-before-save)
-
-    (require 'compile)
-    (add-hook 'go-mode-hook
-              (lambda ()
-                (unless (or (file-exists-p "makefile")
-                            (file-exists-p "Makefile"))
-                  (setq-local compile-command "go run main.go "))))
-
-    (with-eval-after-load 'project
-      (defun your-go-module-root (dir)
-        (when-let ((root (locate-dominating-file dir "go.mod")))
-          (list 'go-module 'dir root)))
-
-      (add-hook 'project-find-functions #'your-go-module-root)
-
-      (cl-defmethod project-root ((project (head go-module)))
-        (caddr project))))
+    (setq go-ts-mode-indent-offset 4))
 #+end_src
 
 *** Yaml
