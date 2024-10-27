@@ -1072,6 +1072,13 @@ NOTE: be sure to use [[https://github.com/justinbarclay/parinfer-rust][this]] re
       (goto-char (marker-position (car (last mark-ring))))))
 #+end_src
 
+** find char
+#+begin_src emacs-lisp
+  (unless (package-installed-p 'find-char)
+    (package-vc-install "https://github.com/casouri/find-char"))
+  (use-package find-char)
+#+end_src
+
 ** marginalia
 #+BEGIN_SRC emacs-lisp
   (use-package marginalia
@@ -1875,7 +1882,7 @@ Meow is a mode for modal edditing inpired by VIM.
      '("B" . puni-backward-sexp)
      '("v" . set-mark-command)
      '("V" . meow-line)
-     '("f" . meow-find)
+     '("f" . find-char)
      '("t" . meow-till)
      '("G" . meow-grab)
      '("m" . meow-join)
