@@ -810,66 +810,6 @@ corfu config:
     (add-hook 'completion-at-point-functions #'cape-file))
 #+end_src
 
-** marginalia
-#+BEGIN_SRC emacs-lisp
-  (use-package marginalia
-    :config
-    (marginalia-mode 1)
-    (setq marginalia-annotators '(marginalia-annotators-heavy
-                                  marginalia-annotators-light nil)))
-#+END_SRC
-
-** Consult
-To search for multiple words with ~consult-ripgrep~ you should search e.g. for
-~#defun#some words~ . The first filter is passed to an async ~ripgrep~ process
-and the second filter to the completion-style filtering (?).
-
-#+BEGIN_SRC emacs-lisp
-  (use-package consult
-    :config
-    (setq xref-show-xrefs-function #'consult-xref
-          xref-show-definitions-function #'consult-xref)
-
-    (general-def
-      [remap switch-to-buffer] 'consult-buffer
-      [remap apropos-command] 'consult-apropos
-      [remap yank-pop] 'consult-yank-pop
-      "C-s" 'consult-line)
-
-    (general-def mode-specific-map
-      "i" 'consult-imenu)
-
-    ;; preview only works with consult commands
-    (setq consult-preview-key 'any)
-    (with-eval-after-load 'consult
-      (consult-customize
-       consult-buffer
-       :preview-key "C-o")))
-#+END_SRC
-
-** embark
-- You can act on candidates with =C-l= and ask to remind bindings with =C-h=
-- You can run ~embark-export~ on all results (e.g. after a ~consult-line~) with =C-l E=
-  + You can run ~embark-export-snapshot~ with =C-l S=
-
-#+BEGIN_SRC emacs-lisp
-  (use-package embark
-    :config
-    (general-def 'minibuffer-mode-map
-      "C-," 'embark-act))
-#+END_SRC
-
-*** embark-consult
-#+begin_src emacs-lisp
-  (use-package embark-consult
-    :config
-    (general-add-hook 'minibuffer-setup-hook
-                      #'(lambda () (require 'embark-consult))
-                      nil
-                      nil
-                      t))
-#+end_src
-
 ** dabbrev
 #+begin_src emacs-lisp
     (setq dabbrev-case-replace nil)
@@ -1131,6 +1071,56 @@ NOTE: be sure to use [[https://github.com/justinbarclay/parinfer-rust][this]] re
       (setq mark-ring (nbutlast mark-ring))
       (goto-char (marker-position (car (last mark-ring))))))
 #+end_src
+
+** marginalia
+#+BEGIN_SRC emacs-lisp
+  (use-package marginalia
+    :config
+    (marginalia-mode 1)
+    (setq marginalia-annotators '(marginalia-annotators-heavy
+                                  marginalia-annotators-light nil)))
+#+END_SRC
+
+** Consult
+To search for multiple words with ~consult-ripgrep~ you should search e.g. for
+~#defun#some words~ . The first filter is passed to an async ~ripgrep~ process
+and the second filter to the completion-style filtering (?).
+
+#+BEGIN_SRC emacs-lisp
+  (use-package consult
+    :config
+    (setq xref-show-xrefs-function #'consult-xref
+          xref-show-definitions-function #'consult-xref)
+
+    (general-def
+      [remap switch-to-buffer] 'consult-buffer
+      [remap apropos-command] 'consult-apropos
+      [remap yank-pop] 'consult-yank-pop
+      "C-s" 'consult-line)
+
+    (general-def mode-specific-map
+      "i" 'consult-imenu)
+
+    ;; preview only works with consult commands
+    (setq consult-preview-key 'any)
+    (with-eval-after-load 'consult
+      (consult-customize
+       consult-buffer
+       :preview-key "C-o")))
+#+END_SRC
+
+** embark
+- You can act on candidates with =C-l= and ask to remind bindings with =C-h=
+- You can run ~embark-export~ on all results (e.g. after a ~consult-line~) with =C-l E=
+  + You can run ~embark-export-snapshot~ with =C-l S=
+
+#+BEGIN_SRC emacs-lisp
+  (use-package embark
+    :config
+    (use-package embark-consult)
+    (general-def 'mode-specific-map
+      "a a" 'embark-act))
+#+END_SRC
 
 * Apps
 General TUI apps that are emacs.
