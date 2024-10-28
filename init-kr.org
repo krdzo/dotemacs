@@ -1508,20 +1508,14 @@ Closely related to =org-mode= but not really so it goes here with org mode
 ** eglot
 #+begin_src emacs-lisp
   (use-package eglot
+    :hook ((go-ts-mode typescript-mode js-mode) . eglot-ensure)
     :config
     (set-face-attribute 'eglot-highlight-symbol-face nil :background "#585858")
     (general-def 'eglot-mode-map
       "C-M-." 'eglot-find-implementation)
 
-    (add-hook 'eglot-managed-mode-hook
-              (lambda ()
-                (add-hook 'before-save-hook #'eglot-format nil t)))
-
-    ;; start eglot in these modes
-    (add-hook 'go-mode-hook #'eglot-ensure)
     (add-hook 'go-ts-mode-hook #'eglot-ensure)
-    (add-hook 'rust-mode-hook #'eglot-ensure)
-    (add-hook 'typescript-mode-hook #'eglot-ensure))
+    (add-hook 'rust-mode-hook #'eglot-ensure))
 #+end_src
 
 ** treesit
@@ -1765,8 +1759,7 @@ Maybe better alternative [[https://github.com/purcell/emacs-reformatter][reforma
 
 #+begin_src emacs-lisp
   (use-package apheleia
-    :config
-    (add-hook 'js-mode-hook 'apheleia-mode))
+    :hook (js-mode go-ts-mode))
 #+end_src
 
 ** yasnippet
