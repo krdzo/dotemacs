@@ -1524,61 +1524,28 @@ Closely related to =org-mode= but not really so it goes here with org mode
     :custom
     (treesit-auto-install 'prompt)
     :config
+    (setq treesit-font-lock-level 4)
     (setq treesit-auto-langs
           '(bash c cpp cmake go gomod dockerfile markdown tsx typescript html css javascript json yaml))
     (treesit-auto-add-to-auto-mode-alist 'all)
     (global-treesit-auto-mode))
 #+end_src
 
-** COMMENT LSP
+** Formating
+
+Formating code buffers on save.
+
 #+begin_src emacs-lisp
-  (use-package lsp-mode
+  (use-package apheleia
+    :hook (js-mode go-ts-mode)
     :init
-    (defun my/lsp-mode-setup-completion ()
-      (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
-            '(prescient)))
-    (setq lsp-keymap-prefix "C-z l")
-    :custom
-    (lsp-completion-provider :none) ;; we use Corfu!
-    :hook
-    ((go-mode . lsp)
-     (typescript-mode . lsp)
-     (python-mode . lsp)
-     (lsp-mode . lsp-enable-which-key-integration)
-     (lsp-completion-mode . my/lsp-mode-setup-completion)
-     (lsp-mode . lsp-ui-mode))
-    :commands lsp
+    (add-hook 'go-ts-mode-hook
+              (defun kr-go-format-buffer ()
+                (setq-local apheleia-formatter '(goimports gofmt))))
     :config
-    (set-face-attribute 'lsp-face-highlight-textual nil
-                        :background 'unspecified
-                        :foreground 'unspecified
-                        :underline "#FFFF") ; wrong collor on purpose
-    (kr-set-lsp-face)
-    (setq lsp-go-use-placeholders nil)
-
-    ;; Disable anoying background in LSP help buffer
-    (with-eval-after-load 'markdown-mode
-      (set-face-background 'markdown-code-face nil))
-
-    (general-def 'lsp-mode-map
-      "C-z h" 'lsp-describe-thing-at-point
-      "C-M-/" 'lsp-find-implementation))
-
-
-  ;; optionally
-  (use-package lsp-ui :commands lsp-ui-mode
-    :config
-    (general-def 'lsp-ui-peek-mode-map
-      "k" 'lsp-ui-peek--select-prev
-      "j" 'lsp-ui-peek--select-next))
-
-  ;; optionally if you want to use debugger
-  (use-package dap-mode)
-  ;; (use-package dap-LANGUAGE) to load the dap adapter for your language
-
-  (setq prescient-filter-method '(literal prefix literal-prefix))
-  (setq prescient-filter-method '(literal))
-    #+end_src
+    (setf (alist-get 'goimports apheleia-formatters)
+          '("goimports" "-srcdir" filepath)))
+#+end_src
 
 ** Languages
 *** C mode
@@ -1749,17 +1716,6 @@ Rest of configuration:
       "C-z [e" 'flycheck-previous-error
       "C-z ]e" 'flycheck-next-error))
 
-#+end_src
-
-** Formating
-
-Formating code buffers on save.
-
-Maybe better alternative [[https://github.com/purcell/emacs-reformatter][reformatter]]
-
-#+begin_src emacs-lisp
-  (use-package apheleia
-    :hook (js-mode go-ts-mode))
 #+end_src
 
 ** yasnippet
