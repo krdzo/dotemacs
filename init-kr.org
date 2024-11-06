@@ -702,23 +702,17 @@ Enable =tab= completion
 #+end_src
 
 ** Prescient
+Prescient is only used for sorting candidates
 #+begin_src emacs-lisp
   (use-package prescient
     :config
-    (setq prescient-filter-method
-          (defun kr-prescient-filter-method ()
-            "Don't use fuzzy in minibuffer completion."
-            (if (minibufferp)
-                '(literal prefix literal-prefix regexp)
-              '(literal prefix literal-prefix regexp fuzzy))))
+    (setq prescient-filter-method '(literal prefix literal-prefix regexp fuzzy))
     (prescient-persist-mode 1))
 
   (use-package corfu-prescient
     :config
     (setq corfu-prescient-override-sorting t)
-
-    (setq corfu-prescient-completion-styles '(prescient basic partial-completion))
-
+    (setq corfu-prescient-enable-filtering t)
     (add-to-list 'corfu-prescient-completion-category-overrides
                  '(eglot
                    (styles prescient basic)))
@@ -727,7 +721,19 @@ Enable =tab= completion
 
   (use-package vertico-prescient
     :config
+    (setq vertico-prescient-override-sorting t)
+    (setq vertico-prescient-enable-filtering nil)
     (vertico-prescient-mode 1))
+#+end_src
+
+** orderless
+Used for filtering candidates
+#+begin_src emacs-lisp
+  (use-package orderless
+    :ensure t
+    :custom
+    (completion-styles '(orderless basic))
+    (completion-category-overrides '((file (styles basic partial-completion)))))
 #+end_src
 
 ** Vertico
@@ -1092,10 +1098,14 @@ and the second filter to the completion-style filtering (?).
       [remap switch-to-buffer] 'consult-buffer
       [remap apropos-command] 'consult-apropos
       [remap yank-pop] 'consult-yank-pop
+      [remap goto-line] 'consult-goto-line
       "C-s" 'consult-line)
 
     (general-def mode-specific-map
+      "bB" 'consult-buffer-other-window
+      "bf" 'consult-focus-lines
       "i" 'consult-imenu)
+    (setq consult-narrow-key "<")
 
     ;; preview only works with consult commands
     (setq consult-preview-key 'any)
