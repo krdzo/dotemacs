@@ -1273,7 +1273,7 @@ Git client in emacs
 
     (setq git-commit-fill-column 72)
     (setq magit-process-finish-apply-ansi-colors t)
-    (setq magit-display-buffer-function 'kr-magit-display-buffer-same-window-except-diff-v1)
+    (setq magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1)
     (setq magit-save-repository-buffers 'dontask)
 
     (dolist (face '(magit-diff-added
@@ -1506,6 +1506,7 @@ Closely related to =org-mode= but not really so it goes here with org mode
 
 ** eglot
 #+begin_src emacs-lisp
+  (add-hook 'special-mode-hook 'visual-line-mode)
   (use-package eglot
     :hook ((go-ts-mode typescript-mode js-mode) . eglot-ensure)
     :config
@@ -1515,6 +1516,78 @@ Closely related to =org-mode= but not really so it goes here with org mode
 
     (add-hook 'go-ts-mode-hook #'eglot-ensure)
     (add-hook 'rust-mode-hook #'eglot-ensure))
+#+end_src
+
+** dape
+#+begin_src emacs-lisp
+  (unless (package-installed-p 'dape)
+    (package-vc-install "https://github.com/svaante/dape"))
+  (use-package dape
+    :after meow
+    :init
+    (setq dape-debug t)
+    :commands (dape)
+    :config
+
+    (dolist (cmd dape-global-map)
+      (unless (eq cmd 'keymap)
+        (put (cdr cmd) 'repeat-map nil)))
+
+    (setq dape-inlay-hints t)
+    (setf (alist-get 'go-test dape-configs)
+          `(modes (go-mode go-ts-mode)
+            ensure dape-ensure-command
+            fn (dape-config-autoport dape-config-tramp)
+            command "dlv"
+            command-args ("dap" "--listen" "127.0.0.1::autoport")
+            command-cwd (lambda()(if (string-suffix-p "_test.go" (buffer-name))
+                                     default-directory (dape-cwd)))
+            port :autoport
+            :type "debug"
+            :request "launch"
+            :mode (lambda() (if (string-suffix-p "_test.go" (buffer-name)) "test" "debug"))
+            :program "."
+            :cwd "."
+            :args (lambda()
+                    (require 'which-func)
+                    (if (string-suffix-p "_test.go" (buffer-name))
+                        (when-let* ((test-name (which-function))
+                                    (test-regexp (concat "^" test-name "$")))
+                          (if test-name `["-test.run" ,test-regexp]
+                            (error "No test selected")))
+                      []))))
+
+    (defvar meow-dape-state-keymap (make-sparse-keymap))
+    (meow-define-state dape
+      "meow for dape repl context"
+      :lighter " [D]"
+      :keymap meow-dape-state-keymap)
+    (meow-define-keys 'dape
+      '("<" . dape-stack-select-up)
+      '(">" . dape-stack-select-down)
+      '("B" . dape-breakpoint-remove-all)
+      '("D" . dape-disconnect-quit)
+      '("R" . dape-repl)
+      '("S" . dape-select-stack)
+      '("b" . dape-breakpoint-toggle)
+      '("c" . dape-continue)
+      '("d" . dape)
+      '("e" . dape-breakpoint-expression)
+      '("h" . dape-breakpoint-hits)
+      '("I" . dape-info)
+      '("i" . meow-insert)
+      '("l" . dape-breakpoint-log)
+      '("m" . dape-read-memory)
+      '("n" . dape-next)
+      '("o" . dape-step-out)
+      '("p" . dape-pause)
+      '("q" . dape-quit)
+      '("r" . dape-restart)
+      '("s" . dape-step-in)
+      '("t" . dape-select-thread)
+      '("w" . dape-watch-dwim)
+      '("x" . dape-evaluate-expression))
+    (add-to-list 'meow-mode-state-list '(dape-repl-mode . dape)))
 #+end_src
 
 ** treesit
