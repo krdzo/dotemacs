@@ -1620,14 +1620,6 @@ Formating code buffers on save.
 #+end_src
 
 ** Languages
-*** C mode
-#+begin_src emacs-lisp
-
-  (general-def 'c-mode-map
-    "C-c C-c" 'recompile
-    "C-c C-S-c" 'compile)
-#+end_src
-
 *** Common Lisp
 
 Seting ~sbcl~ to be default interpreter for lisp.
@@ -1678,9 +1670,6 @@ Seting ~sbcl~ to be default interpreter for lisp.
 #+end_src
 
 *** JavaScript
-Rest of configuration:
-[[*LSP][lsp-hook]], [[*Tree-sitter][tree-stter-hook]], [[*Formating][apheleia-hook]]
-
 #+begin_src emacs-lisp
   (setq js-indent-level 2)
 #+end_src
@@ -1694,7 +1683,7 @@ Rest of configuration:
 #+end_src
 
 *** JSON
-[[*LSP][lsp-hook]]
+
 #+begin_src emacs-lisp
   (use-package jsonian
     :config
@@ -1722,28 +1711,6 @@ Rest of configuration:
     (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode))
     (add-hook 'yaml-mode-hook #'toggle-truncate-lines)
     (add-hook 'yaml-mode-hook #'display-line-numbers-mode))
-#+end_src
-
-*** Scala
-#+begin_src emacs-lisp
-  (use-package scala-mode)
-
-  (use-package sbt-mode)
-
-  (substitute-key-definition
-   'minibuffer-complete-word
-   'self-insert-command
-   minibuffer-local-completion-map)
-
-  (setq sbt:program-options '("-Dsbt.supershell=false"))
-#+end_src
-
-*** Python
-#+begin_src emacs-lisp
-  (use-package pyvenv
-    :config
-    (add-hook 'python-mode-hook #'pyvenv-mode))
-
 #+end_src
 
 ** xref
@@ -2209,151 +2176,6 @@ Binding for other packages
     (meow-define-keys 'normal
       '("s" . expreg-expand)
       '("S" . expreg-contract)))
-#+end_src
-
-* COMMENT Disabled
-Some section that are disabled until I find time to setup them.
-
-** Treesitter builtin
-#+begin_src emacs-lisp
-  (require 'treesit)
-  (setq treesit-extra-load-path (list (expand-file-name "dist/" "~/git/tree-sitter-module/")))
-#+end_src
-
-** Window management
-Setup for ~display-buffer-alist~. See [[https://www.masteringemacs.org/article/demystifying-emacs-window-managert][this]] for reference.
-
-This is maybe the most important variable to set, it makes ~switch-to-buffer~ obey ~display-buffer-alist~ rules.
-#+begin_src emacs-lisp
-  (setq switch-to-buffer-obey-display-actions t)
-#+end_src
-
-*** tab-bar-mode
-Enable ~tab-bar-mode~. It helps us to keep window configurations under control.
-#+begin_src emacs-lisp
-  (tab-bar-mode 1)
-#+end_src
-
-*** Per project WM/tab
-Next we create a ~display-buffer-alist~ rule so thet we group project buffers by tabs. All buffers of one project go to one tab and that tab is automatically created when we open the first buffer of a project.
-#+begin_src emacs-lisp
-  (defvar kr-package-icon "🗃")
-
-  (add-to-list 'display-buffer-alist
-               '(mp-buffer-has-project-p
-                 (display-buffer-in-tab display-buffer-reuse-window)
-                 (tab-name . kr-project-tab-name)))
-
-  (defun mp-buffer-has-project-p (buffer action)
-    "Check if a buffer is belonging to a project."
-    (with-current-buffer buffer (project-current nil)))
-
-  (defun kr-project-tab-name (buffer alist)
-    "If `tab-bar-mode' is enabled and we are in a project
-  then set the tab name to project root directory name."
-    (with-current-buffer buffer
-      (concat kr-package-icon " " (kr-project-name))))
-
-  (autoload #'project-root "project")
-  (defun kr-project-name ()
-    "Return project name.
-  Projects name is the same as the name of the projects parent direcotry."
-    (file-name-nondirectory
-     (directory-file-name (project-root (project-current nil)))))
-
-  (advice-add 'project-kill-buffers :after #'tab-close)
-#+end_src
-
-*** The rest
-This are just rundom rules until I get time to sort them properly
-
-#+begin_src emacs-lisp
-  (add-to-list 'display-buffer-alist
-               `(,(rx "*" (one-or-more alpha) "*")
-                 display-buffer-reuse-window))
-
-  (add-to-list 'display-buffer-alist
-               `(,(rx (| "*xref*"
-                         "*grep*"
-                         "*Occur*"))
-                 display-buffer-reuse-window
-                 (inhibit-same-window . nil)))
-#+end_src
-
-** LSP
-;;;
-#+NOTE: lsp more is not used because it doesn't integrate nicely with corfu mode.
-;;;
-
-#+BEGIN_SRC emacs-lisp
-  (straight-use-package 'lsp-mode)
-
-  (setq lsp-keymap-prefix "C-c l")
-  (setq lsp-completion-provider :none)  ; don't change company-backends
-  (setq read-process-output-max (* 1024 1024))
-  ;; (setq lsp-signature-auto-activate t
-  ;;       lsp-signature-doc-lines 1)
-
-  (general-add-hook '(c-mode-hook
-                      go-mode-hook
-                      js-mode-hook
-                      json-mode-hook
-                      web-mode-hook
-                      css-mode-hook
-                      python-mode-hook)
-                    #'lsp-deferred)
-  (general-add-hook 'lsp-mode-hook '(lsp-enable-which-key-integration))
-
-  (general-define-key
-   :keymaps 'kr-gmenu-map
-   :predicate 'lsp-mode
-   "r" 'lsp-rename
-   "=" 'lsp-format-buffer
-   "a" 'lsp-execute-code-action)
-  (general-define-key
-   :keymaps 'lsp-mode-map
-   "C-z h" 'lsp-describe-thing-at-point)
-
-  (with-eval-after-load 'lsp-lens
-    (blackout 'lsp-lens-mode))
-
-  ;; (setq lsp-restart 'ignore)
-  ;; (setq lsp-eldoc-enable-hover nil)
-  ;; (setq lsp-enable-file-watchers nil)
-  ;; (setq lsp-signature-auto-activate nil)
-  ;; (setq lsp-modeline-diagnostics-enable nil)
-  ;; (setq lsp-keep-workspace-alive nil)
-  ;; (setq lsp-auto-execute-action nil)
-  ;; (setq lsp-before-save-edits nil)
-#+END_SRC
-
-LSP corfu conf:
-#+begin_src emacs-lisp
-  (with-eval-after-load 'lsp-mode
-    ;; make lsp use orderless
-    (defun kr-lsp-mode-setup-completion ()
-      (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
-            '(flex orderless))) ;; Configure flex
-    (add-hook 'lsp-completion-mode-hook #'kr-lsp-mode-setup-completion))
-
-  ;; change lsp-capf funciton to make it work like other capf-s
-  ;; explanation: https://github.com/minad/cape/issues/24
-  ;; (add-hook 'lsp-completion-mode-hook
-  ;;           (lambda () (setq-local completion-at-point-functions '(lsp-completion-at-point t))))
-  ;; (add-hook 'lsp-completion-mode-hook
-  ;;   (lambda ()
-  ;;     (setq-local completion-at-point-functions
-  ;;       (list (cape-capf-properties #'lsp-completion-at-point :exclusive 'no) t)))))
-
-#+end_src
-
-** DAP mode
-#+begin_src emacs-lisp
-  (straight-use-package 'dap-mode)
-  (add-hook 'lsp-mode-hook 'dap-mode)
-  (add-hook 'python-mode-hook #'(lambda () (require 'dap-python)))
-  (add-hook 'java-mode-hook #'(lambda () (require 'dap-java)))
-  (add-hook 'dap-stopped-hook #'(lambda (arg) (call-interactively #'dap-hydra)))
 #+end_src
 
 * Temp
