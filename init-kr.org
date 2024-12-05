@@ -100,7 +100,7 @@ Small snippets in help buffer that show how a function is used.
 #+end_src
 
 ** Util functions
-
+*** ansi colors
 Ansi collor in buffers. Run command to add ansi collors to buffer.
 #+begin_src emacs-lisp
   (defun kr-display-ansi-colors ()
@@ -173,6 +173,15 @@ Ansi collor in buffers. Run command to add ansi collors to buffer.
       '("gu". kr-unix-ts-to-str-dwim)))
 #+end_src
 
+*** toggle require new line
+#+begin_src emacs-lisp
+  (defun kr-toggle-final-newline ()
+      (interactive)
+      (setq require-final-newline (not require-final-newline))
+      (message "set require-final-newline to %s" require-final-newline))
+  (general-def mode-specific-map
+    "fN" 'kr-toggle-final-newline)
+#+end_src
 * Keybindings
 Setup keybindings for builtin features that are not tied to any mode.
 ** Emacs
