@@ -1758,6 +1758,8 @@ Seting ~sbcl~ to be default interpreter for lisp.
     :config
     (setq xref-prompt-for-identifier nil)
     (general-def
+      "s-[" 'xref-go-back
+      "s-]" 'xref-go-forward
       "s-<mouse-1>" 'xref-find-references-at-mouse))
 #+end_src
 
@@ -1765,11 +1767,9 @@ Seting ~sbcl~ to be default interpreter for lisp.
   (unless (package-installed-p 'empx)
     (package-vc-install "https://github.com/ISouthRain/empx"))
   (use-package empx
+    :disabled
     :config
-    (empx-mode 1)
-    (general-def
-      "s-[" 'xref-go-back
-      "s-]" 'xref-go-forward))
+    (empx-mode 1))
 #+end_src
 
 ** yasnippet
