@@ -250,11 +250,7 @@ Binding for emacs builtin command. Binding it to =mode-specific-map= (~C-c~) so 
     "f d" 'list-directory
     "f f" 'find-file
     "f j" 'dired-jump)
-
-  ;; (general-def project-prefix-map
-  ;;   "b" 'project-list-buffers
-  ;;   "C-b" 'project-switch-to-buffer)
-#+end_src
+  #+end_src
 
 * Emacs
 Here is configuration that concerns Emacs builtin features.
@@ -1108,6 +1104,8 @@ and the second filter to the completion-style filtering (?).
       [remap apropos-command] 'consult-apropos
       [remap yank-pop] 'consult-yank-pop
       [remap goto-line] 'consult-goto-line
+      [remap project-switch-to-buffer] 'project-list-buffers
+      [remap project-list-buffers] 'consult-project-buffer
       "C-s" 'consult-line)
 
     (general-def mode-specific-map
@@ -1496,6 +1494,8 @@ Closely related to =org-mode= but not really so it goes here with org mode
   (use-package project
     :ensure nil
     :config
+    (setq project-vc-extra-root-markers '("go.mod" "requirements.txt"))
+
     (defun kr-project-grep ()
       (interactive)
       (if mark-active
