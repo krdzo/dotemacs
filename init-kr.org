@@ -336,6 +336,9 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 #+begin_src emacs-lisp
   (add-hook 'help-mode-hook 'visual-line-mode)
 
+  (setq help-window-select t)
+  (setq help-window-keep-selected t)
+
   (setq help-enable-variable-value-editing t)
   (put 'help-fns-edit-variable 'disabled nil)
 
@@ -353,8 +356,6 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
     "C-h s" 'shortdoc-display-group
     "C-h b" 'describe-keymap
     "C-h B" 'describe-bindings)
-
-  (setq help-window-select t)
 #+end_src
 
 ** Subword
