@@ -450,7 +450,9 @@ I making a custom input method for Serbian language because all the other method
 
 *** Spelling
 #+begin_src emacs-lisp
-  (setq ispell-program-name (executable-find "aspell"))
+  (add-hook 'emacs-startup-hook
+            #'(lambda ()
+                (setq ispell-program-name (executable-find "aspell"))))
 #+end_src
 
 ** Calendar
