@@ -568,6 +568,7 @@ Make parrent directory when it doesn't exist. Taken form [[https://emacsredux.co
 #+end_src
 
 * Window management
+** Emacs
 Setup for ~display-buffer-alist~. See [[https://www.masteringemacs.org/article/demystifying-emacs-window-managert][this]] for reference.
 
 This is maybe the most important variable to set, it makes ~switch-to-buffer~ obey ~display-buffer-alist~ rules.
@@ -581,6 +582,10 @@ This is maybe the most important variable to set, it makes ~switch-to-buffer~ ob
 
       (general-def
         "C-x C-S-b" 'kr-swith-to-buffer-obey)
+#+end_src
+
+#+begin_src emacs-lisp
+  (setq split-height-threshold 120)
 #+end_src
 
 ** Custom dispaly-buffer funcitons
@@ -1131,6 +1136,8 @@ and the second filter to the completion-style filtering (?).
   (use-package embark
     :config
     (use-package embark-consult)
+    (general-def
+      "C-." 'embark-act)
     (general-def 'mode-specific-map
       "a a" 'embark-act))
 #+END_SRC
