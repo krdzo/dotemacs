@@ -373,10 +373,18 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 ** eldoc
 #+begin_src emacs-lisp
   (use-package eldoc
-    :defer t
-    :config)
+    :config
+    (setq eldoc-echo-area-display-truncation-message t)
+    (setq eldoc-echo-area-use-multiline-p nil)
+    (setq eldoc-echo-area-prefer-doc-buffer nil))
 #+end_src
 
+*** eldoc box
+#+begin_src emacs-lisp
+  (use-package eldoc-box
+    :general (eglot-mode-map
+              "C-h ." 'eldoc-box-help-at-point))
+  #+end_src
 ** recentf
 #+begin_src emacs-lisp
   (recentf-mode 1)
@@ -1534,6 +1542,11 @@ Closely related to =org-mode= but not really so it goes here with org mode
     (set-face-attribute 'eglot-highlight-symbol-face nil :background "#585858")
     (general-def 'eglot-mode-map
       "C-M-." 'eglot-find-implementation)
+
+    (add-hook 'eglot-managed-mode-hook
+              (defun kr-eglot-switch-eldoc-functions ()
+                (remove-hook 'eldoc-documentation-functions #'eglot-hover-eldoc-function t)
+                (add-hook 'eldoc-documentation-functions #'eglot-hover-eldoc-function nil t)))
 
     (add-hook 'go-ts-mode-hook #'eglot-ensure)
     (add-hook 'rust-mode-hook #'eglot-ensure))
