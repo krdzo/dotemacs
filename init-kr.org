@@ -11,8 +11,12 @@ Add Melpa
   (package-initialize)
 
   (require 'use-package)
+
   (setq use-package-always-ensure t)
-#+end_src
+
+  (use-package use-package-ensure-system-package
+    :ensure nil)
+  #+end_src
 
 * Utilities
 Utility packages that add functions that make configuration easier or configure some aspect of Emacs so that I don't have to.
@@ -1716,6 +1720,8 @@ Seting ~sbcl~ to be default interpreter for lisp.
 *** Golang
 #+begin_src emacs-lisp
   (use-package go-ts-mode
+    :ensure-system-package
+    ((goimports . "go install golang.org/x/tools/cmd/goimports@latest"))
     :config
     (setq go-ts-mode-indent-offset 4))
 #+end_src
