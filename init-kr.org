@@ -1777,6 +1777,11 @@ Seting ~sbcl~ to be default interpreter for lisp.
 #+begin_src emacs-lisp
   (use-package yasnippet
     :config
+
+    (defun kr-is-corfu-active ()
+      (when corfu--candidates t))
+    (add-hook 'yas-keymap-disable-hook #'kr-is-corfu-active)
+
     (setq yas-alias-to-yas/prefix-p nil)    ; don't make yas/prefix commands
 
     (add-hook 'prog-mode-hook #'yas-minor-mode))
