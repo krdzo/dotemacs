@@ -1157,6 +1157,27 @@ and the second filter to the completion-style filtering (?).
       "a a" 'embark-act))
 #+END_SRC
 
+** xref
+#+begin_src emacs-lisp
+  (use-package xref
+    :ensure nil
+    :config
+    (setq xref-prompt-for-identifier nil)
+    (general-def
+      "s-[" 'xref-go-back
+      "s-]" 'xref-go-forward
+      "s-<mouse-1>" 'xref-find-references-at-mouse))
+#+end_src
+
+#+begin_src emacs-lisp
+  (unless (package-installed-p 'empx)
+    (package-vc-install "https://github.com/ISouthRain/empx"))
+  (use-package empx
+    :disabled
+    :config
+    (empx-mode 1))
+#+end_src
+
 * Apps
 General TUI apps that are emacs.
 
@@ -1530,7 +1551,7 @@ Closely related to =org-mode= but not really so it goes here with org mode
           (call-interactively #'consult-ripgrep))))
     (with-eval-after-load 'consult
       (require 'vertico-buffer)
-      (define-key project-prefix-map (kbd "g") 'kr-project-grep)))
+      (define-key project-prefix-map (kbd "g") 'consult-ripgrep)))
 #+end_src
 
 * Programming
@@ -1541,7 +1562,11 @@ Closely related to =org-mode= but not really so it goes here with org mode
   (use-package eglot
     :hook ((go-ts-mode typescript-mode js-mode) . eglot-ensure)
     :config
-    (set-face-attribute 'eglot-highlight-symbol-face nil :background "#585858")
+    (general-def 'eglot-mode-map
+      "C-z l r r" 'eglot-rename
+      "C-z h" 'eldoc-box-help-at-point)
+
+    (set-face-attribute 'eglot-highlight-symbol-face nil :background nil :underline "#f8f8f8")
     (general-def 'eglot-mode-map
       "C-M-." 'eglot-find-implementation)
 
@@ -1751,27 +1776,6 @@ Seting ~sbcl~ to be default interpreter for lisp.
     (add-hook 'yaml-mode-hook #'display-line-numbers-mode))
 #+end_src
 
-** xref
-#+begin_src emacs-lisp
-  (use-package xref
-    :ensure nil
-    :config
-    (setq xref-prompt-for-identifier nil)
-    (general-def
-      "s-[" 'xref-go-back
-      "s-]" 'xref-go-forward
-      "s-<mouse-1>" 'xref-find-references-at-mouse))
-#+end_src
-
-#+begin_src emacs-lisp
-  (unless (package-installed-p 'empx)
-    (package-vc-install "https://github.com/ISouthRain/empx"))
-  (use-package empx
-    :disabled
-    :config
-    (empx-mode 1))
-#+end_src
-
 ** yasnippet
 
 #+begin_src emacs-lisp
@@ -1841,6 +1845,7 @@ Meow is a mode for modal edditing inpired by VIM.
      '("3" . meow-expand-3)
      '("2" . meow-expand-2)
      '("1" . meow-expand-1)
+     '("=". scroll-lock-mode)
      '("-" . negative-argument)
      '("`" . kr-meow-last-buffer)
      '("<escape>" . keyboard-quit)
