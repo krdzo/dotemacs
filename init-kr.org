@@ -9,6 +9,8 @@ Add Melpa
   (require 'package)
   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
   (package-initialize)
+  (unless package-archive-contents
+    (package-refresh-contents))
 
   (require 'use-package)
 
@@ -1150,11 +1152,13 @@ and the second filter to the completion-style filtering (?).
 #+BEGIN_SRC emacs-lisp
   (use-package embark
     :config
-    (use-package embark-consult)
     (general-def
       "C-." 'embark-act)
     (general-def 'mode-specific-map
       "a a" 'embark-act))
+
+  (use-package embark-consult
+    :after (embark consult))
 #+END_SRC
 
 ** xref
