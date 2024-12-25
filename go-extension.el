@@ -1,19 +1,3 @@
-;;; helper to test code
-
-(defun my-point ()
-  (interactive)
-  (message "%s"(point)))
-
-(when (get-buffer "kwgnc_test.go" )
-  (with-current-buffer "kwgnc_test.go"
-    (setq test-func-node
-          (alist-get 'func
-                     (treesit-query-capture
-                      'go
-                      '((function_declaration
-                         (identifier) @func-name
-                         (:equal "TestTry" @func-name)) @func))))))
-
 ;;; code starts here
 (defvar ex/query-test-run
   '((block
@@ -90,25 +74,6 @@
 CAPTURE is a treesit query capture of the form (name . node)"
   (format "^%s$" (treesit-node-text (cdr capture) t)))
 
-(defun ex/get-function-names-regex (&optional node start end)
-  (mapcar #'ex/regex-from-capture
-          (treesit-query-capture
-           (or node 'go) ex/query-get-test-functions start end)))
-
-(defun ex/get-case-names-regex (fnode)
-  "Get regex for case name under FNODE.
-If region active then run all cases under region else just
-the one under point."
-  (when-let* ((names (ex/get-name-of-test-case fnode)))
-    (format "^%s$" (string-join names "|"))))
-
-(defun ex/get-test-regex (&optional node start end)
-  (let ((functions (ex/get-function-names-regex nil start end)))
-    (if (length> functions 1)
-        (string-join functions "|")
-      (concat (car functions) "/" (ex/get-case-names-regex node)))))
-
-
 (defun ex/build-test-regex (nodes)
   (string-join
    (mapcar (lambda (node)
@@ -124,8 +89,8 @@ the one under point."
 (defun ex/func-and-case ()
   (let* ((func (ex/get-thing-around (point) "function_declaration"))
          (cases (ex/get-name-of-test-case func)))
-    (if  cases
-        (format "^%s$/%s" (treesit-defun-name func) (format "^%s$" (string-join cases "|")))
+    (if cases
+        (format "^%s$/%s" (treesit-defun-name func) (format "^(%s)$" (string-join cases "|")))
       (format "^%s$" (treesit-defun-name func)))))
 
 (defun ex/get-regex-of-test-to-run ()
