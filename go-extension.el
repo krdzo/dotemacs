@@ -35,7 +35,6 @@
                           (:match "^Test.*" @func-name)))
   "Treesit query to get function name node.")
 
-
 (defun ex-case-with-point-p (node)
   (if (region-active-p)
       (let ((nstart (treesit-node-start node))
@@ -48,58 +47,57 @@
             (< rstart nstart nend rend)))
     (< (treesit-node-start node) (point) (treesit-node-end node))))
 
-(defun ex/get-name-of-test-case (fnode)
-  "Return names of test cases in function that is under FNODE."
-  (when-let*
-      ((quoted-names
-        (seq-filter #'identity
-            (seq-map
-             (lambda (capture)
-               (when (eql (car capture) 't-case-value)
-                 (treesit-node-text (cdr capture) t)))
-             (treesit-query-capture fnode
-                                    ex/query-test-run)))))
-    ;; the string values in caputre have qotes around them, we need to remove them
-    (mapcar (lambda (name)
-              (substring name 1 (1- (length name))))
-            quoted-names)))
+(defun ex/get-test-cases (fnode)
+  "Return nodes of test cases in function FNODE.
+If region is active return all nodes in region."
+  (mapcar #'cdr
+          (seq-filter
+           (lambda (n) (eql (car n) 't-case-value))
+           (treesit-query-capture fnode ex/query-test-run))))
+
+(defun ex/get-test-functions ()
+  "Return nodes of test function uder point
+If region is active return all funciton nodes in region."
+  (when (region-active-p)
+    (mapcar #'cdr (treesit-query-capture
+                   'go ex/query-get-test-functions (region-beginning) (region-end)))))
 
 (defun ex/get-thing-around (pos thing)
+  "Get THING around point.
+
+First check thing at POS, if no thing is found this funciton returns
+the first THING after POS.
+
+Finally, if there is no THING after POS, try finding THING before
+POS.
+
+THING sould be a thing defined in `treesit-thing-settings'."
   (or (treesit-thing-at pos thing)
       (treesit-thing-next pos thing)
       (treesit-thing-prev pos thing)))
 
-(defun ex/regex-from-capture (capture)
-  "Get regex from CAPTURE.
-CAPTURE is a treesit query capture of the form (name . node)"
-  (format "^%s$" (treesit-node-text (cdr capture) t)))
-
 (defun ex/build-test-regex (nodes)
-  (string-join
-   (mapcar (lambda (node)
-             (format "^%s$" (treesit-node-text (cdr node) t)))
-           nodes)
-   "|"))
+  "Create a regex from tree-sitter NODES."
+  (format "^(:?%s)$"
+          (string-join
+           (mapcar (lambda (n)
+                     (string-trim (treesit-node-text n t) "\"" "\""))
+                   nodes)
+           "|")))
 
-(defun ex/get-test-functions-in-region (start end)
-  (treesit-query-capture
-   'go ex/query-get-test-functions
-   start end))
 
-(defun ex/func-and-case ()
-  (let* ((func (ex/get-thing-around (point) "function_declaration"))
-         (cases (ex/get-name-of-test-case func)))
+;; TODO can be merged with `ex/build-test-regex'
+(defun ex/func-and-case (func)
+  (let* ((cases (ex/get-test-cases func)))
     (if cases
-        (format "^%s$/%s" (treesit-defun-name func) (format "^(%s)$" (string-join cases "|")))
+        (format "^%s$/%s" (treesit-defun-name func) (ex/build-test-regex cases))
       (format "^%s$" (treesit-defun-name func)))))
 
 (defun ex/get-regex-of-test-to-run ()
-  (if (region-active-p)
-      (let ((functions (ex/get-test-functions-in-region (region-beginning) (region-end))))
-        (if (length> functions 1)
-            (ex/build-test-regex functions)
-          (ex/func-and-case)))
-    (ex/func-and-case)))
+  (let ((funcs (ex/get-test-functions)))
+    (if (length> funcs 1)
+        (ex/build-test-regex funcs)
+      (ex/func-and-case (ex/get-thing-around (point) "function_declaration")))))
 
 (defun ex/test-compile (regex)
   "Compile the tests matching REGEXP."
