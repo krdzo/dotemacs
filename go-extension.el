@@ -1,3 +1,60 @@
+;;; helper to test code
+(when (get-buffer "kwgnc_test.go" )
+  (with-current-buffer "kwgnc_test.go"
+    (setq test-func-node
+          (alist-get 'func
+                     (treesit-query-capture
+                      'go
+                      '((function_declaration
+                         (identifier) @func-name
+                         (:equal "TestTry" @func-name)) @func))))))
+
+;;; code starts here
+
+(defvar ex/query-test-run
+  '((block
+     ;; test struct
+     (short_var_declaration
+      (expression_list
+       (composite_literal
+        body: (literal_value
+               (literal_element
+                (literal_value
+                 (keyed_element
+                  key: (literal_element
+                        (identifier) @t-case-name)
+                  value: (literal_element
+                          (interpreted_string_literal) @t-case-value))) @t-case
+
+                )))))
+     ;; test for loop
+     (for_statement
+        body:
+        (block
+         (expression_statement
+          (call_expression
+           function: (selector_expression
+                      field: (field_identifier)) @t-run
+                      (:equal @t-run "t.Run")
+           arguments: (argument_list (selector_expression
+                                      field: (field_identifier) @t-run-symbol))))))
+     (:equal @t-run-symbol @t-case-name)
+     (:pred ex-case-with-point-p @t-case)))
+  "Query to find the node that has the symbol to use as test run name.")
+
+(defun ex-case-with-point-p (node)
+  (and (< (treesit-node-start node) (point))
+       (< (point) (treesit-node-end node))))
+
+(defun ex/get-name-of-test-case ()
+  (let ((quoted-name
+         (treesit-node-text
+          (alist-get 't-case-value
+                     (treesit-query-capture test-func-node
+                                            ex/query-test-run))
+          t)))
+    (substring quoted-name 1 (1- (length quoted-name)))))
+
 (defvar ex/query-for-test-name-symbol
   '(
     (argument_list
@@ -5,47 +62,6 @@
      (func_literal))
     )
   "Query to get \"t.Run\" argument list node.")
-
-
-(defvar ex/query-for-test-table
-  '(
-    (short_var_declaration
-     (_)
-     right: (expression_list
-             (composite_literal
-              (_)
-              (literal_value (literal_element) @zanima))))
-    )
-  "Query to get table of test cases from test function.")
-
-(defvar ex/query-get-functions
-  '((function_declaration name: (identifier) @func-name))
-  "Treesit query to get function name node.")
-
-(defun ex/test-case-name-symbol ()
-  (let* ((run-test-node
-          (save-excursion
-            (treesit-beginning-of-defun)
-            (search-forward "t.Run")
-            (treesit-node-parent (treesit-node-at (point)))))
-         (args (treesit-query-capture
-                run-test-node
-                ex/query-for-test-name-symbol)))
-    (treesit-node-text (cdar args) t)))
-
-;; (defun ex/get-regex-of-test-to-run ()
-;;   "Return regex for test we want to run."
-;;   (if (region-active-p)
-;;       (string-join
-;;        (ex/get-regex-functions-in-region (region-beginning) (region-end)) "|")
-;;     (let* ((func-node
-;;             (or (treesit-thing-at (point) "function_declaration")
-;;                 (treesit-thing-next (point) "function_declaration")
-;;                 (treesit-thing-prev (point) "function_declaration")))
-;;            (func-name (treesit-defun-name func-node)))
-;;       (if (not (string-prefix-p "Test" func-name))
-;;           (error "Func \"%s\" is not a test function" func-name)
-;;         (list func-name func-node)))))
 
 (defun ex/get-thing-around (pos thing)
   (or (treesit-thing-at pos thing)
@@ -71,27 +87,12 @@ Does not move the point or change the buffer."
          (defs (xref-backend-definitions backend identifier)))
     (xref-location-marker (xref-item-location (car defs)))))
 
-;; TODO: finish implement
 (defun ex/get-case-names-regex (fnode)
   "Get regex for case name under FNODE.
 If region active then run all cases under region else just
 the one under point."
-  (when-let* ((t-run-pos
-               (save-excursion
-                 (goto-char (treesit-node-start fnode))
-                 (search-forward "t.Run" (treesit-node-end fnode) t)))
-              (t-run-node (treesit-node-parent (treesit-node-at t-run-pos)))
-              (t-symbol-node (cdar (treesit-query-capture
-                                    t-run-node
-                                    ex/query-for-test-name-symbol)))
-              (t-name-symbol (treesit-node-text t-symbol-node t))
-              (t-struct-marker
-               (save-excursion
-                 (goto-char (treesit-node-start t-symbol-node))
-                 (ex/find-definition-info))))
-    t-name-symbol
-
-     ))
+  (when-let* ((name (ex/get-name-of-test-case)))
+    (format "^%s$" name)))
 
 (defun ex/get-test-regex (&optional node start end)
   (let ((functions (ex/get-function-names-regex node start end)))
@@ -118,35 +119,3 @@ the one under point."
 If region ac"
   (interactive)
   (ex/test-compile (ex/get-regex-of-test-to-run)))
-
-;; (with-current-buffer "kwgnc_test.go"
-;;   (treesit-query-capture
-;;    'go ex/query-get-functions (point) (point)))
-
-;; (with-current-buffer "kwgnc_test.go"
-;;   (treesit-query-capture
-;;    (treesit-thing-at (point) "function_declaration")
-;;    '(
-;;      (short_var_declaration) @struct
-;;      )))
-
-
-
-
-;; (with-current-buffer "kwgnc_test.go"
-;;   (ex/find-definition-info))
-
-;; (with-current-buffer "kwgnc_test.go"
-;;   (let* ((test-symbol (ex/test-case-name-symbol))
-;;          (func-node (treesit-thing-at (point) "function_declaration"))
-;;          (func-name (treesit-defun-name func-node))
-;;          (test-cases (treesit-query-capture
-;;                       func-node
-;;                       ex/query-for-test-table)))
-
-;;     (dolist (case test-cases)
-;;       (let ((node (cdr case)))
-;;         (when (and (<= (treesit-node-start node) (point) )
-;;                    (<= (point) (treesit-node-end node)))
-;;           (dolist (child (treesit-node-children node))
-;;             (print child)))))))
