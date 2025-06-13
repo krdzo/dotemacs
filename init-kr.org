@@ -70,15 +70,12 @@ Helping me so that I don't have to configure Emacs not to clutter .emacs.d.
   (use-package no-littering
     :demand t
     :config
-    (setq auto-save-file-name-transforms
-          `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
+    (no-littering-theme-backups)
     (setq custom-file (no-littering-expand-etc-file-name "custom.el"))
     ;; here because it needs to be after no-littering
     ;; should be moved somewhere else
     (when (file-exists-p custom-file)
       (load-file custom-file))
-    (no-littering-theme-backups)
-
     (with-eval-after-load 'recentf
       (add-to-list 'recentf-exclude no-littering-var-directory)
       (add-to-list 'recentf-exclude no-littering-etc-directory)))
@@ -1053,26 +1050,32 @@ NOTE: be sure to use [[https://github.com/justinbarclay/parinfer-rust][this]] re
         (puni-barf-backward (- arg)))))
 #+end_src
 
-** undo-tree
+** Undo
 #+begin_src emacs-lisp
-  (use-package vundo)
-    ;; :config
-    ;; (global-undo-tree-mode 1)
+  (use-package vundo
+    :after meow
+    :config
+    (general-unbind 'vundo-mode-map
+      "n" "p" "f" "b" "a" "e")
+    (general-def 'vundo-mode-map
+      "j" 'vundo-next
+      "k" 'vundo-previous
+      "l" 'vundo-forward
+      "h" 'vundo-backward
+      "H" 'vundo-stem-root
+      "L" 'vundo-stem-end
+      "P" 'vundo-goto-last-saved
+      "N" 'vundo-goto-next-saved)
+    (meow-define-state vundo
+      "meow state for vundo-mode"
+      :lighter " [VU]"
+      :keymap vundo-mode-map)
+    (add-to-list 'meow-mode-state-list '(vundo-mode . vundo)))
 
-    ;; (general-def undo-tree-visualizer-mode-map
-    ;;   "k" 'undo-tree-visualize-undo
-    ;;   "j" 'undo-tree-visualize-redo
-    ;;   "h" 'undo-tree-visualize-switch-branch-left
-    ;;   "l" 'undo-tree-visualize-switch-branch-right)
-    ;; ;; changes needed for undo-tree to play nice with meow
-    ;; (general-def undo-tree-map
-    ;;   "C-x r u" nil
-    ;;   "C-x r U" nil
-    ;;   "C-x C-r u" 'undo-tree-save-state-to-register
-    ;;   "C-x C-r U" 'undo-tree-restore-state-from-register
-    ;;   "C-x r" 'find-file-read-only)
-
-    ;; (blackout 'undo-tree-mode))
+  (use-package undo-fu-session
+    :after vundo
+    :config
+    (undo-fu-session-global-mode))
 #+end_src
 
 ** Mark ring
@@ -1661,7 +1664,7 @@ Closely related to =org-mode= but not really so it goes here with org mode
       '("t" . dape-select-thread)
       '("w" . dape-watch-dwim)
       '("x" . dape-evaluate-expression))
-    (add-to-list 'meow-mode-state-list '(dape-repl-mode . dape)))
+    )
 #+end_src
 
 ** treesit
@@ -1722,12 +1725,6 @@ Seting ~sbcl~ to be default interpreter for lisp.
     (general-def 'sly-mode-map
       "C-z h" 'sly-describe-symbol)
 
-    (with-eval-after-load 'meow
-      (add-to-list 'meow-mode-state-list '(sly-mrepl-mode . normal))
-      (add-to-list 'meow-mode-state-list '(sly-db-mode . motion))
-      (add-to-list 'meow-mode-state-list '(sly-xref-mode . motion))
-      (add-to-list 'meow-mode-state-list '(sly-stickers--replay-mode . motion))
-      (add-to-list 'meow-mode-state-list '(sly-inspector-mode . motion)))
     ;; switch bufers REPL - DB - Source
     (general-def '(lisp-mode-map sly-mrepl-mode-map)
       "C-c d" #'(lambda () (interactive) (switch-to-buffer "*sly-db for sbcl (thread 1)*")))
@@ -1879,7 +1876,7 @@ Meow is a mode for modal edditing inpired by VIM.
      ;; '("]" . meow-end-of-thing)
 
      '("u" . meow-undo)
-     '("U" . undo-tree-redo)
+     '("U" . undo-redo)
      '("y" . meow-save)
 
      '("p" . meow-yank)
@@ -1984,13 +1981,6 @@ Meow is a mode for modal edditing inpired by VIM.
 
     (setq meow-keypad-leader-dispatch "C-c")
 
-    (add-hook 'ghelp-page-mode-hook 'meow-motion-mode)
-    (add-to-list 'meow-mode-state-list '(helpful-mode . motion))
-    (add-to-list 'meow-mode-state-list '(ghelp . motion))
-    (add-to-list 'meow-mode-state-list '(fundamental-mode . normal))
-    (add-to-list 'meow-mode-state-list '(eshell-mode . normal))
-    (add-to-list 'meow-mode-state-list '(treesit-explore-mode . normal))
-
     (general-def 'meow-normal-state-keymap
       "Z" 'meow-cancel-selection))
 
@@ -2001,6 +1991,23 @@ Meow is a mode for modal edditing inpired by VIM.
     (interactive)
     (let ((switch-to-buffer-obey-display-actions nil))
       (call-interactively #'meow-last-buffer)))
+#+end_src
+
+** Init states
+#+begin_src emacs-lisp
+  (with-eval-after-load 'meow
+    (add-to-list 'meow-mode-state-list '(sly-mrepl-mode . normal))
+    (add-to-list 'meow-mode-state-list '(sly-db-mode . motion))
+    (add-to-list 'meow-mode-state-list '(sly-xref-mode . motion))
+    (add-to-list 'meow-mode-state-list '(sly-stickers--replay-mode . motion))
+    (add-to-list 'meow-mode-state-list '(sly-inspector-mode . motion))
+
+    (add-to-list 'meow-mode-state-list '(helpful-mode . motion))
+    (add-to-list 'meow-mode-state-list '(ghelp . motion))
+    (add-to-list 'meow-mode-state-list '(fundamental-mode . normal))
+    (add-to-list 'meow-mode-state-list '(eshell-mode . normal))
+    (add-to-list 'meow-mode-state-list '(dape-repl-mode . dape))
+    (add-to-list 'meow-mode-state-list '(treesit-explore-mode . normal)))
 #+end_src
 
 ** Personal extensions
@@ -2138,45 +2145,6 @@ copy line on selection
         (funcall fun)
       (kr-meow-save-line)))
   (advice-add 'meow-save :around #'kr-meow-copy-line-or-selection)
-#+end_src
-
-** COMMENT define-state
-Template for other selfdefined meow states:
-#+begin_src emacs-lisp
-  (defvar meow-paren-keymap (make-keymap))
-  (suppress-keymap meow-paren-keymap t)
-
-  (meow-define-state paren
-    "paren state"
-    :lighter " [P]"
-    :keymap meow-paren-keymap)
-
-  (meow-normal-define-key
-   '("Z" . meow-paren-mode))
-
-  (meow-define-keys 'paren
-    '("SPC" . meow-keypad)
-    '("<escape>" . meow-normal-mode)
-    '("l" . sp-forward-sexp)
-    '("h" . sp-backward-sexp)
-    '("j" . sp-down-sexp)
-    '("k" . sp-up-sexp)
-    '("w s" . sp-wrap-square)
-    '("w r" . sp-wrap-round)
-    '("w c" . sp-wrap-curly)
-    '("W" . sp-unwrap-sexp)
-    '("n" . sp-forward-slurp-sexp)
-    '("b" . sp-forward-barf-sexp)
-    '("v" . sp-backward-barf-sexp)
-    '("c" . sp-backward-slurp-sexp)
-    '("s" . sp-splice-sexp-killing-forward)
-    '("S" . sp-splice-sexp-killing-backward)
-    '("e" . sp-end-of-sexp)
-    '("a" . sp-beginning-of-sexp)
-    '("t" . sp-transpose-hybrid-sexp)
-    '("u" . meow-undo))
-
-  (setq meow-cursor-type-paren 'hollow)
 #+end_src
 
 ** Bindings for packages
