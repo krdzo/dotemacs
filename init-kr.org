@@ -1850,20 +1850,13 @@ Meow is a mode for modal edditing inpired by VIM.
 
   (defun meow-setup ()
     "My meow setup thats similar to evil/vim"
-    (meow-motion-overwrite-define-key
+    (meow-motion-define-key
      '("j" . meow-next)
      '("k" . meow-prev)
      '("M-j" . scroll-up-line)
      '("M-k" . scroll-down-line)
      '("`" . kr-meow-last-buffer)
      '("<escape>" . keyboard-quit))
-    (meow-leader-define-key
-     ;; SPC j/k will run the original command in MOTION state.
-     '("j" . "H-j")
-     '("k" . "H-k")
-     '("`" . "H-`")
-     '("?" . meow-cheatsheet)
-     '("/" . meow-keypad-describe-key))
     (meow-normal-define-key
      '("0" . meow-expand-0)
      '("9" . meow-expand-9)
