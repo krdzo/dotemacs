@@ -32,7 +32,7 @@
 
 (defvar ex/query-get-test-functions
   '((function_declaration name: (identifier) @func-name
-                          (:match "^Test.*" @func-name)))
+    (:match "^Test.*" @func-name)))
   "Treesit query to get function name node.")
 
 (defun ex-case-with-point-p (node)

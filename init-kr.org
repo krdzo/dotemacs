@@ -776,18 +776,12 @@ Used for filtering candidates
     (vertico-multiform-mode 1)
 
     (setq vertico-multiform-commands
-          '((xref-find-references-at-mouse buffer)
-            (consult-yank-pop indexed)
-            (project-find-regexp buffer)
-            (consult-grep buffer)
-            (consult-ripgrep buffer)
-            (consult-git-grep buffer)
-            (consult-imenu buffer)
-            (eglot-find-implementation buffer)
-            (imenu buffer)))
+          '((xref-find-definitions buffer)
+            (consult-xref buffer)
+            (consult-imenu buffer)))
 
-    ;; (setq vertico-multiform-categories
-    ;;       '((file reverse)))
+    (setq vertico-multiform-categories
+          '((xref buffer)))
 
     (add-hook 'minibuffer-setup-hook #'vertico-repeat-save)
     (add-hook 'rfn-eshadow-update-overlay-hook 'vertico-directory-tidy) ; Correct file path when changed)
@@ -1123,12 +1117,14 @@ and the second filter to the completion-style filtering (?).
 
     (general-def
       [remap switch-to-buffer] 'consult-buffer
-      [remap apropos-command] 'consult-apropos
       [remap yank-pop] 'consult-yank-pop
       [remap goto-line] 'consult-goto-line
       [remap project-switch-to-buffer] 'project-list-buffers
       [remap project-list-buffers] 'consult-project-buffer
       "C-s" 'consult-line)
+
+    (setq consult-buffer-sources (remove 'consult--source-recent-file consult-buffer-sources))
+    (add-to-list 'consult-buffer-sources 'consult--source-recent-file t)
 
     (general-def mode-specific-map
       "bB" 'consult-buffer-other-window
@@ -1469,6 +1465,7 @@ https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff
   ;; ;; https://orgmode.org/manual/Labels-and-captions-in-ODT-export.html
   ;; (setq org-odt-category-map-alist
   ;;       '(("__Figure__" "Slika" "value" "Figure" org-odt--enumerable-image-p)))
+  (use-package org)
   (require 'org-tempo)
   (add-to-list 'org-modules 'org-tempo t)
   (add-to-list 'org-structure-template-alist
@@ -1479,11 +1476,21 @@ https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff
   (setq org-M-RET-may-split-line nil)
   (setq org-return-follows-link t)
   (setq org-src-window-setup 'current-window)
+  (setq org-html-validation-link nil)
 
   (with-eval-after-load 'org-indent
     (blackout 'org-indent-mode))
 
   (add-hook 'org-mode-hook #'abbrev-mode)
+
+  (defvar org-babel-eval-error-verbose nil
+    "A non-nil value makes `org-babel-eval' display error buffer.")
+
+  (defun org-babel-show-error-buffer (orig-fun &rest args)
+    (when org-babel-eval-error-verbose
+        (apply orig-fun args)))
+
+  (advice-add 'org-babel-eval-error-notify :around #'org-babel-show-error-buffer)
 #+end_src
 
 ** olivetti
@@ -1685,6 +1692,16 @@ Formating code buffers on save.
 #+end_src
 
 ** Languages
+
+*** hurl
+#+begin_src emacs-lisp
+  (use-package json-mode)
+  (unless (package-installed-p 'hurl-mode)
+    (package-vc-install "https://github.com/JasZhe/hurl-mode"))
+
+  (use-package hurl-mode :mode "\\.hurl\\'")
+#+end_src
+
 *** Common Lisp
 
 Seting ~sbcl~ to be default interpreter for lisp.
@@ -1800,6 +1817,13 @@ Seting ~sbcl~ to be default interpreter for lisp.
   (use-package jenkinsfile-mode)
 #+end_src
 
+** markdown
+#+begin_src emacs-lisp
+  (use-package markdown-mode
+    :config
+    (setq markdown-fontify-code-blocks-natively t))
+#+end_src
+
 ** Docker
 #+begin_src emacs-lisp
   (use-package dockerfile-mode)
@@ -1887,6 +1911,7 @@ Meow is a mode for modal edditing inpired by VIM.
      '("x" . puni-backward-delete-char)
      '("X" . puni-forward-delete-char)
      '("Z" . puni-force-delete)
+     '("^" . puni-raise)
 
      '("e" . meow-next-word)
      '("E" . puni-forward-sexp)
@@ -1922,6 +1947,9 @@ Meow is a mode for modal edditing inpired by VIM.
     (meow-motion-overwrite-define-key
      '("M-h" . "C-z h"))
 
+    (meow-define-keys 'insert
+      '("<escape>" . meow-insert-exit))
+
     ;; commands that are not from meow
     (meow-normal-define-key
      '("M" . set-mark-command)
@@ -1931,9 +1959,28 @@ Meow is a mode for modal edditing inpired by VIM.
      (cons "p" project-prefix-map)))
 
 
+
+  (defvar-local kr-meow-last-state nil
+    "Last state that meow was in")
+
   (use-package meow
     :config
-    (require 'meow)
+    (defun kr-save-last-state ()
+      (setq kr-meow-last-state meow--current-state))
+
+    (advice-add 'meow-insert :before #'kr-save-last-state)
+    (defun kr-meow-insert-exit ()
+      "Switch to NORMAL state."
+      (interactive)
+      (cond
+       ((meow-keypad-mode-p)
+        (meow--exit-keypad-state))
+       ((and (meow-insert-mode-p)
+             (eq meow--beacon-defining-kbd-macro 'quick))
+        (setq meow--beacon-defining-kbd-macro nil)
+        (meow-beacon-insert-exit))
+       ((meow-insert-mode-p)
+        (meow--switch-state kr-meow-last-state))))
 
     (meow-setup)
     (meow-global-mode 1)
@@ -1947,6 +1994,7 @@ Meow is a mode for modal edditing inpired by VIM.
     (add-to-list 'meow-mode-state-list '(ghelp . motion))
     (add-to-list 'meow-mode-state-list '(fundamental-mode . normal))
     (add-to-list 'meow-mode-state-list '(eshell-mode . normal))
+    (add-to-list 'meow-mode-state-list '(treesit-explore-mode . normal))
 
     (general-def 'meow-normal-state-keymap
       "Z" 'meow-cancel-selection))
