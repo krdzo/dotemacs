@@ -1055,24 +1055,24 @@ NOTE: be sure to use [[https://github.com/justinbarclay/parinfer-rust][this]] re
 
 ** undo-tree
 #+begin_src emacs-lisp
-  (use-package undo-tree
-    :config
-    (global-undo-tree-mode 1)
+  (use-package vundo)
+    ;; :config
+    ;; (global-undo-tree-mode 1)
 
-    (general-def undo-tree-visualizer-mode-map
-      "k" 'undo-tree-visualize-undo
-      "j" 'undo-tree-visualize-redo
-      "h" 'undo-tree-visualize-switch-branch-left
-      "l" 'undo-tree-visualize-switch-branch-right)
-    ;; changes needed for undo-tree to play nice with meow
-    (general-def undo-tree-map
-      "C-x r u" nil
-      "C-x r U" nil
-      "C-x C-r u" 'undo-tree-save-state-to-register
-      "C-x C-r U" 'undo-tree-restore-state-from-register
-      "C-x r" 'find-file-read-only)
+    ;; (general-def undo-tree-visualizer-mode-map
+    ;;   "k" 'undo-tree-visualize-undo
+    ;;   "j" 'undo-tree-visualize-redo
+    ;;   "h" 'undo-tree-visualize-switch-branch-left
+    ;;   "l" 'undo-tree-visualize-switch-branch-right)
+    ;; ;; changes needed for undo-tree to play nice with meow
+    ;; (general-def undo-tree-map
+    ;;   "C-x r u" nil
+    ;;   "C-x r U" nil
+    ;;   "C-x C-r u" 'undo-tree-save-state-to-register
+    ;;   "C-x C-r U" 'undo-tree-restore-state-from-register
+    ;;   "C-x r" 'find-file-read-only)
 
-    (blackout 'undo-tree-mode))
+    ;; (blackout 'undo-tree-mode))
 #+end_src
 
 ** Mark ring
@@ -1336,6 +1336,8 @@ Git client in emacs
 
     (general-def mode-specific-map
       "v f" 'magit-find-file
+      "v d" 'magit-dispatch
+      "v D" 'magit-file-dispatch
       "v F" 'magit-find-file-other-window
       "v v" 'magit-status
       "v V" 'magit-status-here)
@@ -2145,33 +2147,6 @@ copy line on selection
   (advice-add 'meow-save :around #'kr-meow-copy-line-or-selection)
 #+end_src
 
-** COMMENT Things config
-#+begin_src emacs-lisp
-  (meow-thing-register 'quote '(regexp "['\"]" "['\"]") '(regexp "['\"]" "['\"]"))
-  (meow-thing-register 'htag '(regexp ">" "<") '(regexp ">" "<"))
-  (meow-thing-register 'angle '(regexp "<" ">") '(regexp "<" ">"))
-  (setq meow-char-thing-table '((?r . round)
-                                (?\( . round)
-                                (?\) . round)
-                                (?\[ . square)
-                                (?\{ . curly)
-                                (?\} . curly)
-                                (?s . string)
-                                (?\' . quote)
-                                (?\" . quote)
-                                (?W . symbol)
-                                ;; (?a . window)
-                                (?b . buffer)
-                                (?p . paragraph)
-                                (?l . line)
-                                (?d . defun)
-                                (?. . sentence)))
-
-  (add-to-list 'meow-char-thing-table '(?t . htag))
-  (add-to-list 'meow-char-thing-table '(?< . angle))
-  (add-to-list 'meow-char-thing-table '(?> . angle))
-#+end_src
-
 ** COMMENT define-state
 Template for other selfdefined meow states:
 #+begin_src emacs-lisp
@@ -2214,18 +2189,6 @@ Template for other selfdefined meow states:
 ** Bindings for packages
 
 Binding for other packages
-*** gitgutter
-#+begin_src emacs-lisp
-
-    (with-eval-after-load 'git-gutter
-      (general-def
-        "C-z g n" 'git-gutter:next-hunk
-        "C-z g p" 'git-gutter:previous-hunk)
-      (meow-define-keys 'normal
-        '("]g" . "C-z g n")
-        '("[g" . "C-z g p")))
-#+end_src
-
 *** Flymake
 #+begin_src emacs-lisp
 
@@ -2233,21 +2196,6 @@ Binding for other packages
       (meow-define-keys 'normal
         '("[e" . "C-z [e")
         '("]e" . "C-z ]e")))
-#+end_src
-
-*** Magit
-#+begin_src emacs-lisp
-
-    (meow-define-keys 'normal
-      '("gg" . magit-file-dispatch))
-#+end_src
-
-*** LSP
-#+begin_src emacs-lisp
-
-    (meow-define-keys 'normal
-      '("gr" . "C-z l r r")
-      '("gl" . "C-z l"))
 #+end_src
 
 *** expand region
