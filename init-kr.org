@@ -1851,8 +1851,8 @@ Meow is a mode for modal edditing inpired by VIM.
   (defun meow-setup ()
     "My meow setup thats similar to evil/vim"
     (meow-motion-define-key
-     '("j" . meow-next)
-     '("k" . meow-prev)
+     '("j" . next-line)
+     '("k" . previous-line)
      '("M-j" . scroll-up-line)
      '("M-k" . scroll-down-line)
      '("`" . kr-meow-last-buffer)
@@ -1959,31 +1959,13 @@ Meow is a mode for modal edditing inpired by VIM.
     "Last state that meow was in")
 
   (use-package meow
+    :custom
+    (meow-select-on-change nil)
+    (meow-use-clipboard t)
+    (meow-keypad-leader-dispatch "C-c")
     :config
-    (defun kr-save-last-state ()
-      (setq kr-meow-last-state meow--current-state))
-
-    (advice-add 'meow-insert :before #'kr-save-last-state)
-    (defun kr-meow-insert-exit ()
-      "Switch to NORMAL state."
-      (interactive)
-      (cond
-       ((meow-keypad-mode-p)
-        (meow--exit-keypad-state))
-       ((and (meow-insert-mode-p)
-             (eq meow--beacon-defining-kbd-macro 'quick))
-        (setq meow--beacon-defining-kbd-macro nil)
-        (meow-beacon-insert-exit))
-       ((meow-insert-mode-p)
-        (meow--switch-state kr-meow-last-state))))
-
     (meow-setup)
     (meow-global-mode 1)
-
-    (setq meow-use-clipboard t)
-
-    (setq meow-keypad-leader-dispatch "C-c")
-
     (general-def 'meow-normal-state-keymap
       "Z" 'meow-cancel-selection))
 
