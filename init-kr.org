@@ -1054,6 +1054,9 @@ NOTE: be sure to use [[https://github.com/justinbarclay/parinfer-rust][this]] re
 #+begin_src emacs-lisp
   (use-package vundo
     :after meow
+    :custom
+    (vundo-window-max-height 5)
+    (vundo-glyph-alist vundo-unicode-symbols)
     :config
     (general-unbind 'vundo-mode-map
       "n" "p" "f" "b" "a" "e")
@@ -1064,8 +1067,9 @@ NOTE: be sure to use [[https://github.com/justinbarclay/parinfer-rust][this]] re
       "h" 'vundo-backward
       "H" 'vundo-stem-root
       "L" 'vundo-stem-end
-      "P" 'vundo-goto-last-saved
-      "N" 'vundo-goto-next-saved)
+      "p" 'vundo-goto-last-saved
+      "n" 'vundo-goto-next-saved
+      "<escape>" 'vundo-quit)
     (meow-define-state vundo
       "meow state for vundo-mode"
       :lighter " [VU]"
@@ -1443,8 +1447,7 @@ https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff
   (use-package browse-at-remote
     :config
     (general-def 'mode-specific-map
-      "v W" 'browse-at-remote)
-    )
+      "v W" 'browse-at-remote))
 #+end_src
 
 ** kubernetes
@@ -1875,7 +1878,7 @@ Meow is a mode for modal edditing inpired by VIM.
      ;; '("[" . meow-beginning-of-thing)
      ;; '("]" . meow-end-of-thing)
 
-     '("u" . meow-undo)
+     '("u" . undo-only)
      '("U" . undo-redo)
      '("y" . meow-save)
 
