@@ -1070,6 +1070,7 @@ NOTE: be sure to use [[https://github.com/justinbarclay/parinfer-rust][this]] re
       "p" 'vundo-goto-last-saved
       "n" 'vundo-goto-next-saved
       "<escape>" 'vundo-quit)
+    ;; integrate vundo in meow
     (meow-define-state vundo
       "meow state for vundo-mode"
       :lighter " [VU]"
@@ -1608,11 +1609,18 @@ Closely related to =org-mode= but not really so it goes here with org mode
     (setq dape-debug t)
     :commands (dape)
     :config
+    ;; integrate dape with meow
+    (meow-define-state dape
+      "meow for dape repl context"
+      :lighter " [DB]"
+      :keymap dape-info-stack-mode-map)
+    (add-to-list 'meow-mode-state-list '(dape-repl-mode . dape))
 
     (dolist (cmd dape-global-map)
       (unless (eq cmd 'keymap)
         (put (cdr cmd) 'repeat-map nil)))
 
+    ;; run go test
     (setq dape-inlay-hints t)
     (setf (alist-get 'go-test dape-configs)
           `(modes (go-mode go-ts-mode)
@@ -1635,39 +1643,7 @@ Closely related to =org-mode= but not really so it goes here with org mode
                                     (test-regexp (concat "^" test-name "$")))
                           (if test-name `["-test.run" ,test-regexp]
                             (error "No test selected")))
-                      []))))
-
-    (defvar meow-dape-state-keymap (make-sparse-keymap))
-    (meow-define-state dape
-      "meow for dape repl context"
-      :lighter " [D]"
-      :keymap meow-dape-state-keymap)
-    (meow-define-keys 'dape
-      '("<" . dape-stack-select-up)
-      '(">" . dape-stack-select-down)
-      '("B" . dape-breakpoint-remove-all)
-      '("D" . dape-disconnect-quit)
-      '("R" . dape-repl)
-      '("S" . dape-select-stack)
-      '("b" . dape-breakpoint-toggle)
-      '("c" . dape-continue)
-      '("d" . dape)
-      '("e" . dape-breakpoint-expression)
-      '("h" . dape-breakpoint-hits)
-      '("I" . dape-info)
-      '("i" . meow-insert)
-      '("l" . dape-breakpoint-log)
-      '("m" . dape-read-memory)
-      '("n" . dape-next)
-      '("o" . dape-step-out)
-      '("p" . dape-pause)
-      '("q" . dape-quit)
-      '("r" . dape-restart)
-      '("s" . dape-step-in)
-      '("t" . dape-select-thread)
-      '("w" . dape-watch-dwim)
-      '("x" . dape-evaluate-expression))
-    )
+                      [])))))
 #+end_src
 
 ** treesit
@@ -1991,7 +1967,7 @@ Meow is a mode for modal edditing inpired by VIM.
     (add-to-list 'meow-mode-state-list '(ghelp . motion))
     (add-to-list 'meow-mode-state-list '(fundamental-mode . normal))
     (add-to-list 'meow-mode-state-list '(eshell-mode . normal))
-    (add-to-list 'meow-mode-state-list '(dape-repl-mode . dape))
+
     (add-to-list 'meow-mode-state-list '(treesit-explore-mode . normal)))
 #+end_src
 
