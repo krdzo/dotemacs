@@ -15,6 +15,7 @@ Add Melpa
   (require 'use-package)
 
   (setq use-package-always-ensure t)
+  (setq use-package-hook-name-suffix nil)
 
   (use-package use-package-ensure-system-package
     :ensure nil)
@@ -381,8 +382,7 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 *** eldoc box
 #+begin_src emacs-lisp
   (use-package eldoc-box
-    :general (eglot-mode-map
-              "C-h ." 'eldoc-box-help-at-point))
+    :commands (eldoc-box-help-at-point))
   #+end_src
 ** recentf
 #+begin_src emacs-lisp
@@ -908,7 +908,7 @@ corfu config:
 alternative package ~undo-hl~.
 #+begin_src emacs-lisp
   (use-package goggles
-    :hook ((prog-mode text-mode) . goggles-mode)
+    :hook ((prog-mode-hook text-mode-hook) . goggles-mode)
     :config
     (with-eval-after-load 'goggles
       (blackout 'goggles-mode)))
@@ -917,7 +917,7 @@ alternative package ~undo-hl~.
 ** hl-todo
 #+begin_src emacs-lisp
   (use-package hl-todo
-    :hook (prog-mode . hl-todo-mode)
+    :hook (prog-mode-hook . hl-todo-mode)
     :config
 
     (general-def 'hl-todo-mode-map
@@ -1251,8 +1251,8 @@ dired-x
   (u-p dired-k
        :disabled
        :hook
-       ((dired-initial-position . dired-k)
-        (dired-after-readin . dired-k-no-revert))
+       ((dired-initial-position-hook . dired-k)
+        (dired-after-readin-hook . dired-k-no-revert))
        :config
        (setq dired-k-style 'git)
        (setq dired-k-human-readable t)
@@ -1568,20 +1568,14 @@ Closely related to =org-mode= but not really so it goes here with org mode
 #+begin_src emacs-lisp
   (add-hook 'special-mode-hook 'visual-line-mode)
   (use-package eglot
-    :hook ((go-ts-mode typescript-mode js-mode rust-mode) . eglot-ensure)
+    :hook ((go-ts-mode-hook typescript-mode-hook js-mode-hook rust-mode-hook) . eglot-ensure)
     :config
+    (set-face-attribute 'eglot-highlight-symbol-face nil :background nil :underline "#f8f8f8")
     (general-def 'eglot-mode-map
       "C-z l r r" 'eglot-rename
       "C-z h" 'eldoc-box-help-at-point)
-
-    (set-face-attribute 'eglot-highlight-symbol-face nil :background nil :underline "#f8f8f8")
     (general-def 'eglot-mode-map
-      "C-M-." 'eglot-find-implementation)
-
-    (add-hook 'eglot-managed-mode-hook
-              (defun kr-eglot-switch-eldoc-functions ()
-                (remove-hook 'eldoc-documentation-functions #'eglot-hover-eldoc-function t)
-                (add-hook 'eldoc-documentation-functions #'eglot-hover-eldoc-function nil t))))
+      "C-M-." 'eglot-find-implementation))
 #+end_src
 
 ** dape
@@ -1644,7 +1638,7 @@ Closely related to =org-mode= but not really so it goes here with org mode
     (global-treesit-auto-mode))
 #+end_src
 
-** Formating
+** COMMENT Formating
 
 Formating code buffers on save.
 
