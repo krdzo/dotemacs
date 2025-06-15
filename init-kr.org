@@ -518,8 +518,8 @@ Check if we  run on Mac
 Setup PATH and other env varables.
 #+begin_src emacs-lisp
   (use-package exec-path-from-shell
+    :if (memq window-system '(mac ns))
     :config
-    (require 'exec-path-from-shell)
 
     (setq exec-path-from-shell-arguments '("-l"))
     (when (memq window-system '(mac ns))
@@ -1083,19 +1083,6 @@ NOTE: be sure to use [[https://github.com/justinbarclay/parinfer-rust][this]] re
     (undo-fu-session-global-mode))
 #+end_src
 
-** Mark ring
-#+begin_src emacs-lisp
-  (defun kr-unpop-to-mark-command ()
-    "Unpop off mark ring. Does nothing if mark ring is empty."
-    (interactive)
-    (when mark-ring
-      (setq mark-ring (cons (copy-marker (mark-marker)) mark-ring))
-      (set-marker (mark-marker) (car (last mark-ring)) (current-buffer))
-      (when (null (mark t)) (ding))
-      (setq mark-ring (nbutlast mark-ring))
-      (goto-char (marker-position (car (last mark-ring))))))
-#+end_src
-
 ** find char
 #+begin_src emacs-lisp
   (unless (package-installed-p 'find-char)
@@ -1557,6 +1544,7 @@ Closely related to =org-mode= but not really so it goes here with org mode
   (use-package project
     :ensure nil
     :config
+    (setq frame-title-format project-mode-line-format)
     (setq project-vc-extra-root-markers '("go.mod" "requirements.txt"))
 
     (defun kr-project-grep ()
@@ -1580,7 +1568,7 @@ Closely related to =org-mode= but not really so it goes here with org mode
 #+begin_src emacs-lisp
   (add-hook 'special-mode-hook 'visual-line-mode)
   (use-package eglot
-    :hook ((go-ts-mode typescript-mode js-mode) . eglot-ensure)
+    :hook ((go-ts-mode typescript-mode js-mode rust-mode) . eglot-ensure)
     :config
     (general-def 'eglot-mode-map
       "C-z l r r" 'eglot-rename
@@ -1593,10 +1581,7 @@ Closely related to =org-mode= but not really so it goes here with org mode
     (add-hook 'eglot-managed-mode-hook
               (defun kr-eglot-switch-eldoc-functions ()
                 (remove-hook 'eldoc-documentation-functions #'eglot-hover-eldoc-function t)
-                (add-hook 'eldoc-documentation-functions #'eglot-hover-eldoc-function nil t)))
-
-    (add-hook 'go-ts-mode-hook #'eglot-ensure)
-    (add-hook 'rust-mode-hook #'eglot-ensure))
+                (add-hook 'eldoc-documentation-functions #'eglot-hover-eldoc-function nil t))))
 #+end_src
 
 ** dape
