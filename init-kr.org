@@ -530,8 +530,7 @@ Setup PATH and other env varables.
 
 *** mouse scroll
 #+begin_src emacs-lisp
-  (when kr-mac-p
-    (setq mouse-wheel-flip-direction t))
+  (setq mouse-wheel-flip-direction t)
 #+end_src
 
 *** rest
@@ -1669,14 +1668,22 @@ Formating code buffers on save.
 
 Seting ~sbcl~ to be default interpreter for lisp.
 #+begin_src emacs-lisp
-  (if (executable-find "ros")
-      (setq inferior-lisp-program "ros -Q run")
-    (setq inferior-lisp-program "sbcl"))
+  (setq inferior-lisp-program "sbcl")
 #+end_src
 
 #+begin_src emacs-lisp
   (use-package sly
     :config
+
+    (setq sly-lisp-implementations
+        `((sbcl    ("sbcl" "--dynamic-space-size" "2000"))  ;; default. Adapt if needed.
+          (ciel-sbcl  ("sbcl"
+                       "--core" "/Users/ivankrdzavac/quicklisp/local-projects/CIEL/ciel-core"
+                       "--eval" "(in-package :ciel-user)"))))
+    (setq sly-default-lisp 'ciel-sbcl)
+
+
+
     (setq sly-mrepl-prevent-duplicate-history t)
 
     ;; (setq sly-contribs '(sly-fancy sly-mrepl))
