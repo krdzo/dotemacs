@@ -1658,20 +1658,26 @@ Closely related to =org-mode= but not really so it goes here with org mode
     (global-treesit-auto-mode))
 #+end_src
 
-** COMMENT Formating
+** Formating
 
 Formating code buffers on save.
 
 #+begin_src emacs-lisp
   (use-package apheleia
-    :hook (js-mode go-ts-mode)
-    :init
-    (add-hook 'go-ts-mode-hook
-              (defun kr-go-format-buffer ()
-                (setq-local apheleia-formatter '(goimports gofmt))))
+    :hook (js-mode-hook go-ts-mode-hook)
     :config
+    (unless (executable-find "goimports")
+      (error "no goimports found"))
+    ;; setup goimports to work only on the current file
+    ;; this way the formating is much faster
     (setf (alist-get 'goimports apheleia-formatters)
-          '("goimports" "-srcdir" filepath)))
+          '("goimports" "-srcdir" filepath))
+
+    ;; use `goimpors' to format instad of `gofmt'
+    ;; `gofmt' doesn't sort and format imports so I
+    ;; don't like to use it
+    (setf (alist-get 'go-ts-mode apheleia-mode-alist)
+          'goimports))
 #+end_src
 
 ** Languages
