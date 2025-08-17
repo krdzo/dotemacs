@@ -12,13 +12,13 @@ Add Melpa
   (unless package-archive-contents
     (package-refresh-contents))
 
-  (require 'use-package)
-
   (setq use-package-always-ensure t)
   (setq use-package-hook-name-suffix nil)
 
-  (use-package use-package-ensure-system-package
-    :ensure nil)
+
+  ;; add a new use-package keyword that will check
+  ;; if there is a program installed on the system
+  ;; and if not print an error that the system package is not installed
   #+end_src
 
 * Utilities
@@ -1705,7 +1705,7 @@ Seting ~sbcl~ to be default interpreter for lisp.
     (setq sly-lisp-implementations
         `((sbcl    ("sbcl" "--dynamic-space-size" "2000"))  ;; default. Adapt if needed.
           (ciel-sbcl  ("sbcl"
-                       "--core" "/Users/ivankrdzavac/quicklisp/local-projects/CIEL/ciel-core"
+                       "--core"  ,(expand-file-name "~/quicklisp/local-projects/CIEL/ciel-core")
                        "--eval" "(in-package :ciel-user)"))))
     (setq sly-default-lisp 'ciel-sbcl)
 
@@ -2160,7 +2160,6 @@ Binding for other packages
       '("s" . expreg-expand)
       '("S" . expreg-contract)))
 #+end_src
-
 * Temp
 #+begin_src emacs-lisp
 
