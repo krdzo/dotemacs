@@ -11,7 +11,7 @@ Add Melpa
   (package-initialize)
   (unless package-archive-contents
     (package-refresh-contents))
-  (setq package-install-upgrade-built-in t)
+  ;; (setq package-install-upgrade-built-in t)
 
   (setq use-package-always-ensure t)
   (setq use-package-hook-name-suffix nil)
@@ -1459,23 +1459,6 @@ https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff
     :config
     (general-def 'mode-specific-map
       "v W" 'browse-at-remote))
-#+end_src
-
-** kubernetes
-#+begin_src emacs-lisp
-  (use-package kubernetes
-    :config
-    (setq kubernetes-overview-custom-views-alist
-          '((custom-overview . (context statefulsets deployments))))
-    (setq kubernetes-default-overview-view 'custom-overview)
-
-    (add-hook 'kubernetes-logs-mode-hook #'visual-line-mode)
-    (add-hook 'kubernetes-logs-mode-hook #'display-line-numbers-mode)
-    (add-hook 'kubernetes-logs-mode-hook #'ansi-color-mode)
-
-    (general-def 'kubernetes-overview-mode-map
-      "S-<tab>" 'magit-section-cycle
-      "C-<tab>" 'tab-next))
 #+end_src
 
 ** Org
