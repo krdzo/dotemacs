@@ -1172,6 +1172,18 @@ and the second filter to the completion-style filtering (?).
     (empx-mode 1))
 #+end_src
 
+** ai assistent
+#+begin_src emacs-lisp
+  (use-package copilot
+    :vc (:url "https://github.com/copilot-emacs/copilot.el"
+              :rev :newest
+              :branch "main")
+    :hook prog-mode-hook
+    :config
+    (add-to-list 'copilot-enable-predicates 'meow-insert-mode-p)
+    (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion))
+#+end_src
+
 * Apps
 General TUI apps that are emacs.
 
