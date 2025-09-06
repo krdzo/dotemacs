@@ -11,6 +11,7 @@ Add Melpa
   (package-initialize)
   (unless package-archive-contents
     (package-refresh-contents))
+  (setq package-install-upgrade-built-in t)
 
   (setq use-package-always-ensure t)
   (setq use-package-hook-name-suffix nil)
@@ -192,7 +193,8 @@ Setup keybindings for builtin features that are not tied to any mode.
 Change builtin emacs keybingings that I can't put in any category
 #+begin_src emacs-lisp
   (general-def
-    "C-h l" 'find-library)
+    "C-h l" 'find-library
+    "C-h L" 'load-library)
 
   (general-def
     "M-;" 'comment-line
@@ -205,9 +207,12 @@ Change builtin emacs keybingings that I can't put in any category
 ** Help
 Help at point key is =C-z h=. Every mode that implements a help at point needs to change it to point to it's "help-at-point" function
 #+begin_src emacs-lisp
-  (define-key global-map (kbd "C-z") nil)
+  (general-unbind 'global-map "C-z")
   (general-def
     "C-z h" 'describe-symbol)
+  (general-def 'help-mode-map
+    "{" 'help-go-back
+    "}" 'help-go-forward)
   #+end_src
 
 ** Scratch
@@ -817,6 +822,7 @@ corfu config:
     (setq corfu-max-width 50)
     (setq corfu-min-width corfu-max-width)
     (setq corfu-preselect-first t)
+    (setopt global-corfu-minibuffer nil)
 
     (global-corfu-mode 1)
 
@@ -1007,9 +1013,12 @@ Smart paren I'm using to pair characters like quotes.
 
 *** Expand region
 #+begin_src emacs-lisp
-  (use-package expand-region
+  (use-package expreg
+    :after meow
     :config
-    (setq expand-region-subword-enabled t))
+    (meow-define-keys 'normal
+      '("s" . expreg-expand)
+      '("S" . expreg-contract)))
 #+end_src
 
 *** Embrace
@@ -1019,34 +1028,6 @@ Smart paren I'm using to pair characters like quotes.
     (general-def meow-normal-state-keymap
       "C" 'embrace-commander))
 #+end_src
-
-*** COMMENT Parinfer
-Parinfer is there for lisp editing.
-
-#+begin_src emacs-lisp
-  (use-package parinfer-rust-mode
-    :config
-    (setq parinfer-rust-library-directory
-          (expand-file-name "./etc/parinfer-rust/" user-emacs-directory))
-    (with-eval-after-load 'parinfer-rust-mode
-      (blackout 'parinfer-rust-mode)
-      (add-to-list 'parinfer-rust-treat-command-as '(meow-open-above . "indent"))
-      (add-to-list 'parinfer-rust-treat-command-as '(meow-open-below . "indent"))
-      (add-to-list 'parinfer-rust-treat-command-as '(meow-yank . "indent")))
-
-    (general-add-hook '(emacs-lisp-mode-hook lisp-mode-hook) #'parinfer-rust-mode))
-#+end_src
-
-When installing parinfer on a M1 Mac the library must be manualy build.
-The steps for building are:
-#+begin_src shell :tangle no
-  $ git clone https://github.com/justinbarclay/parinfer-rust
-
-  $ cargo build --release --features emacs
-
-  $ cp target/release/libparinfer_rust.dylib ~/.emacs.d/etc/parinfer-rust/parinfer-rust-darwin.so
-#+end_src
-NOTE: be sure to use [[https://github.com/justinbarclay/parinfer-rust][this]] reposotory insed of the one mentioned in parinfer-rust-mode README
 
 *** Puni
 #+begin_src emacs-lisp
@@ -1114,9 +1095,7 @@ NOTE: be sure to use [[https://github.com/justinbarclay/parinfer-rust][this]] re
 #+BEGIN_SRC emacs-lisp
   (use-package marginalia
     :config
-    (marginalia-mode 1)
-    (setq marginalia-annotators '(marginalia-annotators-heavy
-                                  marginalia-annotators-light nil)))
+    (marginalia-mode 1))
 #+END_SRC
 
 ** Consult
@@ -1202,28 +1181,27 @@ Emacs builtin file menager.
 *** dired
 
 #+begin_src emacs-lisp
-    (setq dired-dwim-target t)
-    (setq dired-isearch-filenames 'dwim)
-    (setq dired-recursive-copies 'always)
-    (setq dired-recursive-deletes 'always)
-    (setq dired-create-destination-dirs 'always)
-    (setq dired-listing-switches "-valh --group-directories-first")
+  (setq dired-dwim-target t)
+  (setq dired-isearch-filenames 'dwim)
+  (setq dired-recursive-copies 'always)
+  (setq dired-recursive-deletes 'always)
+  (setq dired-create-destination-dirs 'always)
+  (setq dired-listing-switches "-valh --group-directories-first")
 
-    (add-hook 'dired-mode-hook 'toggle-truncate-lines)
-    (add-hook 'dired-mode-hook #'(lambda () (unless (file-remote-p default-directory)
-                                              (auto-revert-mode))))
+  (add-hook 'dired-mode-hook #'(lambda () (unless (file-remote-p default-directory)
+                                            (auto-revert-mode))))
 
 
-    (when (string= system-type "darwin")
-      (setq dired-use-ls-dired t
-            insert-directory-program (executable-find "gls")
-            dired-listing-switches "-aBhl --group-directories-first"))
+  (when (string= system-type "darwin")
+    (setq dired-use-ls-dired t
+          insert-directory-program (executable-find "gls")
+          dired-listing-switches "-aBhl --group-directories-first"))
 
-    (general-def 'dired-mode-map
-      "K" 'dired-kill-subdir
-      "<mouse-2>" 'dired-mouse-find-file
-      "C-c '" 'dired-toggle-read-only
-      "/" 'dired-goto-file)
+  (general-def 'dired-mode-map
+    "K" 'dired-kill-subdir
+    "<mouse-2>" 'dired-mouse-find-file
+    "C-c '" 'dired-toggle-read-only
+    "/" 'dired-goto-file)
 #+end_src
 
 dired-x
@@ -1526,15 +1504,6 @@ Closely related to =org-mode= but not really so it goes here with org mode
     "C-h C-h" 'hyperbole)
 #+end_src
 
-** devdocs
-#+begin_src emacs-lisp
-  (use-package devdocs
-    :config
-    (add-hook 'devdocs-mode-hook #'olivetti-mode)
-    (add-hook 'dart-mode-hook
-              #'(lambda () (setq-local devdocs-current-docs '("dart~2")))))
-#+end_src
-
 ** man
 #+begin_src emacs-lisp
 
@@ -1784,7 +1753,6 @@ Seting ~sbcl~ to be default interpreter for lisp.
   (use-package yaml-mode
     :config
     (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode))
-    (add-hook 'yaml-mode-hook #'toggle-truncate-lines)
     (add-hook 'yaml-mode-hook #'display-line-numbers-mode))
 #+end_src
 
@@ -1818,11 +1786,6 @@ Seting ~sbcl~ to be default interpreter for lisp.
 ** Docker
 #+begin_src emacs-lisp
   (use-package dockerfile-mode)
-#+end_src
-
-** Hooks for prog mode
-#+begin_src emacs-lisp
-  (add-hook 'prog-mode-hook #'toggle-truncate-lines)
 #+end_src
 
 * meow
@@ -2133,43 +2096,18 @@ Binding for other packages
         '("]e" . "C-z ]e")))
 #+end_src
 
-*** expand region
-#+begin_src emacs-lisp
-  (with-eval-after-load 'meow
-    (defun kr-expand-with-meow ()
-      "Hellper command so that meow can work with expand region."
-      (interactive)
-      (call-interactively #'er/expand-region)
-      (let* ((beg (region-beginning))
-             (end (region-end))
-             (search (format "\\_<%s\\_>" (regexp-quote (buffer-substring-no-properties beg end)))))
-        (setq meow--selection (list '(expand . word) beg end))
-        (meow--push-search search)
-        (meow--highlight-regexp-in-buffer search)))
-
-    (meow-define-keys 'normal
-      '("w" . kr-expand-with-meow)
-      '("W" . er/contract-region)
-      '("s" . kr-expand-with-meow)
-      '("S" . er/contract-region)))
-
-
-  (use-package expreg
-    :config
-    (meow-define-keys 'normal
-      '("s" . expreg-expand)
-      '("S" . expreg-contract)))
-#+end_src
 * Temp
 #+begin_src emacs-lisp
+  (setq-default truncate-lines t)
 
-    (setq truncate-partial-width-windows 200)
-    (general-def
-      "C-`" 'next-error
-      "C-~" 'previous-error)
+  (add-hook 'package-menu-mode-hook
+            (lambda ()
+              (setq-local truncate-lines t)))
 
-    (advice-add #'meow-kill :after #'cycle-spacing)
-#+end_src
+  (general-def
+    "C-`" 'next-error
+    "C-~" 'previous-error)
+  #+end_src
 
 * Notes
 To start emacs with different configuration run:
