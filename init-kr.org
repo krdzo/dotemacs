@@ -39,7 +39,8 @@ I like to know how fast Emacs has started.
 ** Blackout
 For keeping mode line clean.
 #+begin_src emacs-lisp
-  (use-package blackout)
+  (use-package blackout
+    :ensure t)
 #+end_src
 
 ** General
@@ -53,23 +54,15 @@ There is also ~use-package~ integration for all of these functions and they are:
 [[https://github.com/noctuid/general.el#general-keyword][:ghook]] and [[https://github.com/noctuid/general.el#general-keyword][:gfhook]] for ~general-add-hook~
 
 #+BEGIN_SRC emacs-lisp
-  (use-package general)
-#+END_SRC
-
-** Garbage collector magic hack
-What the title says.
-#+BEGIN_SRC emacs-lisp
-  (use-package gcmh
-    :config
-    (gcmh-mode 1)
-    (setq gcmh-idle-delay 5)
-    (blackout 'gcmh-mode))
+  (use-package general
+    :ensure t)
 #+END_SRC
 
 ** no littering
 Helping me so that I don't have to configure Emacs not to clutter .emacs.d.
 #+begin_src emacs-lisp
   (use-package no-littering
+    :ensure t
     :demand t
     :config
     (no-littering-theme-backups)
