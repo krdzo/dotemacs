@@ -1023,8 +1023,8 @@ Smart paren I'm using to pair characters like quotes.
     :after meow
     :config
     (meow-define-keys 'normal
-      '("s" . expreg-expand)
-      '("S" . expreg-contract)))
+      '("w" . expreg-expand)
+      '("W" . expreg-contract)))
 #+end_src
 
 *** Embrace
@@ -1123,9 +1123,6 @@ and the second filter to the completion-style filtering (?).
       [remap project-list-buffers] 'consult-project-buffer
       "C-s" 'consult-line)
 
-    (setq consult-buffer-sources (remove 'consult--source-recent-file consult-buffer-sources))
-    (add-to-list 'consult-buffer-sources 'consult--source-recent-file t)
-
     (general-def mode-specific-map
       "bB" 'consult-buffer-other-window
       "bf" 'consult-focus-lines
@@ -1187,7 +1184,8 @@ and the second filter to the completion-style filtering (?).
     :hook prog-mode-hook
     :config
     (add-to-list 'copilot-enable-predicates 'meow-insert-mode-p)
-    (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion))
+    (general-def 'copilot-completion-map
+      "<tab>" 'copilot-accept-completion))
 #+end_src
 
 * Apps
@@ -1570,26 +1568,27 @@ Closely related to =org-mode= but not really so it goes here with org mode
 
 ** dape
 #+begin_src emacs-lisp
-  (unless (package-installed-p 'dape)
-    (package-vc-install "https://github.com/svaante/dape"))
   (use-package dape
     :after meow
-    :init
-    (setq dape-debug t)
-    :commands (dape)
+    :commands (dape dape-breakpoint-toggle)
+    :preface
+    (setq dape-key-prefix (kbd "C-c D"))
+    :general
+    ("C-c D D" 'dape
+     "C-c D b" 'dape-breakpoint-toggle)
     :config
-    ;; integrate dape with meow
+    ;;; integrate dape with meow
     (meow-define-state dape
       "meow for dape repl context"
       :lighter " [DB]"
-      :keymap dape-info-stack-mode-map)
+      :keymap dape-global-map)
     (add-to-list 'meow-mode-state-list '(dape-repl-mode . dape))
-
+    ;; we disable repeat mode for dape commands because of meow
     (dolist (cmd dape-global-map)
       (unless (eq cmd 'keymap)
         (put (cdr cmd) 'repeat-map nil)))
 
-    ;; run go test
+    ;;; run go test
     (setq dape-inlay-hints t)
     (setf (alist-get 'go-test dape-configs)
           `(modes (go-mode go-ts-mode)
@@ -1746,7 +1745,10 @@ Seting ~sbcl~ to be default interpreter for lisp.
     :ensure-system-package
     ((goimports . "go install golang.org/x/tools/cmd/goimports@latest"))
     :config
-    (setq go-ts-mode-indent-offset 4))
+    (setq go-ts-mode-indent-offset 4)
+    (add-hook 'go-ts-mode-hook
+              (lambda ()
+                (setq-local compile-command "go run main.go "))))
 #+end_src
 
 *** Yaml
