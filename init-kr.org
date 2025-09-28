@@ -397,16 +397,6 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
   (save-place-mode 1)
 #+end_src
 
-** COMMENT Configurating so-long.el
-When emacs load files with long lines it can block or crash so this minor mode
-is there to prevent it from doing that.
-
-#+begin_src emacs-lisp
-  (setq-default bidi-paragraph-direction 'left-to-right)
-  (setq bidi-inhibit-bpa t)
-  (global-so-long-mode 1)
-#+end_src
-
 ** File registers
 *** Open config
 
@@ -418,7 +408,7 @@ is there to prevent it from doing that.
 ** Written Languages
 
 *** Input method
-I making a custom input method for Serbian language because all the other methods that exist are stupid.
+I making a custom input method for written language.
 [[https://satish.net.in/20160319/][Reference how to make custom input method]].
 
 #+begin_src emacs-lisp
@@ -635,43 +625,6 @@ This is maybe the most important variable to set, it makes ~switch-to-buffer~ ob
           (unless (cdr (assq 'inhibit-switch-frame alist))
             (window--maybe-raise-frame (window-frame window)))))))
 #+end_src
-
-** COMMENT tab-bar-mode
-Enable ~tab-bar-mode~. It helps us to keep window configurations under control.
-#+begin_src emacs-lisp
-  (tab-bar-mode 1)
-#+end_src
-
-** COMMENT Per project WM/tab
-Next we create a ~display-buffer-alist~ rule so thet we group project buffers by tabs. All buffers of one project go to one tab and that tab is automatically created when we open the first buffer of a project.
-#+begin_src emacs-lisp
-  (defvar kr-package-icon "🗃")
-
-  (add-to-list 'display-buffer-alist
-               '(mp-buffer-has-project-p
-                 (display-buffer-in-tab display-buffer-reuse-window)
-                 (tab-name . kr-project-tab-name)))
-
-  (defun mp-buffer-has-project-p (buffer action)
-    "Check if a buffer is belonging to a project."
-    (with-current-buffer buffer (project-current nil)))
-
-  (defun kr-project-tab-name (buffer alist)
-      "If `tab-bar-mode' is enabled and we are in a project
-  then set the tab name to project root directory name."
-      (with-current-buffer buffer
-            (concat kr-package-icon " " (kr-project-name))))
-
-  (autoload #'project-root "project")
-  (defun kr-project-name ()
-    "Return project name.
-  Projects name is the same as the name of the projects parent direcotry."
-    (file-name-nondirectory
-         (directory-file-name (project-root (project-current nil)))))
-
-  (advice-add 'project-kill-buffers :after #'tab-close)
-#+end_src
-
 ** toggle window select
 Function that toggles if a window can be selected with ~~other-window~ =C-x o= function.
 #+begin_src emacs-lisp
@@ -770,7 +723,9 @@ Used for filtering candidates
     (vertico-multiform-mode 1)
 
     (setq vertico-multiform-commands
-          '((xref-find-definitions buffer)
+          '((consult-ripgrep buffer)
+            (xref-find-definitions buffer)
+            (xref-find-references buffer)
             (consult-xref buffer)
             (consult-imenu buffer)))
 
@@ -880,20 +835,7 @@ corfu config:
     :config
     (if kr-mac-p
         (load-theme 'doom-oceanic-next t)
-      (load-theme 'doom-xcode t))
-
-    ;; global-hl-line-mode and region have the same color so i change it here
-    ;; (set-face-attribute 'region nil :background "#454545")
-    (set-face-attribute 'secondary-selection nil :background "#151A2D")
-    ;; (set-face-attribute 'highlight nil :background "#454545")
-
-    ;; tab-bar-mode face
-    (set-face-attribute 'tab-bar nil :background "#1e2029")
-    (set-face-attribute 'tab-bar-tab nil
-                        :foreground "#ffffff"
-                        :background "#282a36"
-                        :overline "gray90"
-                        :box nil))
+      (load-theme 'tsdh-dark t)))
 #+end_src
 
 ** Start-up maximized
@@ -955,6 +897,8 @@ alternative package ~undo-hl~.
 #+begin_src emacs-lisp
   (use-package mini-frame
     :config
+    (add-to-list 'mini-frame-ignore-commands 'consult-ripgrep)
+    (add-to-list 'mini-frame-ignore-commands 'xref-find-references)
     (custom-set-variables
      '(mini-frame-show-parameters
      '((top . 20)
