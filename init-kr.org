@@ -729,9 +729,6 @@ Used for filtering candidates
             (consult-xref buffer)
             (consult-imenu buffer)))
 
-    (setq vertico-multiform-categories
-          '((xref buffer)))
-
     (add-hook 'minibuffer-setup-hook #'vertico-repeat-save)
     (add-hook 'rfn-eshadow-update-overlay-hook 'vertico-directory-tidy) ; Correct file path when changed)
 
@@ -892,10 +889,11 @@ alternative package ~undo-hl~.
 
 * UX
 
-** mini frame
+** COMMENT mini frame
 
 #+begin_src emacs-lisp
   (use-package mini-frame
+    :disabled t
     :config
     (add-to-list 'mini-frame-ignore-commands 'consult-ripgrep)
     (add-to-list 'mini-frame-ignore-commands 'xref-find-references)
@@ -1518,9 +1516,10 @@ Closely related to =org-mode= but not really so it goes here with org mode
     :preface
     (setq dape-key-prefix (kbd "C-c D"))
     :general
-    ("C-c D D" 'dape
-     "C-c D b" 'dape-breakpoint-toggle)
+    ("C-c D b" 'dape-breakpoint-toggle)
     :config
+    (general-def 'dape-global-map
+      "D" 'dape)
     ;;; integrate dape with meow
     (meow-define-state dape
       "meow for dape repl context"
