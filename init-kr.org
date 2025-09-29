@@ -676,17 +676,10 @@ Prescient is only used for sorting candidates
 
   (use-package corfu-prescient
     :config
-    (setq corfu-prescient-override-sorting t)
-    (setq corfu-prescient-enable-filtering t)
-    (add-to-list 'corfu-prescient-completion-category-overrides
-                 '(eglot
-                   (styles prescient basic)))
-
     (corfu-prescient-mode 1))
 
   (use-package vertico-prescient
     :config
-    (setq vertico-prescient-override-sorting t)
     (setq vertico-prescient-enable-filtering nil)
     (vertico-prescient-mode 1))
 #+end_src
