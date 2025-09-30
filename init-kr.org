@@ -661,7 +661,10 @@ Enable =tab= completion
 #+end_src
 
 #+begin_src emacs-lisp
-  (setq completion-styles '(basic partial-completion))
+  (setq completion-styles '(basic partial-completion flex))
+
+  (setq completion-ignore-case t)
+  (setq read-buffer-completion-ignore-case t)
 #+end_src
 
 ** Prescient
@@ -736,9 +739,9 @@ Used for filtering candidates
                          "#65737E"))
 #+end_src
 
-** corfu
+** corfu and cape
 
-corfu config:
+corfu
 #+begin_src emacs-lisp
   (use-package corfu
     :config
@@ -762,7 +765,7 @@ corfu config:
       "C-p" 'corfu-previous))
 #+end_src
 
-** cape
+cape
 #+begin_src emacs-lisp
   (use-package cape
     :config
