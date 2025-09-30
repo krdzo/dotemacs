@@ -36,11 +36,9 @@ I like to know how fast Emacs has started.
                          gcs-done)))
 #+end_src
 
-** Blackout
-For keeping mode line clean.
+** Delight
 #+begin_src emacs-lisp
-  (use-package blackout
-    :ensure t)
+  (use-package delight)
 #+end_src
 
 ** General
@@ -781,8 +779,9 @@ corfu config:
 
 ** abbrev
 #+begin_src emacs-lisp
-    (with-eval-after-load 'abbrev
-      (blackout 'abbrev-mode))
+  (use-package abbrev
+    :ensure nil
+    :delight)
 #+end_src
 
 * UI
@@ -1091,7 +1090,7 @@ and the second filter to the completion-style filtering (?).
     :vc (:url "https://github.com/copilot-emacs/copilot.el"
               :rev :newest
               :branch "main")
-    :hook prog-mode-hook
+    :commands copilot-mode
     :config
     (add-to-list 'copilot-enable-predicates 'meow-insert-mode-p)
     (general-def 'copilot-completion-map
