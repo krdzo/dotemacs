@@ -1464,12 +1464,33 @@ Closely related to =org-mode= but not really so it goes here with org mode
 
 * Programming
 
+** env
+
+#+begin_src emacs-lisp
+  (setenv "JAVA_HOME" "/usr/lib/jvm/java-latest-openjdk")
+#+end_src
+
+** compile
+
+#+begin_src emacs-lisp
+  (use-package compile
+    :ensure nil
+    :config
+    (setq compilation-scroll-output t))
+#+end_src
+
 ** eglot
 #+begin_src emacs-lisp
   (add-hook 'special-mode-hook 'visual-line-mode)
+
+  (defun kr-eglot-format-buffer ()
+    (call-interactively #'eglot-format-buffer))
+
   (use-package eglot
-    :hook ((go-ts-mode-hook typescript-mode-hook js-mode-hook rust-mode-hook) . eglot-ensure)
     :config
+    (add-hook 'eglot-managed-mode-hook
+              (lambda () (add-hook 'before-save-hook #'kr-eglot-format-buffer nil t)))
+
     (set-face-attribute 'eglot-highlight-symbol-face nil :background nil :underline "#f8f8f8")
     (general-def 'eglot-mode-map
       "C-z l r r" 'eglot-rename
@@ -1530,12 +1551,9 @@ Closely related to =org-mode= but not really so it goes here with org mode
 ** treesit
 #+begin_src emacs-lisp
   (use-package treesit-auto
-    :custom
-    (treesit-auto-install 'prompt)
     :config
+    (setopt treesit-auto-install 'prompt)
     (setq treesit-font-lock-level 4)
-    (setq treesit-auto-langs
-          '(bash c cpp cmake go gomod dockerfile markdown tsx typescript html css javascript json yaml))
     (treesit-auto-add-to-auto-mode-alist 'all)
     (global-treesit-auto-mode))
 #+end_src
@@ -1546,18 +1564,15 @@ Formating code buffers on save.
 
 #+begin_src emacs-lisp
   (use-package apheleia
-    :hook (js-mode-hook go-ts-mode-hook)
+    :defer t
     :config
-    (unless (executable-find "goimports")
-      (error "no goimports found"))
     ;; setup goimports to work only on the current file
     ;; this way the formating is much faster
     (setf (alist-get 'goimports apheleia-formatters)
           '("goimports" "-srcdir" filepath))
 
     ;; use `goimpors' to format instad of `gofmt'
-    ;; `gofmt' doesn't sort and format imports so I
-    ;; don't like to use it
+    ;; `gofmt' doesn't sort and format imports
     (setf (alist-get 'go-ts-mode apheleia-mode-alist)
           'goimports))
 #+end_src
@@ -1630,14 +1645,17 @@ Seting ~sbcl~ to be default interpreter for lisp.
     (push 'sly-repl-ansi-color sly-contribs))
 #+end_src
 
-*** JavaScript
+*** JS/TS
+
+JavaScript
 #+begin_src emacs-lisp
   (setq js-indent-level 2)
 #+end_src
 
-*** TypeScript
+TypeScript
 #+begin_src emacs-lisp
   (use-package typescript-mode
+    :hook ((typescript-mode-hook js-mode-hook) . eglot-ensure)
     :config
     (add-hook 'typescript-mode-hook #'apheleia-mode)
     (setq typescript-indent-level 2))
@@ -1661,6 +1679,7 @@ Seting ~sbcl~ to be default interpreter for lisp.
 *** Golang
 #+begin_src emacs-lisp
   (use-package go-ts-mode
+    :hook (go-ts-mode-hook . eglot-ensure)
     :ensure-system-package
     ((goimports . "go install golang.org/x/tools/cmd/goimports@latest"))
     :config
@@ -1693,6 +1712,22 @@ Seting ~sbcl~ to be default interpreter for lisp.
 *** Docker
 #+begin_src emacs-lisp
   (use-package dockerfile-mode)
+#+end_src
+
+*** Scala
+
+#+begin_src emacs-lisp
+  (use-package scala-ts-mode
+    :hook (scala-ts-mode-hook . eglot-ensure)
+    :interpreter ("scala" . scala-ts-mode)
+    :config
+    (add-hook 'scala-ts-mode-hook
+                (lambda ()
+                  (setq-local compile-command "scala run ")))
+    (with-eval-after-load 'eglot
+      (add-to-list 'eglot-server-programs
+                   `((scala-mode scala-ts-mode)
+                     . ,(alist-get 'scala-mode eglot-server-programs)))))
 #+end_src
 
 * meow
