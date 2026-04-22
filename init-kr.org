@@ -6,6 +6,8 @@
 
 Add Melpa
 #+begin_src emacs-lisp
+  ;; -*- lexical-binding: t; -*-
+
   (require 'package)
   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
   (package-initialize)
@@ -654,7 +656,7 @@ Open sly-db window below sly-mrepl window
 #+end_src
 
 * Completion framework
-** compleiton-style
+** compleiton
 Enable =tab= completion
 #+begin_src emacs-lisp
   (setq tab-always-indent 'complete)
@@ -662,9 +664,20 @@ Enable =tab= completion
 
 #+begin_src emacs-lisp
   (setq completion-styles '(basic partial-completion flex))
-
   (setq completion-ignore-case t)
   (setq read-buffer-completion-ignore-case t)
+
+
+  (add-to-list 'completion-category-overrides
+               '(eglotcapf (styles basic partial-completion substring flex)))
+#+end_src
+
+Minibuffer
+
+#+begin_src emacs-lisp
+  (setq read-extended-command-predicate
+        #'command-completion-default-include-p)
+  (setq enable-recursive-minibuffers t)
 #+end_src
 
 ** Prescient
@@ -700,12 +713,10 @@ Used for filtering candidates
   (use-package vertico
     :config
     (vertico-mode 1)
-
     (vertico-mouse-mode 1)
+    (vertico-multiform-mode 1)
 
     (setq vertico-cycle t)
-
-    (vertico-multiform-mode 1)
 
     (setq vertico-multiform-commands
           '((consult-ripgrep buffer)
@@ -729,11 +740,6 @@ Used for filtering candidates
     (general-def 'vertico-reverse-map
       "C-k" 'vertico-next
       "C-j" 'vertico-previous)
-
-    (setq read-extended-command-predicate
-          #'command-completion-default-include-p)
-
-    (setq enable-recursive-minibuffers t)
 
     (set-face-foreground 'vertico-group-title
                          "#65737E"))
@@ -1078,28 +1084,6 @@ and the second filter to the completion-style filtering (?).
       "s-<mouse-1>" 'xref-find-references-at-mouse))
 #+end_src
 
-#+begin_src emacs-lisp
-  (unless (package-installed-p 'empx)
-    (package-vc-install "https://github.com/ISouthRain/empx"))
-  (use-package empx
-    :disabled
-    :config
-    (empx-mode 1))
-#+end_src
-
-** ai assistent
-#+begin_src emacs-lisp
-  (use-package copilot
-    :vc (:url "https://github.com/copilot-emacs/copilot.el"
-              :rev :newest
-              :branch "main")
-    :commands copilot-mode
-    :config
-    (add-to-list 'copilot-enable-predicates 'meow-insert-mode-p)
-    (general-def 'copilot-completion-map
-      "<tab>" 'copilot-accept-completion))
-#+end_src
-
 * Apps
 General TUI apps that are emacs.
 
@@ -1406,15 +1390,6 @@ Closely related to =org-mode= but not really so it goes here with org mode
     (setq olivetti-body-width 90))
 #+end_src
 
-** COMMENT Hyperbole
-#+begin_src emacs-lisp
-  (straight-use-package 'hyperbole)
-  (hyperbole-mode 1)
-
-  (general-def
-    "C-h C-h" 'hyperbole)
-#+end_src
-
 ** man
 #+begin_src emacs-lisp
 
@@ -1428,15 +1403,6 @@ Closely related to =org-mode= but not really so it goes here with org mode
 
     (general-def
       [remap list-buffers] 'ibuffer)
-#+end_src
-
-** wgrep
-#+begin_src emacs-lisp
-  (use-package wgrep
-    :config
-    (require 'wgrep)
-
-    (set-face-background 'wgrep-face "#B6268"))
 #+end_src
 
 ** Project
@@ -1492,6 +1458,9 @@ Closely related to =org-mode= but not really so it goes here with org mode
               (lambda () (add-hook 'before-save-hook #'kr-eglot-format-buffer nil t)))
 
     (set-face-attribute 'eglot-highlight-symbol-face nil :background nil :underline "#f8f8f8")
+
+    (setopt eglot-extend-to-xref t)
+
     (general-def 'eglot-mode-map
       "C-z l r r" 'eglot-rename
       "C-z h" 'eldoc-box-help-at-point)
@@ -1691,10 +1660,9 @@ TypeScript
 
 *** Yaml
 #+begin_src emacs-lisp
-  (use-package yaml-mode
-    :config
-    (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode))
-    (add-hook 'yaml-mode-hook #'display-line-numbers-mode))
+  (use-package yaml-ts-mode
+    :ensure nil
+    :hook (yaml-ts-mode-hoook . display-line-numbers-mode))
 #+end_src
 
 *** Jenkins
