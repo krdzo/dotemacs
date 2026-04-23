@@ -820,11 +820,13 @@ cape
 
 #+begin_src emacs-lisp
   (use-package doom-themes
-    :demand t
+    :disabled t
     :config
     (if kr-mac-p
-        (load-theme 'doom-oceanic-next t)
+        (load-theme 'misterioso t)
       (load-theme 'tsdh-dark t)))
+
+  (load-theme 'misterioso t)
 #+end_src
 
 ** Start-up maximized
@@ -876,7 +878,11 @@ show what on what region undo works
 
 ** Highlight line
 #+begin_src emacs-lisp
-  (global-hl-line-mode 1)
+  (use-package hl-line
+    :ensure nil
+    :config
+    (global-hl-line-mode 1)
+    (set-face-background 'hl-line "#323c47"))
 #+end_src
 
 * UX
@@ -1519,12 +1525,11 @@ Closely related to =org-mode= but not really so it goes here with org mode
 
 ** treesit
 #+begin_src emacs-lisp
-  (use-package treesit-auto
+  (use-package treesit
+    :ensure nil
     :config
-    (setopt treesit-auto-install 'prompt)
-    (setq treesit-font-lock-level 4)
-    (treesit-auto-add-to-auto-mode-alist 'all)
-    (global-treesit-auto-mode))
+    (setopt treesit-enabled-modes '()) ;; add to list to enable ts modes
+    (setopt treesit-font-lock-level 4))
 #+end_src
 
 ** Formating
@@ -1628,16 +1633,6 @@ TypeScript
     :config
     (add-hook 'typescript-mode-hook #'apheleia-mode)
     (setq typescript-indent-level 2))
-#+end_src
-
-*** JSON
-
-#+begin_src emacs-lisp
-  (use-package jsonian
-    :config
-    (with-eval-after-load 'eglot
-      (add-to-list 'eglot-server-programs
-                   `(jsonian-mode . ,(eglot-alternatives '(("vscode-json-language-server" "--stdio") ("json-languageserver" "--stdio")))))))
 #+end_src
 
 *** terraform
