@@ -499,7 +499,6 @@ Setup PATH and other env varables.
   (use-package exec-path-from-shell
     :if (memq window-system '(mac ns))
     :config
-
     (setq exec-path-from-shell-arguments '("-l"))
     (when (memq window-system '(mac ns))
       (dolist (var '("NPM_TOKEN" "NVM_DIR" "INFOPATH"))
@@ -663,39 +662,23 @@ Enable =tab= completion
 #+end_src
 
 #+begin_src emacs-lisp
-  (setq completion-styles '(basic partial-completion flex))
+  (setq completion-styles '(partial-completion flex))
   (setq completion-ignore-case t)
   (setq read-buffer-completion-ignore-case t)
+  (setq read-file-name-completion-ignore-case t)
 
 
   (add-to-list 'completion-category-overrides
-               '(eglotcapf (styles basic partial-completion substring flex)))
+               '(eglot-capf (styles basic partial-completion substring flex)))
 #+end_src
 
 Minibuffer
 
 #+begin_src emacs-lisp
+  (savehist-mode 1)
   (setq read-extended-command-predicate
         #'command-completion-default-include-p)
   (setq enable-recursive-minibuffers t)
-#+end_src
-
-** Prescient
-Prescient is only used for sorting candidates
-#+begin_src emacs-lisp
-  (use-package prescient
-    :config
-    (setq prescient-filter-method '(literal prefix literal-prefix regexp fuzzy))
-    (prescient-persist-mode 1))
-
-  (use-package corfu-prescient
-    :config
-    (corfu-prescient-mode 1))
-
-  (use-package vertico-prescient
-    :config
-    (setq vertico-prescient-enable-filtering nil)
-    (vertico-prescient-mode 1))
 #+end_src
 
 ** orderless
@@ -703,9 +686,9 @@ Used for filtering candidates
 #+begin_src emacs-lisp
   (use-package orderless
     :ensure t
-    :custom
-    (completion-styles '(orderless basic))
-    (completion-category-overrides '((file (styles basic partial-completion)))))
+    :config
+    (add-to-list 'completion-styles 'orderless)
+    (add-to-list 'completion-category-overrides '(file (styles basic partial-completion))))
 #+end_src
 
 ** Vertico
@@ -761,6 +744,8 @@ corfu
     (setopt global-corfu-minibuffer nil)
 
     (global-corfu-mode 1)
+    (corfu-history-mode 1)
+    (setq corfu-sort-override-function corfu-sort-function)
 
     (general-def 'corfu-map
       "S-SPC" 'corfu-insert-separator
@@ -776,21 +761,6 @@ cape
   (use-package cape
     :config
     (add-hook 'completion-at-point-functions #'cape-file))
-#+end_src
-
-** dabbrev
-#+begin_src emacs-lisp
-    (setq dabbrev-case-replace nil)
-    (general-def
-      "M-/" 'dabbrev-completion
-      "C-M-/" 'dabbrev-expand)
-#+end_src
-
-** abbrev
-#+begin_src emacs-lisp
-  (use-package abbrev
-    :ensure nil
-    :delight)
 #+end_src
 
 * UI
@@ -827,6 +797,7 @@ cape
       (load-theme 'tsdh-dark t)))
 
   (load-theme 'misterioso t)
+  (set-face-attribute 'region nil :background "#036767")
 #+end_src
 
 ** Start-up maximized
@@ -1025,7 +996,8 @@ Smart paren I'm using to pair characters like quotes.
 #+BEGIN_SRC emacs-lisp
   (use-package marginalia
     :config
-    (marginalia-mode 1))
+    (marginalia-mode 1)
+    (setq marginalia-align 'right))
 #+END_SRC
 
 ** Consult
@@ -1455,15 +1427,16 @@ Closely related to =org-mode= but not really so it goes here with org mode
 #+begin_src emacs-lisp
   (add-hook 'special-mode-hook 'visual-line-mode)
 
-  (defun kr-eglot-format-buffer ()
-    (call-interactively #'eglot-format-buffer))
+
 
   (use-package eglot
     :config
     (add-hook 'eglot-managed-mode-hook
-              (lambda () (add-hook 'before-save-hook #'kr-eglot-format-buffer nil t)))
+              (lambda () (add-hook 'before-save-hook #'eglot-format nil t)))
 
-    (set-face-attribute 'eglot-highlight-symbol-face nil :background nil :underline "#f8f8f8")
+    (set-face-attribute 'eglot-highlight-symbol-face nil
+                        :background nil
+                        :underline "#f8f8f8")
 
     (setopt eglot-extend-to-xref t)
 
