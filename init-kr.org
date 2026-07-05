@@ -740,7 +740,7 @@ corfu
     (setq corfu-auto-delay 0.1)
     (setq corfu-max-width 50)
     (setq corfu-min-width corfu-max-width)
-    (setq corfu-preselect-first t)
+    (setopt corfu-preselect 'first)
     (setopt global-corfu-minibuffer nil)
 
     (global-corfu-mode 1)
@@ -1388,6 +1388,7 @@ Closely related to =org-mode= but not really so it goes here with org mode
   (use-package project
     :ensure nil
     :config
+    (setq save-some-buffers-default-predicate 'save-some-buffers-root)
     (setq frame-title-format project-mode-line-format)
     (setq project-vc-extra-root-markers '("go.mod" "requirements.txt"))
 
@@ -1420,6 +1421,7 @@ Closely related to =org-mode= but not really so it goes here with org mode
   (use-package compile
     :ensure nil
     :config
+    (setq compilation-ask-about-save nil)
     (setq compilation-scroll-output t))
 #+end_src
 
@@ -1630,7 +1632,7 @@ TypeScript
 #+begin_src emacs-lisp
   (use-package yaml-ts-mode
     :ensure nil
-    :hook (yaml-ts-mode-hoook . display-line-numbers-mode))
+    :hook (yaml-ts-mode-hook . display-line-numbers-mode))
 #+end_src
 
 *** Jenkins
@@ -1660,10 +1662,22 @@ TypeScript
     (add-hook 'scala-ts-mode-hook
                 (lambda ()
                   (setq-local compile-command "scala run ")))
+
+*** Typst
+#+begin_src emacs-lisp
+  (use-package typst-ts-mode
+    :vc (:url "https://codeberg.org/meow_king/typst-ts-mode.git")
+    :hook (typst-ts-mode-hook . display-line-numbers-mode)
+    :custom
+    ;; (typst-ts-watch-options "--open")
+    ;; (typst-ts-mode-grammar-location (expand-file-name "tree-sitter/libtree-sitter-typst.so" user-emacs-directory))
+    (typst-ts-mode-enable-raw-blocks-highlight t)
+    :config
+    (setq typst-ts-indent-offset 2)
+    (keymap-set typst-ts-mode-map "C-c C-c" #'typst-ts-tmenu)
     (with-eval-after-load 'eglot
       (add-to-list 'eglot-server-programs
-                   `((scala-mode scala-ts-mode)
-                     . ,(alist-get 'scala-mode eglot-server-programs)))))
+                   `((typst-ts-mode) . ("tinymist")))))
 #+end_src
 
 * meow
@@ -1753,6 +1767,8 @@ Meow is a mode for modal edditing inpired by VIM.
      '("r" . meow-replace)
      '("R" . meow-swap-grab)
      '("P" . meow-sync-grab)
+
+     '("gr". recompile)
 
      '("@" . goto-line)
      '("z" . meow-pop-selection)
