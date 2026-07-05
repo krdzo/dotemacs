@@ -1318,7 +1318,7 @@ https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff
       "q" 'git-timemachine-quit))
 #+end_src
 
-*** brose at remote
+** brose at remote
 #+begin_src emacs-lisp
   (use-package browse-at-remote
     :config
