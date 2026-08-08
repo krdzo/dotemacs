@@ -1681,6 +1681,15 @@ Meow is a mode for modal edditing inpired by VIM.
           (puni-kill-region)
         (puni-kill-line)))
 
+  (defun kr-insert-enter-toggle ()
+    (setq tab-always-indent 'complete))
+  (add-hook 'meow-insert-enter-hook 'kr-insert-enter-toggle)
+
+  (defun kr-insert-exit-toggle ()
+    (setq tab-always-indent t))
+  (add-hook 'meow-insert-exit-hook 'kr-insert-exit-toggle)
+
+
   (defun meow-setup ()
     "My meow setup thats similar to evil/vim"
     (meow-motion-define-key
