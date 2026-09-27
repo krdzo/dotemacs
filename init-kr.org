@@ -72,7 +72,6 @@ Helping me so that I don't have to configure Emacs not to clutter .emacs.d.
 Help with discovery of keybindings.
 #+BEGIN_SRC emacs-lisp
   (use-package which-key
-    :blackout
     :config
     (setq which-key-idle-delay 0.5)
     (which-key-mode 1))
@@ -351,12 +350,6 @@ To debug a LISP function use ~debug-on-entry~. You step /in/ with =d= and /over/
 
 #+begin_src emacs-lisp
     (global-subword-mode 1)
-    (blackout 'subword-mode)
-#+end_src
-
-** Visual line mode
-#+begin_src emacs-lisp
-    (blackout 'visual-line-mode)
 #+end_src
 
 ** eldoc
@@ -812,7 +805,6 @@ show what on what region undo works
 
 #+begin_src emacs-lisp
   (use-package goggles
-    :blackout
     :hook ((prog-mode-hook text-mode-hook) . goggles-mode))
 #+end_src
 
@@ -1289,9 +1281,6 @@ https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff
        #b11100000
        #b11110000] nil nil 'bottom)
 
-    (with-eval-after-load 'git-gutter
-      (blackout 'git-gutter-mode))
-
     ;; setup repeat map for git-gutter
     (defvar kr-git-gutter-map
       (let ((keymap (make-sparse-keymap)))
@@ -1333,9 +1322,6 @@ https://github.com/jimeh/.emacs.d/blob/master/modules/version-control/siren-diff
   (setq org-return-follows-link t)
   (setq org-src-window-setup 'current-window)
   (setq org-html-validation-link nil)
-
-  (with-eval-after-load 'org-indent
-    (blackout 'org-indent-mode))
 
   (add-hook 'org-mode-hook #'abbrev-mode)
 
